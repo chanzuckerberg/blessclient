@@ -1,4 +1,5 @@
-export IAM_GROUPS=$(shell aws iam list-groups-for-user --user-name elopez@chanzuckerberg.com --output text --query "join(',', Groups[].GroupName)")
+export AWS_USERNAME=$(shell aws iam get-user --output text --query "User.UserName")
+export IAM_GROUPS=$(shell aws iam list-groups-for-user --user-name ${AWS_USERNAME} --output text --query "join(',', Groups[].GroupName)")
 export LATEST=$$LATEST
 
 
