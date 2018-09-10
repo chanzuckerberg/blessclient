@@ -13,6 +13,12 @@ type Lambda struct {
 }
 
 // NewLambda returns a Lambda client
-func NewLambda(s *session.Session) *Lambda {
-	return &Lambda{Svc: lambda.New(s, &aws.Config{})}
+func NewLambda(s *session.Session, region *string) *Lambda {
+	return &Lambda{Svc: lambda.New(s, &aws.Config{Region: region})}
+}
+
+// RequestCert requests a cert
+func (l *Lambda) RequestCert() {
+
+	input := &lambda.InvokeInput{}
 }

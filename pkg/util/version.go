@@ -9,12 +9,17 @@ import (
 )
 
 var (
+	// Version is the blessclient version
 	Version = "undefined"
-	GitSha  = "undefined"
+	// GitSha is the gitsha used to build this version
+	GitSha = "undefined"
+	// Release is true if this is a release
 	Release = "false"
-	Dirty   = "true"
+	// Dirty if git is dirty
+	Dirty = "true"
 )
 
+// VersionString returns the version string
 func VersionString() (string, error) {
 	release, e := strconv.ParseBool(Release)
 	if e != nil {
@@ -27,6 +32,7 @@ func VersionString() (string, error) {
 	return versionString(Version, GitSha, release, dirty), nil
 }
 
+// VersionCacheKey returns a key to version the cache
 func VersionCacheKey() string {
 	versionString, e := VersionString()
 	if e != nil {
