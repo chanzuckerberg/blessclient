@@ -131,8 +131,8 @@ func (tg *TokenGenerator) cacheToken(tokenCache *TokenCache) error {
 	return errors.Wrap(err, "Could not write token to cache")
 }
 
-// GetToken gets a token
-func (tg *TokenGenerator) GetToken() (*Token, error) {
+// getToken gets a token
+func (tg *TokenGenerator) getToken() (*Token, error) {
 	token, err := tg.getCachedToken()
 	if err != nil {
 		return nil, err
@@ -146,11 +146,12 @@ func (tg *TokenGenerator) GetToken() (*Token, error) {
 
 // GetEncryptedToken returns the encrypted kmsauth token
 func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
-	token, err := tg.GetToken()
+	token, err := tg.getToken()
 	if err != nil {
 		return nil, err
 	}
 
+	log.Warnf("Token: %#v", token)
 	tokenBytes, err := json.Marshal(token)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not marshal token")
@@ -161,6 +162,20 @@ func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
 		tokenBytes,
 		tg.AuthContext.GetKMSContext())
 
+	if err != nil {
+		return nil, err
+	}
+
 	encryptedToken := EncryptedToken(encryptedStr)
+
+	tokenCache := &TokenCache{
+		Token:          *token,
+		EncryptedToken: encryptedToken,
+		AuthContext:    tg.AuthContext.GetKMSContext(),
+	}
+	err = tg.cacheToken(tokenCache)
+	if err != nil {
+		return nil, err
+	}
 	return &encryptedToken, err
 }

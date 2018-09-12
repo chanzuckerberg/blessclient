@@ -19,8 +19,8 @@ type AuthContext interface {
 
 // AuthContextV1 is a kms encryption context used to ascertain a user's identiy
 type AuthContextV1 struct {
-	From string `json:"from,omitempty" validate:"required"`
-	To   string `json:"to,omitempty" validate:"required"`
+	From string `json:"from" validate:"required"`
+	To   string `json:"to" validate:"required"`
 }
 
 // Validate validates
@@ -47,9 +47,9 @@ func (ac *AuthContextV1) GetKMSContext() map[string]*string {
 
 // AuthContextV2 is a kms encryption context used to ascertain a user's identiy
 type AuthContextV2 struct {
-	From     string `json:"from,omitempty" validate:"required"`
-	To       string `json:"to,omitempty" validate:"required"`
-	UserType string `json:"user_type,omitempty" validate:"required"`
+	From     string `json:"from" validate:"required"`
+	To       string `json:"to" validate:"required"`
+	UserType string `json:"user_type" validate:"required"`
 }
 
 // Validate validates
@@ -85,7 +85,8 @@ type TokenTime struct {
 // MarshalJSON marshals into json
 func (t *TokenTime) MarshalJSON() ([]byte, error) {
 	formatted := t.Time.Format(TimeFormat)
-	return []byte(formatted), nil
+	stamp := fmt.Sprintf("\"%s\"", formatted)
+	return []byte(stamp), nil
 }
 
 // UnmarshalJSON unmarshals

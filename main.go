@@ -29,7 +29,9 @@ func exec() error {
 		},
 	}
 
-	sess, err := session.NewSession()
+	sess, err := session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	})
 	if err != nil {
 		return err
 	}

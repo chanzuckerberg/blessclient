@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:7554377bd9ac619dc896644dc7adaf9cc12b2e9b4ccc99f5fecc1177899a4073"
+  digest = "1:fd400d392a1a1983ed52ec0b622e560f193fb0e2447bbe3a03528e1de6f594f0"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -43,8 +43,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "56018901efd0b8084af1fb83b7e2604aba53f143"
-  version = "v1.15.31"
+  revision = "1186f7e6f000ce13edff71ed5ecc8b0e27ba38d7"
+  version = "v1.15.33"
 
 [[projects]]
   digest = "1:705c40022f5c03bf96ffeb6477858d88565064485a513abcd0f11a0911546cb6"
@@ -56,14 +56,14 @@
 
 [[projects]]
   branch = "edu/blessclient"
-  digest = "1:fa3be5255102b386b1074885e2bc892537975fc6189da95a1305618d0b345b42"
+  digest = "1:0b414fc08951aee50c9bd049196b818a44c2532bea6e5847bf9b263f42572a03"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "ab32103827f9da932b9b99f6afa06adb243603c7"
+  revision = "d69a7b57d140119422ea08d029cb379d878cf693"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
@@ -162,7 +162,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
