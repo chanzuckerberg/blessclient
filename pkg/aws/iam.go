@@ -17,14 +17,18 @@ func NewIAM(s *session.Session) *IAM {
 	return &IAM{Svc: iam.New(s)}
 }
 
-//GetUser gets the username for this aws user
-func (i *IAM) GetUser() (*iam.User, error) {
+//GetUsername gets the username for this aws user
+func (i *IAM) GetUsername() (string, error) {
 	output, err := i.Svc.GetUser(&iam.GetUserInput{})
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get user")
+		return "", errors.Wrap(err, `
+		Can't get your user information from AWS.
+		Either you don't have your AWS User credentials set up as [default] in ~/.aws/credentials
+		or something else is setting AWS credentials.
+		`)
 	}
 	if output == nil || output.User == nil || output.User.UserName == nil || output.User.Arn == nil {
-		return nil, errors.New("nil output returned from aws.iam.get_user")
+		return "", errors.New("Nil output returned from aws.iam.get_user")
 	}
-	return output.User, nil
+	return *output.User.UserName, nil
 }

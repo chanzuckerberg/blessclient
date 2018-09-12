@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:c6255f02d33e605e46e2c044cece00c026bd21809b1f95bf9af4e3be30f71140"
+  digest = "1:7554377bd9ac619dc896644dc7adaf9cc12b2e9b4ccc99f5fecc1177899a4073"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -36,6 +36,8 @@
     "private/protocol/xml/xmlutil",
     "service/iam",
     "service/iam/iamiface",
+    "service/kms",
+    "service/kms/kmsiface",
     "service/lambda",
     "service/lambda/lambdaiface",
     "service/sts",
@@ -53,12 +55,42 @@
   version = "v3.5.1"
 
 [[projects]]
+  branch = "edu/blessclient"
+  digest = "1:fa3be5255102b386b1074885e2bc892537975fc6189da95a1305618d0b345b42"
+  name = "github.com/chanzuckerberg/go-kmsauth"
+  packages = [
+    ".",
+    "kmsauth/aws",
+  ]
+  pruneopts = "UT"
+  revision = "ab32103827f9da932b9b99f6afa06adb243603c7"
+
+[[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
   name = "github.com/go-ini/ini"
   packages = ["."]
   pruneopts = "UT"
   revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
   version = "v1.38.2"
+
+[[projects]]
+  digest = "1:e1ff887e232b2d8f4f7c7db15a5fac7be418025afc4dda53c59c765dbb5aa6b4"
+  name = "github.com/go-playground/locales"
+  packages = [
+    ".",
+    "currency",
+  ]
+  pruneopts = "UT"
+  revision = "f63010822830b6fe52288ee52d5a1151088ce039"
+  version = "v0.12.1"
+
+[[projects]]
+  digest = "1:e022cf244bcac1b6ef933f1a2e0adcf6a6dfd7b872d8d41e4d4179bb09a87cbc"
+  name = "github.com/go-playground/universal-translator"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
+  version = "v0.16.0"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -134,25 +166,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:59446bac66fbdcedeb72bdb84982b947a948359d086c2f7babe53b7386d05a8a"
-  name = "golang.org/x/exp"
-  packages = ["shiny/text"]
-  pruneopts = "UT"
-  revision = "e88728d35e99800368f4acc0969018db6b0d3dd5"
-
-[[projects]]
-  branch = "master"
-  digest = "1:9ad20acf690cdd6d8e6111a44f6da281ed8992e03119163fe7f10bf261a79cec"
-  name = "golang.org/x/image"
-  packages = [
-    "font",
-    "math/fixed",
-  ]
-  pruneopts = "UT"
-  revision = "c73c2afc3b812cdd6385de5a50616511c4a3d458"
-
-[[projects]]
-  branch = "master"
   digest = "1:374fc90fcb026e9a367e3fad29e988e5dd944b68ca3f24a184d77abc5307dda4"
   name = "golang.org/x/sys"
   packages = [
@@ -161,6 +174,14 @@
   ]
   pruneopts = "UT"
   revision = "d0be0721c37eeb5299f245a996a483160fc36940"
+
+[[projects]]
+  digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
+  name = "gopkg.in/go-playground/validator.v9"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e69e9a28bb62b977fdc58d051f1bb477b7cbe486"
+  version = "v9.21.0"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -174,14 +195,12 @@
     "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/aws/aws-sdk-go/service/lambda/lambdaiface",
     "github.com/blang/semver",
+    "github.com/chanzuckerberg/go-kmsauth",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh",
-    "golang.org/x/exp/shiny/text",
-    "golang.org/x/image/font",
-    "golang.org/x/image/math/fixed",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

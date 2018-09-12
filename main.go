@@ -1,76 +1,48 @@
 package main
 
 import (
-	"fmt"
-	"image"
-	"os"
-
-	"golang.org/x/exp/shiny/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	"github.com/aws/aws-sdk-go/aws/session"
+	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
+	"github.com/chanzuckerberg/blessclient/pkg/config"
+	log "github.com/sirupsen/logrus"
 )
 
-// toyFace implements the font.Face interface by measuring every rune's width
-// as 1 pixel.
-type toyFace struct{}
-
-func (toyFace) Close() error {
-	return nil
-}
-
-func (toyFace) Glyph(dot fixed.Point26_6, r rune) (image.Rectangle, image.Image, image.Point, fixed.Int26_6, bool) {
-	panic("unimplemented")
-}
-
-func (toyFace) GlyphBounds(r rune) (fixed.Rectangle26_6, fixed.Int26_6, bool) {
-	panic("unimplemented")
-}
-
-func (toyFace) GlyphAdvance(r rune) (fixed.Int26_6, bool) {
-	return fixed.I(1), true
-}
-
-func (toyFace) Kern(r0, r1 rune) fixed.Int26_6 {
-	return 0
-}
-
-func (toyFace) Metrics() font.Metrics {
-	return font.Metrics{}
-}
-
-func printFrame(f *text.Frame, softReturnsOnly bool) {
-	for p := f.FirstParagraph(); p != nil; p = p.Next(f) {
-		for l := p.FirstLine(f); l != nil; l = l.Next(f) {
-			for b := l.FirstBox(f); b != nil; b = b.Next(f) {
-				if softReturnsOnly {
-					os.Stdout.Write(b.TrimmedText(f))
-				} else {
-					os.Stdout.Write(b.Text(f))
-				}
-			}
-			if softReturnsOnly {
-				fmt.Println()
-			}
-		}
+func main() {
+	err := exec()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func main() {
-	var f text.Frame
-	f.SetFace(toyFace{})
-	f.SetMaxWidth(fixed.I(60))
+func exec() error {
+	config := &config.Config{
+		ClientConfig: config.ClientConfig{
+			CacheDir:  "~/.blessclient",
+			CacheFile: "cache.json",
+		},
+		Regions: []config.Region{
+			{
+				Name:         "shared-infra-prod-bless",
+				AWSRegion:    "us-west-2",
+				KMSAuthKeyID: "arn:aws:kms:us-west-2:416703108729:key/fe4c9d09-5006-4cb3-bb48-8b98476d3600",
+			},
+		},
+	}
 
-	c := f.NewCaret()
-	c.WriteString(mobyDick)
-	c.Close()
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
+	}
 
-	fmt.Println("====")
-	printFrame(&f, false)
-	fmt.Println("====")
-	fmt.Println("123456789_123456789_123456789_123456789_123456789_123456789_")
-	printFrame(&f, true)
-	fmt.Println("====")
+	client, err := bless.New(config, sess)
+	if err != nil {
+		return err
+	}
 
+	token, err := client.RequestKMSAuthToken()
+	if err != nil {
+		return err
+	}
+	log.Warnf("Got token %#v", token)
+	return nil
 }
-
-const mobyDick = "CHAPTER 1. Loomings.\nCall me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world...\n"
