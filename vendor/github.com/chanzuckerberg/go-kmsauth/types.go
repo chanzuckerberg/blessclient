@@ -2,6 +2,7 @@ package kmsauth
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -96,6 +97,8 @@ func (t *TokenTime) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals
 func (t *TokenTime) UnmarshalJSON(b []byte) error {
 	s := string(b)
+	// Unmarshal gives us back a string that looks like "<some_time>". Get rid of the quotes
+	s = strings.Trim(s, "\"")
 	parsed, err := time.Parse(TimeFormat, s)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Could not parse time %s", s))

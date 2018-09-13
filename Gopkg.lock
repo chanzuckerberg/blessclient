@@ -57,14 +57,14 @@
 
 [[projects]]
   branch = "edu/blessclient"
-  digest = "1:af8e6c350d699b28e70435dc606666989686092c35ff530c9087d8ee14a7064d"
+  digest = "1:a14ec15dfe0fb4d43748720a6f03d37f95e376521be873558cebb517d76e7700"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "4d0566d9e7cc0057a5c4c5c5f42546e76672f902"
+  revision = "5fb28ccafe59feb13dd5fed980dac9a82018de47"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
