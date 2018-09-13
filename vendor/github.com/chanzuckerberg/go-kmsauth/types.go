@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -68,11 +69,14 @@ func (ac *AuthContextV2) GetUsername() string {
 
 // GetKMSContext gets the kms context
 func (ac *AuthContextV2) GetKMSContext() map[string]*string {
-	return map[string]*string{
-		"from": &ac.From,
-		"to":   &ac.To,
-		"user": &ac.UserType,
+	context := map[string]*string{
+		"from":      &ac.From,
+		"to":        &ac.To,
+		"user_type": &ac.UserType,
 	}
+
+	spew.Dump(context)
+	return context
 }
 
 // ------------- Token --------------

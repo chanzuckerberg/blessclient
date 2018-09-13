@@ -10,6 +10,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/go-kmsauth"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // Client is a bless client
@@ -27,6 +28,7 @@ func New(conf *config.Config, sess *session.Session) (*Client, error) {
 		// TODO this could have a more informative user error
 		return nil, err
 	}
+	log.Warnf("username: %s", username)
 	// TODO: just using the first region for now...
 	authContext := &kmsauth.AuthContextV2{
 		From:     username,
@@ -42,7 +44,6 @@ func New(conf *config.Config, sess *session.Session) (*Client, error) {
 		&cacheFile,
 		authContext,
 	)
-
 	return &Client{conf: conf, tokenGenerator: tokenGenerator}, nil
 }
 

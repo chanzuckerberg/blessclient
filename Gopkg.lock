@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:fd400d392a1a1983ed52ec0b622e560f193fb0e2447bbe3a03528e1de6f594f0"
+  digest = "1:d76285c816105ef3436d2b041f054fa90f2ce75ed77a438b5a57cefc5482f66d"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -41,10 +41,11 @@
     "service/lambda",
     "service/lambda/lambdaiface",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "1186f7e6f000ce13edff71ed5ecc8b0e27ba38d7"
-  version = "v1.15.33"
+  revision = "10d5f1478e28a17062fd79617a8022f5499462d5"
+  version = "v1.15.34"
 
 [[projects]]
   digest = "1:705c40022f5c03bf96ffeb6477858d88565064485a513abcd0f11a0911546cb6"
@@ -56,14 +57,22 @@
 
 [[projects]]
   branch = "edu/blessclient"
-  digest = "1:0b414fc08951aee50c9bd049196b818a44c2532bea6e5847bf9b263f42572a03"
+  digest = "1:fe64f83a87a65f31fd23b1517ba0b89c9b438b2ae4e791514bba26ea9fe34fce"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "d69a7b57d140119422ea08d029cb379d878cf693"
+  revision = "f9ae600ef533e96a2b8802e7bce420045de04006"
+
+[[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
@@ -194,6 +203,8 @@
     "github.com/aws/aws-sdk-go/service/iam/iamiface",
     "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/aws/aws-sdk-go/service/lambda/lambdaiface",
+    "github.com/aws/aws-sdk-go/service/sts",
+    "github.com/aws/aws-sdk-go/service/sts/stsiface",
     "github.com/blang/semver",
     "github.com/chanzuckerberg/go-kmsauth",
     "github.com/mitchellh/go-homedir",

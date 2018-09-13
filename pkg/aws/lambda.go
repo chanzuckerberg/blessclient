@@ -2,7 +2,7 @@ package aws
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/lambda/lambdaiface"
 	"github.com/pkg/errors"
@@ -14,8 +14,8 @@ type Lambda struct {
 }
 
 // NewLambda returns a Lambda client
-func NewLambda(s *session.Session, region *string) *Lambda {
-	return &Lambda{Svc: lambda.New(s, &aws.Config{Region: region})}
+func NewLambda(c client.ConfigProvider, region *string) *Lambda {
+	return &Lambda{Svc: lambda.New(c, &aws.Config{Region: region})}
 }
 
 // Execute executes the given function with the given payload and returns the output

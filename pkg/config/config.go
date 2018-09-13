@@ -8,23 +8,33 @@ import (
 
 // Config is a blessclient config
 type Config struct {
-	Regions      []Region `json:"regions,omitempty"`
-	ClientConfig ClientConfig
+	Regions      []Region     `json:"regions"`
+	ClientConfig ClientConfig `json:"client_config"`
+	LambdaConfig LambdaConfig `json:"lambda_config"`
 }
 
 // Region is an aws region
 type Region struct {
-	Name         string `json:"name,omitempty"`
-	AWSRegion    string `json:"aws_region,omitempty"`
-	KMSAuthKeyID string `json:"kms_auth_key_id,omitempty"`
+	Name         string `json:"name"`
+	AWSRegion    string `json:"aws_region"`
+	KMSAuthKeyID string `json:"kms_auth_key_id"`
 }
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	CacheDir     string
-	CacheFile    string
-	MFACacheDir  string
-	MFACacheFile string
+	CacheDir         string `json:"cache_dir"`
+	MFACacheFile     string `json:"mfa_cache_file"`
+	KMSAuthCacheFile string `json:"kms_auth_cache_file"`
+}
+
+// LambdaConfig is the lambda config
+type LambdaConfig struct {
+	UserRole       string   `json:"user_role"`
+	AccountID      string   `json:"account_id"`
+	FunctionName   string   `json:"function_name"`
+	CertLifetime   Duration `json:"cert_lifetime"`
+	TimeoutConnect Duration `json:"timeout_connect"`
+	TimeoutRead    Duration `json:"timeout_read"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
@@ -57,14 +67,4 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	default:
 		return errors.New("invalid duration")
 	}
-}
-
-// LambdaConfig is the lambda config
-type LambdaConfig struct {
-	UserRole       string
-	AccountID      string
-	FunctionName   string
-	CertLifetime   Duration
-	TimeoutConnect Duration
-	TimeoutRead    Duration
 }

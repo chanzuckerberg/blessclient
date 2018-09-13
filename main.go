@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
+	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	log "github.com/sirupsen/logrus"
@@ -24,22 +27,35 @@ func exec() error {
 			{
 				Name:         "shared-infra-prod-bless",
 				AWSRegion:    "us-west-2",
-				KMSAuthKeyID: "arn:aws:kms:us-west-2:416703108729:key/fe4c9d09-5006-4cb3-bb48-8b98476d3600",
+				KMSAuthKeyID: "fe4c9d09-5006-4cb3-bb48-8b98476d3600",
 			},
 		},
 	}
 
-	sess, err := session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	})
+	sess, err := session.NewSessionWithOptions(
+		session.Options{
+			SharedConfigState:       session.SharedConfigEnable,
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+			Config:                  aws.Config{},
+		})
 	if err != nil {
 		return err
 	}
+
+	userTokenProvider := cziAWS.NewUserTokenProvider(s, config.Cache)
+
+	credentials := stscreds.NewCredentials(sess, "")
+	sess.Config.Credentials = credentials
 
 	client, err := bless.New(config, sess)
 	if err != nil {
 		return err
 	}
+
+	// creds, err := client.Aws.STS.GetSTSToken()
+	// if err != nil {
+	// 	return err
+	// }
 
 	token, err := client.RequestKMSAuthToken()
 	if err != nil {
