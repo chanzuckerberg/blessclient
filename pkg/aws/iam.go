@@ -36,8 +36,10 @@ func (i *IAM) GetUsername() (string, error) {
 }
 
 // GetMFASerial attempts to recover the aws mfa serial
-func (i *IAM) GetMFASerial() (string, error) {
-	input := &iam.ListMFADevicesInput{}
+func (i *IAM) GetMFASerial(username *string) (string, error) {
+	input := &iam.ListMFADevicesInput{
+		UserName: username,
+	}
 	serialNumbers := []string{}
 	err := i.Svc.ListMFADevicesPages(input, func(output *iam.ListMFADevicesOutput, lastPage bool) bool {
 		if output == nil {

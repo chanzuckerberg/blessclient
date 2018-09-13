@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/pkg/errors"
@@ -122,7 +123,11 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 	}
 
 	if stsCreds == nil {
-		mfaSerial, err := p.Client.IAM.GetMFASerial()
+		username, err := p.Client.IAM.GetUsername()
+		if err != nil {
+			return creds, err
+		}
+		mfaSerial, err := p.Client.IAM.GetMFASerial(aws.String(username))
 		if err != nil {
 			return creds, err
 		}
