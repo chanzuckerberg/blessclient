@@ -1,12 +1,18 @@
 package main
 
 import (
+	"os"
+	"path"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,8 +26,9 @@ func main() {
 func exec() error {
 	config := &config.Config{
 		ClientConfig: config.ClientConfig{
-			CacheDir:  "~/.blessclient",
-			CacheFile: "cache.json",
+			CacheDir:         "~/.blessclient",
+			MFACacheFile:     "mfa-cache.json",
+			KMSAuthCacheFile: "kmsauth-cache.json",
 		},
 		Regions: []config.Region{
 			{
@@ -42,20 +49,20 @@ func exec() error {
 		return err
 	}
 
-	userTokenProvider := cziAWS.NewUserTokenProvider(s, config.Cache)
+	err = os.MkdirAll(config.ClientConfig.CacheDir, 0755)
+	if err != nil {
+		return errors.Wrapf(err, "Could not create cache dir %s", config.ClientConfig.CacheDir)
+	}
 
-	credentials := stscreds.NewCredentials(sess, "")
-	sess.Config.Credentials = credentials
+	mfaCache := path.Join(config.ClientConfig.CacheDir, config.ClientConfig.MFACacheFile)
+	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache)
+	provider := credentials.NewCredentials(userTokenProvider)
+	sess.Config.Credentials = provider
 
 	client, err := bless.New(config, sess)
 	if err != nil {
 		return err
 	}
-
-	// creds, err := client.Aws.STS.GetSTSToken()
-	// if err != nil {
-	// 	return err
-	// }
 
 	token, err := client.RequestKMSAuthToken()
 	if err != nil {

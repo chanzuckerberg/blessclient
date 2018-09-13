@@ -62,7 +62,6 @@ func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
 
 	b, err := ioutil.ReadFile(p.cacheFile)
 	if err != nil {
-
 		// no cache -
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -74,6 +73,11 @@ func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
 	err = json.Unmarshal(b, &tokenCache)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Cache corrupted at %s, please delete", p.cacheFile)
+	}
+
+	// expired
+	if time.Now().After(tokenCache.Expiration.Add(-1 * p.expireWindow)) {
+		return nil, nil
 	}
 
 	creds := &sts.Credentials{
@@ -101,7 +105,7 @@ func (p *UserTokenProvider) toCache(creds *sts.Credentials) error {
 
 	b, err := json.Marshal(tokenCache)
 	if err != nil {
-		return errors.Wrap(err, "Could not token to cache")
+		return errors.Wrap(err, "Could not marshal token to cache")
 	}
 
 	err = ioutil.WriteFile(p.cacheFile, b, 0644)
@@ -146,5 +150,5 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 	creds.SecretAccessKey = *stsCreds.SecretAccessKey
 	creds.SessionToken = *stsCreds.SessionToken
 
-	return creds, nil
+	return creds, p.toCache(stsCreds)
 }
