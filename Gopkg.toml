@@ -33,7 +33,3 @@
 [[constraint]]
   branch = "edu/blessclient"
   name = "github.com/chanzuckerberg/go-kmsauth"
-
-[[constraint]]
-  name = "github.com/davecgh/go-spew"
-  version = "1.1.1"

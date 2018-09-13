@@ -102,6 +102,14 @@
   version = "v0.16.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0778dc7fce1b4669a8bfa7ae506ec1f595b6ab0f8989c1c0d22a8ca1144e9972"
+  name = "github.com/howeyc/gopass"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bf9dde6d0d2c004a008c27aaee91170c786f6db8"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -131,6 +139,14 @@
   pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  digest = "1:e72adbbaead420f680d3067133a3043c033e89e5a174400c7a5cb1e9af9e779a"
+  name = "github.com/segmentio/go-prompt"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0be3d6bb7dff1db1f7d4127e5861ce97772dd891"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
@@ -212,6 +228,7 @@
     "github.com/chanzuckerberg/go-kmsauth",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
+    "github.com/segmentio/go-prompt",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh",
