@@ -33,3 +33,7 @@
 [[constraint]]
   branch = "edu/blessclient"
   name = "github.com/chanzuckerberg/go-kmsauth"
+
+[[constraint]]
+  name = "github.com/segmentio/go-prompt"
+  version = "1.2.0"

@@ -7,36 +7,54 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )
 
+const (
+	// DefaultClientDir is the default dir where blessclient will look for a config and cache
+	DefaultClientDir = "~/.blessclient"
+	// DefaultConfigFile is the default file where blessclient will look for its config
+	DefaultConfigFile = "~/.blessclient/config.yml"
+	// DefaultCacheDir is a default cache dir
+	DefaultCacheDir = "~/.blessclient/cache"
+	// DefaultMFACache is the default mfa cache
+	DefaultMFACache = "mfa-cache.json"
+	// DefaultKMSAuthCache is the default kmsauth cache
+	DefaultKMSAuthCache = "kmsauth-cache.json"
+	// DefaultAWSProfile is the default bless aws profile
+	DefaultAWSProfile = "bless"
+)
+
 // Config is a blessclient config
 type Config struct {
-	Regions      []Region     `json:"regions"`
-	ClientConfig ClientConfig `json:"client_config"`
-	LambdaConfig LambdaConfig `json:"lambda_config"`
+	ClientConfig ClientConfig `json:"client_config" yaml:"client_config"`
+	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
 }
 
 // Region is an aws region
 type Region struct {
-	AWSRegion    string `json:"aws_region"`
-	KMSAuthKeyID string `json:"kms_auth_key_id"`
+	AWSRegion    string `json:"aws_region" yaml:"aws_region"`
+	KMSAuthKeyID string `json:"kms_auth_key_id" yaml:"kms_auth_key_id"`
 }
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	CacheDir         string `json:"cache_dir"`
-	MFACacheFile     string `json:"mfa_cache_file"`
-	KMSAuthCacheFile string `json:"kms_auth_cache_file"`
+	ClientDir        string   `json:"client_dir" yaml:"client_dir"`
+	ConfigFile       string   `json:"config_file" yaml:"config_file"`
+	CacheDir         string   `json:"cache_dir" yaml:"cache_dir"`
+	MFACacheFile     string   `json:"mfa_cache_file" yaml:"mfa_cache_file"`
+	KMSAuthCacheFile string   `json:"kms_auth_cache_file" yaml:"kms_auth_cache_file"`
+	CertLifetime     Duration `json:"cert_lifetime" yaml:"cert_lifetime,inline"`
 }
 
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
 	// AWS profile to assume and invoke lambda
-	Profile      string   `json:"profile"`
-	FunctionName string   `json:"function_name"`
-	CertLifetime Duration `json:"cert_lifetime"`
+	AWSProfile   string   `json:"aws_profile" yaml:"aws_profile"`
+	FunctionName string   `json:"function_name" yaml:"function_name"`
+	Regions      []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
@@ -75,12 +93,15 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 func DefaultConfig() *Config {
 	return &Config{
 		ClientConfig: ClientConfig{
-			CacheDir:         "~/.blessclient",
-			MFACacheFile:     "mfa-cache.json",
-			KMSAuthCacheFile: "kmsauth-cache.json",
+			ClientDir:        DefaultClientDir,
+			CacheDir:         DefaultCacheDir,
+			MFACacheFile:     DefaultMFACache,
+			KMSAuthCacheFile: DefaultKMSAuthCache,
+			CertLifetime:     Duration{5 * time.Minute},
 		},
-		LambdaConfig: LambdaConfig{},
-		Regions:      []Region{},
+		LambdaConfig: LambdaConfig{
+			AWSProfile: DefaultAWSProfile, // seems like a sane default
+		},
 	}
 }
 
@@ -100,4 +121,21 @@ func NewFromFile(file string) (*Config, error) {
 		return nil, errors.WithMessage(err, "Invalid config, make sure it is valid yaml")
 	}
 	return conf, nil
+}
+
+// Persist persists a config to disk
+func (c *Config) Persist() error {
+	err := os.MkdirAll(c.ClientConfig.ClientDir, 0755)
+	if err != nil {
+		return errors.Wrapf(err, "Could not create client config dir %s", c.ClientConfig.ClientDir)
+	}
+
+	b, err := yaml.Marshal(c)
+	if err != nil {
+		return errors.Wrap(err, "Error marshaling config")
+	}
+
+	spew.Dump(c)
+	err = ioutil.WriteFile(c.ClientConfig.ConfigFile, b, 0644)
+	return errors.Wrapf(err, "Could not write config to %s", c.ClientConfig.ConfigFile)
 }

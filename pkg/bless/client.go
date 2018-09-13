@@ -32,7 +32,7 @@ func New(conf *config.Config, sess *session.Session, awsConfig *aws.Config) (*Cl
 	// TODO: just using the first region for now...
 	authContext := &kmsauth.AuthContextV2{
 		From:     username,
-		To:       conf.Regions[0].Name,
+		To:       conf.LambdaConfig.FunctionName,
 		UserType: "user",
 	}
 
@@ -42,7 +42,7 @@ func New(conf *config.Config, sess *session.Session, awsConfig *aws.Config) (*Cl
 	}
 	cacheFile := path.Join(cacheDir, conf.ClientConfig.KMSAuthCacheFile)
 	tokenGenerator := kmsauth.NewTokenGenerator(
-		conf.Regions[0].KMSAuthKeyID,
+		conf.LambdaConfig.Regions[0].KMSAuthKeyID,
 		kmsauth.TokenVersion2,
 		sess,
 		awsConfig,

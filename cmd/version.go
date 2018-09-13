@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/chanzuckerberg/blessclient/pkg/util"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -14,12 +13,13 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of blessclient",
-	Run: func(cmd *cobra.Command, args []string) {
-		v, e := util.VersionString()
-		if e != nil {
-			log.Panic(e)
+	Short: "Print the version of blessclient",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		v, err := util.VersionString()
+		if err != nil {
+			return err
 		}
 		fmt.Println(v)
+		return nil
 	},
 }

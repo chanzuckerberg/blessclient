@@ -45,7 +45,7 @@ func (i *IAM) GetMFASerial(username *string) (string, error) {
 		if output == nil {
 			return true
 		}
-		// We foudn some MFA devices
+		// We found some MFA devices
 		if len(output.MFADevices) > 0 {
 			for _, mfaDevice := range output.MFADevices {
 				if mfaDevice != nil && mfaDevice.SerialNumber != nil {
