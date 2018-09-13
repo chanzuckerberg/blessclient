@@ -10,8 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/chanzuckerberg/go-kmsauth/kmsauth/aws"
+	cziAWS "github.com/chanzuckerberg/go-kmsauth/kmsauth/aws"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -30,7 +31,7 @@ type TokenGenerator struct {
 	AuthContext AuthContext
 
 	// AwsClient for kms encryption
-	AwsClient *aws.Client
+	AwsClient *cziAWS.Client
 	// rw mutex
 	mutex sync.RWMutex
 }
@@ -40,6 +41,7 @@ func NewTokenGenerator(
 	authKey string,
 	tokenVersion TokenVersion,
 	sess *session.Session,
+	conf *aws.Config,
 	tokenLifetime time.Duration,
 	tokenCacheFile *string,
 	authContext AuthContext,
@@ -51,7 +53,7 @@ func NewTokenGenerator(
 		TokenCacheFile: tokenCacheFile,
 		AuthContext:    authContext,
 
-		AwsClient: aws.NewClient(sess),
+		AwsClient: cziAWS.NewClient(sess, conf),
 	}
 }
 

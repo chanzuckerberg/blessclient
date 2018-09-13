@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/chanzuckerberg/go-kmsauth/kmsauth/aws"
+	cziAWS "github.com/chanzuckerberg/go-kmsauth/kmsauth/aws"
 	"github.com/pkg/errors"
 )
 
@@ -19,13 +20,14 @@ type TokenValidator struct {
 	// AuthKeys are a set of KMSKeys to accept
 	AuthKeys map[string]bool
 	// AwsClient for kms encryption
-	AwsClient *aws.Client
+	AwsClient *cziAWS.Client
 }
 
 // NewTokenValidator returns a new token validator
 func NewTokenValidator(
 	authKeys map[string]bool,
 	sess *session.Session,
+	conf *aws.Config,
 	authContext AuthContext,
 	tokenLifetime time.Duration,
 ) *TokenValidator {
@@ -33,7 +35,7 @@ func NewTokenValidator(
 		AuthKeys:      authKeys,
 		AuthContext:   authContext,
 		TokenLifetime: tokenLifetime,
-		AwsClient:     aws.NewClient(sess),
+		AwsClient:     cziAWS.NewClient(sess, conf),
 	}
 }
 

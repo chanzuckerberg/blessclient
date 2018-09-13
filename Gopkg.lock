@@ -57,14 +57,14 @@
 
 [[projects]]
   branch = "edu/blessclient"
-  digest = "1:fe64f83a87a65f31fd23b1517ba0b89c9b438b2ae4e791514bba26ea9fe34fce"
+  digest = "1:af8e6c350d699b28e70435dc606666989686092c35ff530c9087d8ee14a7064d"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "f9ae600ef533e96a2b8802e7bce420045de04006"
+  revision = "4d0566d9e7cc0057a5c4c5c5f42546e76672f902"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -197,6 +197,9 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/client",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/iam",

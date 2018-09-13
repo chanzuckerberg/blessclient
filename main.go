@@ -11,6 +11,7 @@ import (
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,12 +48,17 @@ func exec() error {
 		return err
 	}
 
-	err = os.MkdirAll(config.ClientConfig.CacheDir, 0755)
+	cacheDir, err := homedir.Expand(config.ClientConfig.CacheDir)
 	if err != nil {
-		return errors.Wrapf(err, "Could not create cache dir %s", config.ClientConfig.CacheDir)
+		return errors.Wrapf(err, "Could not expand homedir in %s", cacheDir)
 	}
 
-	mfaCache := path.Join(config.ClientConfig.CacheDir, config.ClientConfig.MFACacheFile)
+	err = os.MkdirAll(config.ClientConfig.CacheDir, 0755)
+	if err != nil {
+		return errors.Wrapf(err, "Could not create cache dir %s", cacheDir)
+	}
+
+	mfaCache := path.Join(cacheDir, config.ClientConfig.MFACacheFile)
 	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache)
 	provider := credentials.NewCredentials(userTokenProvider)
 
