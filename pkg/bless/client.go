@@ -10,6 +10,7 @@ import (
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/go-kmsauth"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 )
 
@@ -34,11 +35,17 @@ func New(conf *config.Config, sess *session.Session, awsConfig *aws.Config) (*Cl
 		To:       conf.Regions[0].Name,
 		UserType: "user",
 	}
-	cacheFile := path.Join(conf.ClientConfig.CacheDir, conf.ClientConfig.KMSAuthCacheFile)
+
+	cacheDir, err := homedir.Expand(conf.ClientConfig.CacheDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not expand user homedir %s", conf.ClientConfig.CacheDir)
+	}
+	cacheFile := path.Join(cacheDir, conf.ClientConfig.KMSAuthCacheFile)
 	tokenGenerator := kmsauth.NewTokenGenerator(
 		conf.Regions[0].KMSAuthKeyID,
 		kmsauth.TokenVersion2,
 		sess,
+		awsConfig,
 		time.Minute*30,
 		&cacheFile,
 		authContext,

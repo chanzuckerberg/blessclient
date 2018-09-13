@@ -38,7 +38,6 @@ func exec() error {
 			},
 		},
 	}
-
 	sess, err := session.NewSessionWithOptions(
 		session.Options{
 			SharedConfigState:       session.SharedConfigEnable,
