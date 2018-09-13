@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -76,7 +75,6 @@ func (ac *AuthContextV2) GetKMSContext() map[string]*string {
 		"user_type": &ac.UserType,
 	}
 
-	spew.Dump(context)
 	return context
 }
 

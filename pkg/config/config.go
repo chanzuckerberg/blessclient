@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -105,13 +105,16 @@ func DefaultConfig() *Config {
 	}
 }
 
-// NewFromFile reads the config from file
-func NewFromFile(file string) (*Config, error) {
+// FromFile reads the config from file
+func FromFile(file string) (*Config, error) {
 	conf := DefaultConfig()
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, errs.ErrMissingConfig
+			return nil, errors.Wrapf(
+				errs.ErrMissingConfig,
+				"Missing config at %s, please run blessclient init to generate one",
+				file)
 		}
 		return nil, errors.Wrapf(err, "Could not read config %s, you can generate one with bless init", file)
 	}
@@ -135,7 +138,10 @@ func (c *Config) Persist() error {
 		return errors.Wrap(err, "Error marshaling config")
 	}
 
-	spew.Dump(c)
 	err = ioutil.WriteFile(c.ClientConfig.ConfigFile, b, 0644)
-	return errors.Wrapf(err, "Could not write config to %s", c.ClientConfig.ConfigFile)
+	if err != nil {
+		return errors.Wrapf(err, "Could not write config to %s", c.ClientConfig.ConfigFile)
+	}
+	log.Infof("Config written to %s", c.ClientConfig.ConfigFile)
+	return nil
 }

@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:d76285c816105ef3436d2b041f054fa90f2ce75ed77a438b5a57cefc5482f66d"
+  digest = "1:5df754c4fe5518e137cb6bd8df053838e1451e7618eb61874f25d7bdafbf9f6b"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -44,8 +44,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "10d5f1478e28a17062fd79617a8022f5499462d5"
-  version = "v1.15.34"
+  revision = "87474c2d2bbdf6bd31275e435648aeb6c3d6815d"
+  version = "v1.15.35"
 
 [[projects]]
   digest = "1:705c40022f5c03bf96ffeb6477858d88565064485a513abcd0f11a0911546cb6"
@@ -57,22 +57,14 @@
 
 [[projects]]
   branch = "edu/blessclient"
-  digest = "1:a14ec15dfe0fb4d43748720a6f03d37f95e376521be873558cebb517d76e7700"
+  digest = "1:8bb90e8c0ed7085a6b402ce328e8b46ca016c1fb349d0a42b62895fdc0579ca9"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "5fb28ccafe59feb13dd5fed980dac9a82018de47"
-
-[[projects]]
-  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
-  name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
-  pruneopts = "UT"
-  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
-  version = "v1.1.1"
+  revision = "115d838b942cca7e63ed543aaa05cef6f2735035"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
@@ -141,12 +133,12 @@
   version = "v0.8.0"
 
 [[projects]]
-  digest = "1:e72adbbaead420f680d3067133a3043c033e89e5a174400c7a5cb1e9af9e779a"
+  branch = "master"
+  digest = "1:4618466244d5f6dbca839b6c0151f76bc58b592d81c83fe909ea9a070269f324"
   name = "github.com/segmentio/go-prompt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0be3d6bb7dff1db1f7d4127e5861ce97772dd891"
-  version = "v1.2.0"
+  revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
 
 [[projects]]
   digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"

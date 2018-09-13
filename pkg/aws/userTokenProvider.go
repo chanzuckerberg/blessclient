@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -42,16 +42,18 @@ type UserTokenProvider struct {
 	m         sync.RWMutex
 
 	expireWindow time.Duration
+	isLogin      bool
 }
 
 // NewUserTokenProvider returns a new user token provider
-func NewUserTokenProvider(c client.ConfigProvider, cacheFile string) *UserTokenProvider {
+func NewUserTokenProvider(c client.ConfigProvider, cacheFile string, isLogin bool) *UserTokenProvider {
 	p := &UserTokenProvider{
 		Client:   NewClient(c, nil),
 		Duration: stscreds.DefaultDuration,
 
 		cacheFile:    cacheFile,
 		expireWindow: 10 * time.Second,
+		isLogin:      isLogin,
 	}
 	return p
 }
@@ -120,6 +122,17 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 	stsCreds, err := p.fromCache()
 	if err != nil {
 		return creds, err
+	}
+
+	// If we're not loging in then odds are stdin is not connected
+	// and we can't proceed. Ask user to log in
+	// TODO perhaps simplify this
+	if !p.isLogin && (stsCreds == nil ||
+		stsCreds.Expiration == nil ||
+		time.Now().After(stsCreds.Expiration.Add(-30*time.Second))) {
+		return creds, errors.Wrap(
+			errs.ErrLoginRequired,
+			"Looks like you need to log in. Please run blessclient login to do so.")
 	}
 
 	if stsCreds == nil {

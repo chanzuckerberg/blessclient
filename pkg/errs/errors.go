@@ -10,4 +10,6 @@ func (e Error) Error() string {
 const (
 	// ErrMissingConfig config not provided
 	ErrMissingConfig = Error("missing config")
+	// ErrLoginRequired login required
+	ErrLoginRequired = Error("login required")
 )

@@ -153,7 +153,6 @@ func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
 		return nil, err
 	}
 
-	log.Warnf("Token: %#v", token)
 	tokenBytes, err := json.Marshal(token)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not marshal token")

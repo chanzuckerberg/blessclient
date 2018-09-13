@@ -1,37 +1,35 @@
 package prompt
 
+import "github.com/howeyc/gopass"
 import "strings"
 import "strconv"
 import "fmt"
 
 // String prompt.
-func String(prompt string) string {
+func String(prompt string, args ...interface{}) string {
 	var s string
-	fmt.Printf(prompt + ": ")
+	fmt.Printf(prompt+": ", args...)
 	fmt.Scanln(&s)
 	return s
 }
 
 // String prompt (required).
-func StringRequired(prompt string) string {
-	s := String(prompt)
-	if strings.Trim(s, " ") == "" {
-		return StringRequired(prompt)
-	} else {
-		return s
+func StringRequired(prompt string, args ...interface{}) (s string) {
+	for strings.Trim(s, " ") == "" {
+		s = String(prompt, args...)
 	}
+	return s
 }
 
 // Confirm continues prompting until the input is boolean-ish.
-func Confirm(prompt string) bool {
-	s := String(prompt)
-	switch s {
-	case "yes", "y", "Y":
-		return true
-	case "no", "n", "N":
-		return false
-	default:
-		return Confirm(prompt)
+func Confirm(prompt string, args ...interface{}) bool {
+	for {
+		switch String(prompt, args...) {
+		case "Yes", "yes", "y", "Y":
+			return true
+		case "No", "no", "n", "N":
+			return false
+		}
 	}
 }
 
@@ -67,6 +65,22 @@ func Choose(prompt string, list []string) int {
 	}
 
 	return i
+}
+
+// Password prompt.
+func Password(prompt string, args ...interface{}) string {
+	fmt.Printf(prompt+": ", args...)
+	password, _ := gopass.GetPasswd()
+	s := string(password[0:])
+	return s
+}
+
+// Password prompt with mask.
+func PasswordMasked(prompt string, args ...interface{}) string {
+	fmt.Printf(prompt+": ", args...)
+	password, _ := gopass.GetPasswdMasked()
+	s := string(password[0:])
+	return s
 }
 
 // index of `s` in `list`.

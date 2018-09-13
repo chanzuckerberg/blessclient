@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	initCmd.Flags().StringP("config", "c", "~/.blessclient/config.yml", "Use this to override the bless config file.")
+	initCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(initCmd)
 }
 
