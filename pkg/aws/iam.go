@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -14,8 +15,8 @@ type IAM struct {
 }
 
 // NewIAM returns a IAM client
-func NewIAM(c client.ConfigProvider) *IAM {
-	return &IAM{Svc: iam.New(c)}
+func NewIAM(c client.ConfigProvider, config *aws.Config) *IAM {
+	return &IAM{Svc: iam.New(c, config)}
 }
 
 //GetUsername gets the username for this aws user

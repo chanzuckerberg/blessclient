@@ -14,8 +14,8 @@ type Lambda struct {
 }
 
 // NewLambda returns a Lambda client
-func NewLambda(c client.ConfigProvider, region *string) *Lambda {
-	return &Lambda{Svc: lambda.New(c, &aws.Config{Region: region})}
+func NewLambda(c client.ConfigProvider, config *aws.Config) *Lambda {
+	return &Lambda{Svc: lambda.New(c, config)}
 }
 
 // Execute executes the given function with the given payload and returns the output

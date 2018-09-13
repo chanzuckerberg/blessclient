@@ -5,6 +5,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
@@ -20,8 +21,8 @@ type Client struct {
 }
 
 // New returns a new client
-func New(conf *config.Config, sess *session.Session) (*Client, error) {
-	awsClient := cziAWS.NewClient(sess)
+func New(conf *config.Config, sess *session.Session, awsConfig *aws.Config) (*Client, error) {
+	awsClient := cziAWS.NewClient(sess, awsConfig)
 	username, err := awsClient.IAM.GetUsername()
 	if err != nil {
 		// TODO this could have a more informative user error

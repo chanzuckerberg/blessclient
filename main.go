@@ -4,9 +4,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
@@ -43,7 +42,6 @@ func exec() error {
 		session.Options{
 			SharedConfigState:       session.SharedConfigEnable,
 			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-			Config:                  aws.Config{},
 		})
 	if err != nil {
 		return err
@@ -57,14 +55,17 @@ func exec() error {
 	mfaCache := path.Join(config.ClientConfig.CacheDir, config.ClientConfig.MFACacheFile)
 	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache)
 	provider := credentials.NewCredentials(userTokenProvider)
-	sess.Config.Credentials = provider
 
-	client, err := bless.New(config, sess)
+	mfaAwsConfig := &aws.Config{
+		Credentials: provider,
+	}
+
+	kmsAuthAWSClient, err := bless.New(config, sess, mfaAwsConfig)
 	if err != nil {
 		return err
 	}
 
-	token, err := client.RequestKMSAuthToken()
+	token, err := kmsAuthAWSClient.RequestKMSAuthToken()
 	if err != nil {
 		return err
 	}

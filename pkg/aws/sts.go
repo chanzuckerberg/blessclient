@@ -14,8 +14,8 @@ type STS struct {
 }
 
 // NewSTS returns an sts client
-func NewSTS(c client.ConfigProvider) *STS {
-	return &STS{Svc: sts.New(c)}
+func NewSTS(c client.ConfigProvider, config *aws.Config) *STS {
+	return &STS{Svc: sts.New(c, config)}
 }
 
 // GetSTSToken gets an sts token
