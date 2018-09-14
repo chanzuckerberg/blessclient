@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/go-kmsauth"
 	"github.com/pkg/errors"
 )
@@ -109,6 +110,11 @@ func (c *Client) RequestCert() error {
 	if err != nil {
 		return errors.Wrap(err, "Could not json encode payload")
 	}
+	_, err = ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	if err != nil {
+		return err
+	}
+
 	// responseBytes, err := c.Aws.Lambda.Execute()
 	return nil
 }

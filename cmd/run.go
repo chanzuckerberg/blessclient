@@ -48,7 +48,7 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		_, err = client.RequestCert()
+		err = client.RequestCert()
 		return err
 	},
 }

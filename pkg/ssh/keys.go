@@ -3,9 +3,11 @@ package ssh
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"time"
 
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
@@ -17,35 +19,44 @@ const (
 
 // SSH is a namespace
 type SSH struct {
-	KeyName      string
-	SSHDirectory string
+	keyName      string
+	sshDirectory string
 }
 
 // NewSSH returns a new SSH object
-func NewSSH(keyName string, SSHDirectory *string) (*SSH, error) {
-	ssh := &SSH{KeyName: keyName}
-	if SSHDirectory == nil {
-		dir, err := homedir.Dir()
-		if err != nil {
-			return nil, errors.Wrap(err, "Could not detect user's home directory")
+func NewSSH(privateKey string) (*SSH, error) {
+	expandedPrivateKey, err := homedir.Expand(privateKey)
+	if err != nil {
+		return nil, errors.Errorf("Could not expand path %s", privateKey)
+	}
+
+	// Basic sanity check key is present
+	// TODO maybe parse the file to make sure it is actually a private key
+	_, err = os.Stat(expandedPrivateKey)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, errs.ErrSSHKeyNotFound
 		}
-		ssh.SSHDirectory = path.Join(dir, ".ssh")
-	} else {
-		ssh.SSHDirectory = *SSHDirectory
+		return nil, errors.Wrapf(err, "Could not stat key at %s", expandedPrivateKey)
+	}
+
+	ssh := &SSH{
+		keyName:      path.Base(expandedPrivateKey),
+		sshDirectory: path.Dir(expandedPrivateKey),
 	}
 	return ssh, nil
 }
 
 // ReadPublicKey reads the SSH public key
 func (s *SSH) ReadPublicKey() ([]byte, error) {
-	pubKey := path.Join(s.SSHDirectory, fmt.Sprintf("%s.pub", s.KeyName))
+	pubKey := path.Join(s.sshDirectory, fmt.Sprintf("%s.pub", s.keyName))
 	bytes, err := ioutil.ReadFile(pubKey)
 	return bytes, errors.Wrap(err, "Could not read public key")
 }
 
 // ReadCert reads the ssh cert
 func (s *SSH) ReadCert() ([]byte, error) {
-	cert := path.Join(s.SSHDirectory, fmt.Sprintf("%s-cert.pub", s.KeyName))
+	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
 	bytes, err := ioutil.ReadFile(cert)
 	return bytes, errors.Wrap(err, "Could not read cert")
 }

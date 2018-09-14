@@ -12,4 +12,6 @@ const (
 	ErrMissingConfig = Error("missing config")
 	// ErrLoginRequired login required
 	ErrLoginRequired = Error("login required")
+	// ErrSSHKeyNotFound ssh key not found
+	ErrSSHKeyNotFound = Error("ssh key not found")
 )
