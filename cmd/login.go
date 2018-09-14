@@ -1,20 +1,14 @@
 package cmd
 
 import (
-	"os"
-	"path"
-
-	"github.com/mitchellh/go-homedir"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -53,22 +47,11 @@ var loginCmd = &cobra.Command{
 			return err
 		}
 
-		mfaCache := conf.ClientConfig.MFACacheFile
-		err = os.MkdirAll(path.Dir(mfaCache), 0755)
-		if err != nil {
-			return errors.Wrapf(err, "Could not create mfa cache dir at %s", path.Dir(mfaCache))
-		}
-
-		userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache, isLogin)
-		provider := credentials.NewCredentials(userTokenProvider)
-		mfaAWSConfig := &aws.Config{
-			Credentials: provider,
-		}
-
-		kmsAuthAWSClient, err := bless.New(conf, sess, mfaAWSConfig)
+		kmsAuthAWSClient, err := bless.New(conf, sess, isLogin)
 		if err != nil {
 			return err
 		}
+		log.Debug("Requesting kmsauth token")
 		_, err = kmsAuthAWSClient.RequestKMSAuthToken()
 		return err
 	},

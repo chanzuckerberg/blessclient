@@ -13,12 +13,15 @@ type Client struct {
 }
 
 // NewClient returns a new aws client
-func NewClient(c client.ConfigProvider, config *aws.Config) *Client {
+func NewClient(
+	c client.ConfigProvider,
+	kmsauthConfig *aws.Config,
+	lambdaConfig *aws.Config) *Client {
 	client := &Client{
-		// TODO: these need some work for multi-region failover
-		Lambda: NewLambda(c, config),
-		IAM:    NewIAM(c, config),
-		STS:    NewSTS(c, config),
+		Lambda: NewLambda(c, lambdaConfig),
+		// kmsauth
+		IAM: NewIAM(c, kmsauthConfig),
+		STS: NewSTS(c, kmsauthConfig),
 	}
 	return client
 }

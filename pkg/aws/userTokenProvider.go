@@ -48,7 +48,7 @@ type UserTokenProvider struct {
 // NewUserTokenProvider returns a new user token provider
 func NewUserTokenProvider(c client.ConfigProvider, cacheFile string, isLogin bool) *UserTokenProvider {
 	p := &UserTokenProvider{
-		Client:   NewClient(c, nil),
+		Client:   NewClient(c, nil, nil),
 		Duration: stscreds.DefaultDuration,
 
 		cacheFile:    cacheFile,
