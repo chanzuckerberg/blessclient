@@ -58,11 +58,27 @@ func (s *SSH) ReadPublicKey() ([]byte, error) {
 func (s *SSH) ReadCert() ([]byte, error) {
 	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
 	bytes, err := ioutil.ReadFile(cert)
-	return bytes, errors.Wrap(err, "Could not read cert")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil // no cert
+		}
+		return nil, errors.Wrap(err, "Could not read cert")
+	}
+	return bytes, nil
 }
 
 // IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh(certBytes []byte) (bool, error) {
+func (s *SSH) IsCertFresh() (bool, error) {
+	certBytes, err := s.ReadCert()
+	// err reading cert
+	if err != nil {
+		return false, err
+	}
+	// no cert
+	if certBytes == nil {
+		return false, nil
+	}
+
 	k, _, _, _, err := ssh.ParseAuthorizedKey(certBytes)
 	if err != nil {
 		return false, errors.Wrap(err, "Could not parse cert")

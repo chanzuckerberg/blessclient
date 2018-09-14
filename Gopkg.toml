@@ -37,3 +37,7 @@
 [[constraint]]
   name = "github.com/segmentio/go-prompt"
   branch = "master"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-getter"

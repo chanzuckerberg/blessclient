@@ -14,4 +14,8 @@ const (
 	ErrLoginRequired = Error("login required")
 	// ErrSSHKeyNotFound ssh key not found
 	ErrSSHKeyNotFound = Error("ssh key not found")
+	// ErrNoCertificateInResponse no certificarte in response
+	ErrNoCertificateInResponse = Error("no certificate in response")
+	// ErrMissingConfigURL missing config url
+	ErrMissingConfigURL = Error("missing config url")
 )

@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"os"
 	"path"
+	"strconv"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	cziAWS "github.com/chanzuckerberg/blessclient/pkg/aws"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/go-kmsauth"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // Client is a bless client
@@ -79,17 +81,30 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 
 // LambdaPayload is the payload for the bless lambda
 type LambdaPayload struct {
-	BastionUser     string   `json:"bastion_user,omitempty"`
-	RemoteUsernames []string `json:"remote_usernames,omitempty"`
-	BastionIPs      []string `json:"bastion_ips,omitempty"`
-	BastionCommand  string   `json:"bastion_command,omitempty"`
-	PublicKeyToSign string   `json:"public_key_to_sign,omitempty"`
-	KMSAuthToken    string   `json:"kmsauth_token"`
+	BastionUser     string      `json:"bastion_user,omitempty"`
+	RemoteUsernames []string    `json:"remote_usernames,omitempty"`
+	BastionIPs      []string    `json:"bastion_ips,omitempty"`
+	BastionCommand  string      `json:"bastion_command,omitempty"`
+	PublicKeyToSign string      `json:"public_key_to_sign,omitempty"`
+	KMSAuthToken    string      `json:"kmsauth_token"`
+	TTL             TTLDuration `json:"ttl"`
 }
 
-// LambdaResponse is a bless lambda response
+// TTLDuration is a duration
+type TTLDuration struct {
+	time.Duration
+}
+
+// MarshalJSON marshals to json
+func (d TTLDuration) MarshalJSON() ([]byte, error) {
+	// Bless expects this duration in seconds
+	seconds := int64(d.Duration / time.Second)
+	return json.Marshal(strconv.FormatInt(seconds, 10))
+}
+
+// LambdaResponse is a lambda response
 type LambdaResponse struct {
-	Certificate *string `json:"certificate"`
+	Certificate *string `json:"certificate,omitempty"`
 }
 
 // RequestKMSAuthToken requests a new kmsauth token
@@ -105,16 +120,53 @@ func (c *Client) RequestCert() error {
 		RemoteUsernames: c.conf.ClientConfig.RemoteUsers,
 		BastionIPs:      c.conf.ClientConfig.BastionIPS,
 		BastionCommand:  "*",
+		TTL:             TTLDuration(c.conf.ClientConfig.CertLifetime),
 	}
 	_, err := json.Marshal(payload)
 	if err != nil {
 		return errors.Wrap(err, "Could not json encode payload")
 	}
-	_, err = ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
 		return err
 	}
 
-	// responseBytes, err := c.Aws.Lambda.Execute()
+	isFresh, err := s.IsCertFresh()
+	if err != nil {
+		return err
+	}
+	if isFresh {
+		log.Debug("Cert is already fresh")
+		return nil
+	}
+
+	pubKey, err := s.ReadPublicKey()
+	if err != nil {
+		return err
+	}
+
+	// TODO: do I need b64 or something?
+	payload.PublicKeyToSign = string(pubKey)
+
+	payloadB, err := json.Marshal(payload)
+	if err != nil {
+		return errors.Wrap(err, "Could not serialize lambda payload")
+	}
+
+	responseBytes, err := c.Aws.Lambda.Execute(c.conf.LambdaConfig.FunctionName, payloadB)
+	if err != nil {
+		return err
+	}
+
+	lambdaReponse := &LambdaResponse{}
+
+	err = json.Unmarshal(responseBytes, lambdaReponse)
+	if err != nil {
+		return errors.Wrap(err, "Could not deserialize lambda reponse")
+	}
+	if lambdaReponse.Certificate == nil {
+		return errs.ErrNoCertificateInResponse
+	}
+
 	return nil
 }
