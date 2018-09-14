@@ -22,6 +22,7 @@ type Client struct {
 	Aws            *cziAWS.Client
 	tokenGenerator *kmsauth.TokenGenerator
 	conf           *config.Config
+	username       string
 }
 
 // New returns a new client
@@ -33,23 +34,28 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 	}
 	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache, isLogin)
 	kmsauthCredentials := credentials.NewCredentials(userTokenProvider)
-	kmsauthAWSConfig := &aws.Config{
+	mfaAWSConfig := &aws.Config{
 		Credentials: kmsauthCredentials,
 	}
 
-	lambdaAWSCredentials := stscreds.NewCredentials(sess, conf.LambdaConfig.AWSProfile, func(p *stscreds.AssumeRoleProvider) {
-		p.TokenProvider = stscreds.StdinTokenProvider
-	})
+	lambdaAWSCredentials := stscreds.NewCredentials(
+		sess,
+		conf.LambdaConfig.RoleARN,
+		func(p *stscreds.AssumeRoleProvider) {
+			p.TokenProvider = stscreds.StdinTokenProvider
+		})
+
 	lambdaAWSConfig := &aws.Config{
 		Credentials: lambdaAWSCredentials,
 	}
 
-	awsClient := cziAWS.NewClient(sess, kmsauthAWSConfig, lambdaAWSConfig)
+	awsClient := cziAWS.NewClient(sess, mfaAWSConfig, lambdaAWSConfig)
 	username, err := awsClient.IAM.GetUsername()
 	if err != nil {
 		// TODO this could have a more informative user error
 		return nil, err
 	}
+
 	// TODO: just using the first region for now...
 	authContext := &kmsauth.AuthContextV2{
 		From:     username,
@@ -62,12 +68,12 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 		conf.LambdaConfig.Regions[0].KMSAuthKeyID,
 		kmsauth.TokenVersion2,
 		sess,
-		kmsauthAWSConfig,
+		mfaAWSConfig,
 		time.Minute*30,
 		&cacheFile,
 		authContext,
 	)
-	return &Client{conf: conf, tokenGenerator: tokenGenerator}, nil
+	return &Client{conf: conf, tokenGenerator: tokenGenerator, username: username}, nil
 }
 
 // LambdaPayload is the payload for the bless lambda
@@ -75,7 +81,7 @@ type LambdaPayload struct {
 	BastionUser     string   `json:"bastion_user,omitempty"`
 	RemoteUsernames []string `json:"remote_usernames,omitempty"`
 	BastionIPs      []string `json:"bastion_ips,omitempty"`
-	Command         string   `json:"command,omitempty"`
+	BastionCommand  string   `json:"bastion_command,omitempty"`
 	PublicKeyToSign string   `json:"public_key_to_sign,omitempty"`
 	KMSAuthToken    string   `json:"kmsauth_token"`
 }
@@ -92,7 +98,13 @@ func (c *Client) RequestKMSAuthToken() (*kmsauth.EncryptedToken, error) {
 }
 
 // RequestCert requests a cert
-func (c *Client) RequestCert(payload *LambdaPayload) error {
+func (c *Client) RequestCert() error {
+	payload := &LambdaPayload{
+		BastionUser:     c.username,
+		RemoteUsernames: c.conf.ClientConfig.RemoteUsers,
+		BastionIPs:      c.conf.ClientConfig.BastionIPS,
+		BastionCommand:  "*",
+	}
 	_, err := json.Marshal(payload)
 	if err != nil {
 		return errors.Wrap(err, "Could not json encode payload")

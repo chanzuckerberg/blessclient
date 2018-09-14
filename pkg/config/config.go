@@ -41,18 +41,22 @@ type Region struct {
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	ClientDir        string   `json:"client_dir" yaml:"client_dir"`
-	ConfigFile       string   `json:"config_file" yaml:"config_file"`
-	CacheDir         string   `json:"cache_dir" yaml:"cache_dir"`
-	MFACacheFile     string   `json:"mfa_cache_file" yaml:"mfa_cache_file"`
-	KMSAuthCacheFile string   `json:"kms_auth_cache_file" yaml:"kms_auth_cache_file"`
-	CertLifetime     Duration `json:"cert_lifetime" yaml:"cert_lifetime,inline"`
+	ClientDir        string `json:"client_dir" yaml:"client_dir"`
+	ConfigFile       string `json:"config_file" yaml:"config_file"`
+	CacheDir         string `json:"cache_dir" yaml:"cache_dir"`
+	MFACacheFile     string `json:"mfa_cache_file" yaml:"mfa_cache_file"`
+	KMSAuthCacheFile string `json:"kms_auth_cache_file" yaml:"kms_auth_cache_file"`
+
+	// cert related
+	CertLifetime Duration `json:"cert_lifetime" yaml:"cert_lifetime,inline"`
+	RemoteUsers  []string `json:"remote_users" yaml:"remote_users"`
+	BastionIPS   []string `json:"bastion_ips" yaml:"bastion_ips"`
 }
 
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
-	// AWS profile to assume and invoke lambda
-	AWSProfile   string   `json:"aws_profile" yaml:"aws_profile"`
+	// RoleARN used to assume and invoke bless lambda
+	RoleARN      string   `json:"role_arn" yaml:"role_arn"`
 	FunctionName string   `json:"function_name" yaml:"function_name"`
 	Regions      []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
 }
@@ -100,7 +104,7 @@ func DefaultConfig() *Config {
 			CertLifetime:     Duration{5 * time.Minute},
 		},
 		LambdaConfig: LambdaConfig{
-			AWSProfile: DefaultAWSProfile, // seems like a sane default
+			RoleARN: DefaultAWSProfile, // seems like a sane default
 		},
 	}
 }

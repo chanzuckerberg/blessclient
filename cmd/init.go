@@ -39,7 +39,7 @@ var initCmd = &cobra.Command{
 		conf.ClientConfig.MFACacheFile = path.Join(conf.ClientConfig.CacheDir, config.DefaultMFACache)
 
 		// Ask for some user values
-		conf.LambdaConfig.AWSProfile = prompt.StringRequired("aws profile to invoke bless lambda")
+		conf.LambdaConfig.RoleARN = prompt.StringRequired("aws profile to invoke bless lambda")
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
 		// Add regions

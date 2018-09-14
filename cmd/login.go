@@ -47,12 +47,12 @@ var loginCmd = &cobra.Command{
 			return err
 		}
 
-		kmsAuthAWSClient, err := bless.New(conf, sess, isLogin)
+		client, err := bless.New(conf, sess, isLogin)
 		if err != nil {
 			return err
 		}
 		log.Debug("Requesting kmsauth token")
-		_, err = kmsAuthAWSClient.RequestKMSAuthToken()
+		_, err = client.RequestKMSAuthToken()
 		return err
 	},
 }
