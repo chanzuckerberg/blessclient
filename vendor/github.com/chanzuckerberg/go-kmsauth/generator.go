@@ -158,6 +158,8 @@ func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
 		return nil, errors.Wrap(err, "Could not marshal token")
 	}
 
+	log.Warnf("Token: %s", string(tokenBytes))
+
 	encryptedStr, err := tg.AwsClient.KMS.EncryptBytes(
 		tg.AuthKey,
 		tokenBytes,

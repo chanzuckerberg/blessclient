@@ -12,12 +12,14 @@ import (
 )
 
 func init() {
+	runCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(runCmd)
 }
 
 var runCmd = &cobra.Command{
-	Use:   "run",
-	Short: "run requests a certificate",
+	Use:           "run",
+	Short:         "run requests a certificate",
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		isLogin := false
 		configFile, err := cmd.Flags().GetString("config")

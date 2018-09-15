@@ -47,7 +47,6 @@ type ClientConfig struct {
 	MFACacheFile     string `json:"mfa_cache_file" yaml:"mfa_cache_file"`
 	KMSAuthCacheFile string `json:"kms_auth_cache_file" yaml:"kms_auth_cache_file"`
 
-	// SSH key to sign
 	SSHPrivateKey string `json:"ssh_private_key" yaml:"ssh_private_key"`
 
 	// cert related
@@ -104,7 +103,7 @@ func DefaultConfig() *Config {
 			CacheDir:         DefaultCacheDir,
 			MFACacheFile:     DefaultMFACache,
 			KMSAuthCacheFile: DefaultKMSAuthCache,
-			CertLifetime:     Duration{5 * time.Minute},
+			CertLifetime:     Duration{30 * time.Minute},
 		},
 		LambdaConfig: LambdaConfig{
 			RoleARN: DefaultAWSProfile, // seems like a sane default

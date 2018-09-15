@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -46,7 +46,8 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 		conf.LambdaConfig.RoleARN,
 		func(p *stscreds.AssumeRoleProvider) {
 			p.TokenProvider = stscreds.StdinTokenProvider
-		})
+		},
+	)
 
 	lambdaAWSConfig := &aws.Config{
 		Credentials: lambdaAWSCredentials,
@@ -76,35 +77,31 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 		&cacheFile,
 		authContext,
 	)
-	return &Client{conf: conf, tokenGenerator: tokenGenerator, username: username}, nil
+	return &Client{
+			conf:           conf,
+			tokenGenerator: tokenGenerator,
+			username:       username,
+			Aws:            awsClient,
+		},
+		nil
 }
 
 // LambdaPayload is the payload for the bless lambda
 type LambdaPayload struct {
-	BastionUser     string      `json:"bastion_user,omitempty"`
-	RemoteUsernames []string    `json:"remote_usernames,omitempty"`
-	BastionIPs      []string    `json:"bastion_ips,omitempty"`
-	BastionCommand  string      `json:"bastion_command,omitempty"`
-	PublicKeyToSign string      `json:"public_key_to_sign,omitempty"`
-	KMSAuthToken    string      `json:"kmsauth_token"`
-	TTL             TTLDuration `json:"ttl"`
-}
-
-// TTLDuration is a duration
-type TTLDuration struct {
-	time.Duration
-}
-
-// MarshalJSON marshals to json
-func (d TTLDuration) MarshalJSON() ([]byte, error) {
-	// Bless expects this duration in seconds
-	seconds := int64(d.Duration / time.Second)
-	return json.Marshal(strconv.FormatInt(seconds, 10))
+	RemoteUsernames string `json:"remote_usernames,omitempty"`
+	BastionIPs      string `json:"bastion_ips,omitempty"`
+	BastionUser     string `json:"bastion_user,omitempty"`
+	BastionUserIP   string `json:"bastion_user_ip,omitempty"`
+	Command         string `json:"command,omitempty"`
+	PublicKeyToSign string `json:"public_key_to_sign,omitempty"`
+	KMSAuthToken    string `json:"kmsauth_token"`
 }
 
 // LambdaResponse is a lambda response
 type LambdaResponse struct {
-	Certificate *string `json:"certificate,omitempty"`
+	Certificate  *string `json:"certificate,omitempty"`
+	ErrorType    *string `json:"errorType"`
+	ErrorMessage *string `json:"errorMessage"`
 }
 
 // RequestKMSAuthToken requests a new kmsauth token
@@ -117,15 +114,12 @@ func (c *Client) RequestKMSAuthToken() (*kmsauth.EncryptedToken, error) {
 func (c *Client) RequestCert() error {
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
-		RemoteUsernames: c.conf.ClientConfig.RemoteUsers,
-		BastionIPs:      c.conf.ClientConfig.BastionIPS,
-		BastionCommand:  "*",
-		TTL:             TTLDuration(c.conf.ClientConfig.CertLifetime),
+		RemoteUsernames: strings.Join(c.conf.ClientConfig.RemoteUsers, ","),
+		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
+		BastionUserIP:   "0.0.0.0/0",
+		Command:         "*",
 	}
-	_, err := json.Marshal(payload)
-	if err != nil {
-		return errors.Wrap(err, "Could not json encode payload")
-	}
+
 	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
 		return err
@@ -145,28 +139,45 @@ func (c *Client) RequestCert() error {
 		return err
 	}
 
-	// TODO: do I need b64 or something?
+	token, err := c.RequestKMSAuthToken()
+	if err != nil {
+		return err
+	}
+	if token == nil {
+		return errs.ErrMissingKMSAuthToken
+	}
+
+	payload.KMSAuthToken = token.String()
 	payload.PublicKeyToSign = string(pubKey)
 
+	log.Infof("payload: %#v", payload)
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
 		return errors.Wrap(err, "Could not serialize lambda payload")
 	}
+	log.Infof("payload_json: %#v", string(payloadB))
 
+	log.Infof("function name: %s", c.conf.LambdaConfig.FunctionName)
 	responseBytes, err := c.Aws.Lambda.Execute(c.conf.LambdaConfig.FunctionName, payloadB)
 	if err != nil {
 		return err
 	}
 
+	log.Infof("Response Bytes: %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
-
 	err = json.Unmarshal(responseBytes, lambdaReponse)
 	if err != nil {
 		return errors.Wrap(err, "Could not deserialize lambda reponse")
 	}
+	if lambdaReponse.ErrorType != nil {
+		if lambdaReponse.ErrorMessage != nil {
+			return errors.Errorf("bless error: %s: %s", *lambdaReponse.ErrorType, *lambdaReponse.ErrorMessage)
+		}
+		return errors.Errorf("bless error: %s", *lambdaReponse.ErrorType)
+	}
+
 	if lambdaReponse.Certificate == nil {
 		return errs.ErrNoCertificateInResponse
 	}
-
-	return nil
+	return s.WriteCert([]byte(*lambdaReponse.Certificate))
 }

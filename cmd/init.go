@@ -39,14 +39,15 @@ var initCmd = &cobra.Command{
 		conf.ClientConfig.MFACacheFile = path.Join(conf.ClientConfig.CacheDir, config.DefaultMFACache)
 
 		// Ask for some user values
-		conf.LambdaConfig.RoleARN = prompt.StringRequired("aws profile to invoke bless lambda")
+		conf.ClientConfig.SSHPrivateKey = prompt.StringRequired("path to the ssh private key to use")
+		conf.LambdaConfig.RoleARN = prompt.StringRequired("role arn to invoke lambda")
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
 		// Add regions
 		regions := []config.Region{}
 		for prompt.Confirm("Would you like to add another region to your bless config? (y/n)") {
 			region := config.Region{
-				AWSRegion:    prompt.StringRequired("Aws region (ex: us_west_2)"),
+				AWSRegion:    prompt.StringRequired("Aws region (ex: us-west-2)"),
 				KMSAuthKeyID: prompt.StringRequired("The kms auth key_id for this region"),
 			}
 			regions = append(regions, region)

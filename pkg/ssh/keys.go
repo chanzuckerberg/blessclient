@@ -96,3 +96,10 @@ func (s *SSH) IsCertFresh() (bool, error) {
 	// TODO validation around principals and other cert things we might want
 	return isFresh, nil
 }
+
+// WriteCert writes a cert to disk
+func (s *SSH) WriteCert(b []byte) error {
+	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
+	err := ioutil.WriteFile(cert, b, 0644)
+	return errors.Wrapf(err, "Could not write cert to %s", cert)
+}

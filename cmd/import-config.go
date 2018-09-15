@@ -30,10 +30,7 @@ var importConfigCmd = &cobra.Command{
 		}
 
 		src, err := cmd.Flags().GetString("url")
-		if err != nil {
-			return errs.ErrMissingConfigURL
-		}
-		if src == "" {
+		if err != nil || src == "" {
 			return errs.ErrMissingConfigURL
 		}
 		err = getter.GetFile(configFileExpanded, src)

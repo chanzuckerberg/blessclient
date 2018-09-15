@@ -18,4 +18,6 @@ const (
 	ErrNoCertificateInResponse = Error("no certificate in response")
 	// ErrMissingConfigURL missing config url
 	ErrMissingConfigURL = Error("missing config url")
+	// ErrMissingKMSAuthToken missing kms auth token
+	ErrMissingKMSAuthToken = Error("missing kmsauth token")
 )

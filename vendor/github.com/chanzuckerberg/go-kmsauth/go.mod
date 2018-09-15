@@ -2,10 +2,12 @@ module github.com/chanzuckerberg/go-kmsauth
 
 require (
 	github.com/aws/aws-sdk-go v1.15.35
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ini/ini v1.38.2 // indirect
 	github.com/go-playground/locales v0.12.1 // indirect
 	github.com/go-playground/universal-translator v0.16.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
+	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/onsi/gomega v1.4.2 // indirect

@@ -18,9 +18,10 @@ func init() {
 }
 
 var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to bless using your AWS credentials, will ask for MFA",
-	Long:  "This command generates a set of temporary STS tokens that are cached locally on disk for 18 hours. MFA required.",
+	Use:           "login",
+	Short:         "Login to bless using your AWS credentials, will ask for MFA",
+	Long:          "This command generates a set of temporary STS tokens that are cached locally on disk for 18 hours. MFA required.",
+	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		isLogin := true
 		configFile, err := cmd.Flags().GetString("config")
