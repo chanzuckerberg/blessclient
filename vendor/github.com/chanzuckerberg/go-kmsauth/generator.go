@@ -99,7 +99,7 @@ func (tg *TokenGenerator) getCachedToken() (*Token, error) {
 		log.Debug("Cached token invalid")
 		return nil, nil
 	}
-	now := time.Now()
+	now := time.Now().UTC()
 	// subtract timeSkew to account for clock skew
 	notAfter := tokenCache.Token.NotAfter.Add(-1 * timeSkew)
 	if now.After(notAfter) { // expired, need new token

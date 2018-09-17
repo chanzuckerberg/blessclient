@@ -68,15 +68,15 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "edu/blessclient"
-  digest = "1:7918e9ab8ca17e4de89cfa50df3c2431380bf8b1ecc54d0adeb39c95db6188c0"
+  branch = "edu/tz"
+  digest = "1:952270846de8ecc20c85609b40333aca120b82f544a766d50263a6fe981c2f2a"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
     ".",
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "433a3d604dfc96c0c552494234559948bd818d82"
+  revision = "24dff5125f8ef0a61ec9f6ab0986e7d6bec1d83b"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"

@@ -113,7 +113,7 @@ type Token struct {
 
 // IsValid returns an error if token is invalid, nil if valid
 func (t *Token) IsValid(tokenLifetime time.Duration) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	delta := t.NotAfter.Sub(t.NotBefore.Time)
 	if delta > tokenLifetime {
 		return errors.New("Token issued for longer than Tokenlifetime")
@@ -126,7 +126,7 @@ func (t *Token) IsValid(tokenLifetime time.Duration) error {
 
 // NewToken generates a new token
 func NewToken(tokenLifetime time.Duration) *Token {
-	now := time.Now()
+	now := time.Now().UTC()
 	// Start the notBefore x time in the past to avoid clock skew
 	notBefore := now.Add(-1 * timeSkew)
 	// Set the notAfter x time in the future but account for timeSkew
