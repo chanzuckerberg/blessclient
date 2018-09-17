@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:fd48b708c59e38f3dc4795fe9d65e2fc5e053d880ebf9e8c864a803fac48c564"
+  digest = "1:259bede1c2186a1193eb0b88e7b102e9106f498778bfef85d4a33b6a4118dc5a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -48,8 +48,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "87474c2d2bbdf6bd31275e435648aeb6c3d6815d"
-  version = "v1.15.35"
+  revision = "34699de98eac41fa94737f6ce7b83d7a621c2634"
+  version = "v1.15.36"
 
 [[projects]]
   branch = "master"
@@ -68,7 +68,7 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "edu/tz"
+  branch = "master"
   digest = "1:952270846de8ecc20c85609b40333aca120b82f544a766d50263a6fe981c2f2a"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = [
@@ -76,7 +76,7 @@
     "kmsauth/aws",
   ]
   pruneopts = "UT"
-  revision = "24dff5125f8ef0a61ec9f6ab0986e7d6bec1d83b"
+  revision = "929435701519ae7a1887467b4413c0953b9e0687"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"

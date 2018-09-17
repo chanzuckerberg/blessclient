@@ -31,7 +31,7 @@
   unused-packages = true
 
 [[constraint]]
-  branch = "edu/tz"
+  branch = "master"
   name = "github.com/chanzuckerberg/go-kmsauth"
 
 [[constraint]]
