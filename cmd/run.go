@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	cziAWS "github.com/chanzuckerberg/go-misc/aws"
+	multierror "github.com/hashicorp/go-multierror"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -21,7 +24,6 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		isLogin := false
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -36,6 +38,7 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
+		// TODO: we probably want to be able to specify the base aws profile here instead of just default
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
 				SharedConfigState:       session.SharedConfigEnable,
@@ -43,14 +46,37 @@ var runCmd = &cobra.Command{
 			},
 		)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Could not create aws session")
 		}
 
-		client, err := bless.New(conf, sess, isLogin)
-		if err != nil {
-			return err
+		var regionErrors error
+		for _, region := range conf.LambdaConfig.Regions {
+			// for things meant to be run as a user
+			userConf := &aws.Config{
+				Region: aws.String(region.AWSRegion),
+			}
+			// for things meant to be run as an assumed role
+			roleCreds := stscreds.NewCredentials(
+				sess,
+				conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+					p.TokenProvider = stscreds.StdinTokenProvider
+				},
+			)
+			roleConf := &aws.Config{
+				Credentials: roleCreds,
+				Region:      aws.String(region.AWSRegion),
+			}
+			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
+
+			// tg := kmsauth.NewTokenGenerator()
+
+			client := bless.New(conf).WithAwsClient(awsClient)
+
+			err = client.RequestCert()
+			if err != nil {
+				regionErrors = multierror.Append(regionErrors, err)
+			}
 		}
-		err = client.RequestCert()
-		return err
+		return regionErrors
 	},
 }
