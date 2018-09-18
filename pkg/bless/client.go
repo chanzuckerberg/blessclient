@@ -35,7 +35,7 @@ func New(conf *config.Config, sess *session.Session, isLogin bool) (*Client, err
 	if err != nil {
 		return nil, errors.Wrapf(err, "Could not create mfa cache dir at %s", path.Dir(mfaCache))
 	}
-	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache, isLogin)
+	userTokenProvider := cziAWS.NewUserTokenProvider(sess, mfaCache, isLogin, stscreds.StdinTokenProvider)
 	kmsauthCredentials := credentials.NewCredentials(userTokenProvider)
 	mfaAWSConfig := &aws.Config{
 		Credentials: kmsauthCredentials,

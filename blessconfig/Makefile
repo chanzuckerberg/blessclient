@@ -9,7 +9,4 @@ ssh:
 	@ssh-keygen -f ~/.ssh/blessid -b 4096 -t rsa -C 'Key for Bless certificates' -N ''
 	@ssh-keygen -y -f ~/.ssh/blessid > ~/.ssh/blessid.pub
 
-install:
-	go install main.go
-
-.PHONY: config ssh install
+.PHONY: config ssh
