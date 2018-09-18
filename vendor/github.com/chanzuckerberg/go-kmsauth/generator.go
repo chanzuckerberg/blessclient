@@ -49,8 +49,7 @@ func NewTokenGenerator(
 		TokenLifetime:  tokenLifetime,
 		TokenCacheFile: tokenCacheFile,
 		AuthContext:    authContext,
-
-		awsClient: awsClient,
+		awsClient:      awsClient,
 	}
 }
 

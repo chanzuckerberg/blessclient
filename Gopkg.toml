@@ -31,11 +31,11 @@
   unused-packages = true
 
 [[constraint]]
-  branch = "edu/go-misc-aws"
+  branch = "master"
   name = "github.com/chanzuckerberg/go-kmsauth"
 
 [[constraint]]
-  branch = "edu/initial"
+  branch = "master"
   name = "github.com/chanzuckerberg/go-misc"
 
 [[constraint]]

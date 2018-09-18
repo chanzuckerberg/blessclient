@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:259bede1c2186a1193eb0b88e7b102e9106f498778bfef85d4a33b6a4118dc5a"
+  digest = "1:290ebce12c4232722bcad98512cad7b7ade11a77d2bcaae9e29a04695e6f9c80"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -48,8 +48,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "34699de98eac41fa94737f6ce7b83d7a621c2634"
-  version = "v1.15.36"
+  revision = "3dd4f56d3cb9d194293525540562216f81bd3f27"
+  version = "v1.15.37"
 
 [[projects]]
   branch = "master"
@@ -68,20 +68,20 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "edu/go-misc-aws"
-  digest = "1:2aa45a79d36a148b7960ea1a5c977a462c0efb000ee327fcba2cd3593e986bc5"
+  branch = "master"
+  digest = "1:7918479151194c6614c385b14618f401b8e7d94ede06c410a21529557d237ee2"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "dd1bfc95d5ce6799edc2ee36de315ae66048a8cf"
+  revision = "559481f317270fe22b308720b00d294aeb7fa4d2"
 
 [[projects]]
-  branch = "edu/initial"
+  branch = "master"
   digest = "1:f9f2efde46b70cfd1542eac836f5c3461200c299858f3116de58da4305abc552"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "528051acf4b9968d4911072c2d14aac6e96b9383"
+  revision = "f873512ea14aede5fb0c66af456ea3cea3899579"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
