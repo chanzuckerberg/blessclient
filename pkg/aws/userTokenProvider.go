@@ -2,7 +2,6 @@ package aws
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -67,7 +66,6 @@ func NewUserTokenProvider(
 
 // try reading from file cache
 func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
-	fmt.Println("FROM CACHE")
 	p.m.RLock()
 	defer p.m.RUnlock()
 
@@ -75,7 +73,6 @@ func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
 	if err != nil {
 		// no cache - return nil credentials
 		if os.IsNotExist(err) {
-			fmt.Println("NO CACHE")
 			return nil, nil
 		}
 		return nil, errors.Wrapf(err, "Could not open mfa token cache %s", p.cacheFile)
@@ -89,7 +86,6 @@ func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
 
 	// expired - return nil credentials
 	if time.Now().After(tokenCache.Expiration.Add(-1 * p.expireWindow)) {
-		fmt.Println("EXPIRED")
 		return nil, nil
 	}
 

@@ -170,6 +170,5 @@ type mockSTSSvc struct {
 }
 
 func (m mockSTSSvc) GetSessionToken(in *sts.GetSessionTokenInput) (*sts.GetSessionTokenOutput, error) {
-	fmt.Println("returning ssession token")
 	return m.ResponsesGetSessionToken, nil
 }
