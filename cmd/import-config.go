@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"io/ioutil"
+	"os"
+	"path"
+
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	getter "github.com/hashicorp/go-getter"
@@ -33,7 +37,28 @@ var importConfigCmd = &cobra.Command{
 		if err != nil || src == "" {
 			return errs.ErrMissingConfigURL
 		}
-		err = getter.GetFile(configFileExpanded, src)
-		return errors.Wrapf(err, "Could not fetch %s to %s", src, configFileExpanded)
+		f, err := ioutil.TempFile("", "blessconfig")
+		if err != nil {
+			return errors.Wrap(err, "Could not create temporary file for config")
+		}
+		defer f.Close()
+		defer os.Remove(f.Name())
+
+		err = getter.GetFile(f.Name(), src)
+		if err != nil {
+			return errors.Wrapf(err, "Could not fetch %s to %s", src, configFileExpanded)
+		}
+
+		// Need to add some specific conf for user environment
+		conf, err := config.FromFile(f.Name())
+		if err != nil {
+			return err
+		}
+
+		conf.ClientConfig.ClientDir = path.Dir(configFileExpanded)
+		conf.ClientConfig.ConfigFile = configFileExpanded
+		conf.ClientConfig.CacheDir = path.Join(conf.ClientConfig.ClientDir, "cache") // TODO: version the cache
+		conf.ClientConfig.KMSAuthCacheDir = path.Join(conf.ClientConfig.CacheDir, config.DefaultKMSAuthCache)
+		return conf.Persist()
 	},
 }

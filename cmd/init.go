@@ -29,14 +29,13 @@ var initCmd = &cobra.Command{
 		conf := config.DefaultConfig()
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
-			return errors.Wrapf(err, "Could not exapnd %s", configFile)
+			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
 
 		conf.ClientConfig.ClientDir = path.Dir(configFileExpanded)
 		conf.ClientConfig.ConfigFile = configFileExpanded
 		conf.ClientConfig.CacheDir = path.Join(conf.ClientConfig.ClientDir, "cache") // TODO: version the cache
-		conf.ClientConfig.KMSAuthCacheFile = path.Join(conf.ClientConfig.CacheDir, config.DefaultKMSAuthCache)
-		conf.ClientConfig.MFACacheFile = path.Join(conf.ClientConfig.CacheDir, config.DefaultMFACache)
+		conf.ClientConfig.KMSAuthCacheDir = path.Join(conf.ClientConfig.CacheDir, config.DefaultKMSAuthCache)
 
 		// Ask for some user values
 		conf.ClientConfig.SSHPrivateKey = prompt.StringRequired("path to the ssh private key to use")

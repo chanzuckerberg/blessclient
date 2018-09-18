@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:259bede1c2186a1193eb0b88e7b102e9106f498778bfef85d4a33b6a4118dc5a"
+  digest = "1:290ebce12c4232722bcad98512cad7b7ade11a77d2bcaae9e29a04695e6f9c80"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -48,8 +48,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "34699de98eac41fa94737f6ce7b83d7a621c2634"
-  version = "v1.15.36"
+  revision = "3dd4f56d3cb9d194293525540562216f81bd3f27"
+  version = "v1.15.37"
 
 [[projects]]
   branch = "master"
@@ -69,14 +69,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:952270846de8ecc20c85609b40333aca120b82f544a766d50263a6fe981c2f2a"
+  digest = "1:7918479151194c6614c385b14618f401b8e7d94ede06c410a21529557d237ee2"
   name = "github.com/chanzuckerberg/go-kmsauth"
-  packages = [
-    ".",
-    "kmsauth/aws",
-  ]
+  packages = ["."]
   pruneopts = "UT"
-  revision = "929435701519ae7a1887467b4413c0953b9e0687"
+  revision = "559481f317270fe22b308720b00d294aeb7fa4d2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f9f2efde46b70cfd1542eac836f5c3461200c299858f3116de58da4305abc552"
+  name = "github.com/chanzuckerberg/go-misc"
+  packages = ["aws"]
+  pruneopts = "UT"
+  revision = "f873512ea14aede5fb0c66af456ea3cea3899579"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -114,6 +119,14 @@
   version = "v0.16.0"
 
 [[projects]]
+  digest = "1:0ade334594e69404d80d9d323445d2297ff8161637f9b2d347cc6973d2d6f05b"
+  name = "github.com/hashicorp/errwrap"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8a6fb523712970c966eefc6b39ed2c5e74880354"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:f47d6109c2034cb16bd62b220e18afd5aa9d5a1630fe5d937ad96a4fb7cbb277"
   name = "github.com/hashicorp/go-cleanhttp"
   packages = ["."]
@@ -131,6 +144,14 @@
   ]
   pruneopts = "UT"
   revision = "4bda8fa99001c61db3cad96b421d4c12a81f256d"
+
+[[projects]]
+  digest = "1:f668349b83f7d779567c880550534addeca7ebadfdcf44b0b9c39be61864b4b7"
+  name = "github.com/hashicorp/go-multierror"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:605c47454db9040e30b20dc1b29e3e9d42d6ee742545729cdef74afb1b898ad0"
@@ -236,9 +257,20 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
+  digest = "1:ac83cf90d08b63ad5f7e020ef480d319ae890c208f8524622a2f3136e2686b02"
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
+  digest = "1:15a4a7e5afac3cea801fa24831fce3bf3b5bd3620cbf8355a07b7dbf06877883"
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "mock",
+  ]
   pruneopts = "UT"
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
@@ -275,14 +307,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:374fc90fcb026e9a367e3fad29e988e5dd944b68ca3f24a184d77abc5307dda4"
+  digest = "1:e10551220bea6da5274318545537df1012268056be6484b83a3338328050cde0"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
+  revision = "ee1b12c67af419cf5a9be3bdbeea7fc1c5f32f11"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
@@ -305,26 +337,18 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
-    "github.com/aws/aws-sdk-go/aws/awserr",
-    "github.com/aws/aws-sdk-go/aws/client",
-    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
-    "github.com/aws/aws-sdk-go/service/iam",
-    "github.com/aws/aws-sdk-go/service/iam/iamiface",
-    "github.com/aws/aws-sdk-go/service/lambda",
-    "github.com/aws/aws-sdk-go/service/lambda/lambdaiface",
-    "github.com/aws/aws-sdk-go/service/sts",
-    "github.com/aws/aws-sdk-go/service/sts/stsiface",
     "github.com/blang/semver",
     "github.com/chanzuckerberg/go-kmsauth",
+    "github.com/chanzuckerberg/go-misc/aws",
     "github.com/hashicorp/go-getter",
+    "github.com/hashicorp/go-multierror",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
-    "github.com/stretchr/testify/assert",
     "golang.org/x/crypto/ssh",
     "gopkg.in/yaml.v2",
   ]
