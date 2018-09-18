@@ -105,7 +105,7 @@ var runCmd = &cobra.Command{
 				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
 			} else {
-				break // if no error then done
+				return nil
 			}
 		}
 		return regionErrors
