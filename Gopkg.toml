@@ -35,6 +35,10 @@
   name = "github.com/chanzuckerberg/go-kmsauth"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/chanzuckerberg/go-misc"
+
+[[constraint]]
   name = "github.com/segmentio/go-prompt"
   branch = "master"
 

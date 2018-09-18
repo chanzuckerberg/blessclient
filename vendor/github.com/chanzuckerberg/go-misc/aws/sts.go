@@ -19,17 +19,13 @@ func NewSTS(c client.ConfigProvider, config *aws.Config) *STS {
 }
 
 // GetSTSToken gets an sts token
-func (s *STS) GetSTSToken(mfaSerial string, mfaToken string) (*sts.Credentials, error) {
-	duration := int64(64800) // 18 hours
-	input := &sts.GetSessionTokenInput{
-		DurationSeconds: aws.Int64(duration),
-		SerialNumber:    aws.String(mfaSerial),
-		TokenCode:       aws.String(mfaToken),
-	}
+func (s *STS) GetSTSToken(input *sts.GetSessionTokenInput) (*sts.Credentials, error) {
 	output, err := s.Svc.GetSessionToken(input)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not request sts tokens")
 	}
-
+	if output == nil {
+		return nil, errors.New("Nil output from aws")
+	}
 	return output.Credentials, nil
 }

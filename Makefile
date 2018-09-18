@@ -4,4 +4,7 @@ test:
 release:
 	goreleaser release --rm-dist
 
-.PHONY: test
+install:
+	go install .
+
+.PHONY: test release install

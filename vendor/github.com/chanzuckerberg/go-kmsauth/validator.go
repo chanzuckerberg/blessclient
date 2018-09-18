@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	cziAWS "github.com/chanzuckerberg/go-kmsauth/kmsauth/aws"
+	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/pkg/errors"
 )
 
@@ -26,16 +24,15 @@ type TokenValidator struct {
 // NewTokenValidator returns a new token validator
 func NewTokenValidator(
 	authKeys map[string]bool,
-	sess *session.Session,
-	conf *aws.Config,
 	authContext AuthContext,
 	tokenLifetime time.Duration,
+	awsClient *cziAWS.Client,
 ) *TokenValidator {
 	return &TokenValidator{
 		AuthKeys:      authKeys,
 		AuthContext:   authContext,
 		TokenLifetime: tokenLifetime,
-		AwsClient:     cziAWS.NewClient(sess, conf),
+		AwsClient:     awsClient,
 	}
 }
 

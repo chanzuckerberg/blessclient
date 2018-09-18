@@ -1,0 +1,23 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/chanzuckerberg/go-misc"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
+  version = "0.8.0"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.6"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+
+[[constraint]]
+  name = "gopkg.in/go-playground/validator.v9"
+  version = "9.21.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true
