@@ -34,56 +34,17 @@ func (c *Client) WithAwsClient(client *cziAWS.Client) *Client {
 	return c
 }
 
+// WithUsername configures the username
+func (c *Client) WithUsername(username string) *Client {
+	c.username = username
+	return c
+}
+
 // WithTokenGenerator configures a token generator
 func (c *Client) WithTokenGenerator(tg *kmsauth.TokenGenerator) *Client {
 	c.tg = tg
 	return c
 }
-
-// 	lambdaAWSCredentials := stscreds.NewCredentials(
-// 		sess,
-// 		conf.LambdaConfig.RoleARN,
-// 		func(p *stscreds.AssumeRoleProvider) {
-// 			p.TokenProvider = stscreds.StdinTokenProvider
-// 		},
-// 	)
-
-// 	lambdaAWSConfig := &aws.Config{
-// 		Credentials: lambdaAWSCredentials,
-// 	}
-
-// 	awsClient := cziAWS.NewClient(sess, mfaAWSConfig, lambdaAWSConfig)
-// 	username, err := awsClient.IAM.GetUsername()
-// 	if err != nil {
-// 		// TODO this could have a more informative user error
-// 		return nil, err
-// 	}
-
-// 	// TODO: just using the first region for now...
-// 	authContext := &kmsauth.AuthContextV2{
-// 		From:     username,
-// 		To:       conf.LambdaConfig.FunctionName,
-// 		UserType: "user",
-// 	}
-// 	cacheFile := conf.ClientConfig.KMSAuthCacheFile
-
-// 	tokenGenerator := kmsauth.NewTokenGenerator(
-// 		conf.LambdaConfig.Regions[0].KMSAuthKeyID,
-// 		kmsauth.TokenVersion2,
-// 		sess,
-// 		mfaAWSConfig,
-// 		time.Minute*30,
-// 		&cacheFile,
-// 		authContext,
-// 	)
-// 	return &Client{
-// 			conf:           conf,
-// 			tokenGenerator: tokenGenerator,
-// 			username:       username,
-// 			Aws:            awsClient,
-// 		},
-// 		nil
-// }
 
 // LambdaPayload is the payload for the bless lambda
 type LambdaPayload struct {
@@ -129,7 +90,7 @@ func (c *Client) RequestCert() error {
 		return err
 	}
 	if isFresh {
-		log.Debug("Cert is already fresh")
+		log.Info("Cert is already fresh - using it")
 		return nil
 	}
 
@@ -149,20 +110,15 @@ func (c *Client) RequestCert() error {
 	payload.KMSAuthToken = token.String()
 	payload.PublicKeyToSign = string(pubKey)
 
-	log.Infof("payload: %#v", payload)
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
 		return errors.Wrap(err, "Could not serialize lambda payload")
 	}
-	log.Infof("payload_json: %#v", string(payloadB))
-
-	log.Infof("function name: %s", c.conf.LambdaConfig.FunctionName)
 	responseBytes, err := c.Aws.Lambda.Execute(c.conf.LambdaConfig.FunctionName, payloadB)
 	if err != nil {
 		return err
 	}
 
-	log.Infof("Response Bytes: %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
 	err = json.Unmarshal(responseBytes, lambdaReponse)
 	if err != nil {

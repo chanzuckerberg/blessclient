@@ -19,10 +19,8 @@ const (
 	DefaultConfigFile = "~/.blessclient/config.yml"
 	// DefaultCacheDir is a default cache dir
 	DefaultCacheDir = "~/.blessclient/cache"
-	// DefaultMFACache is the default mfa cache
-	DefaultMFACache = "mfa-cache.json"
 	// DefaultKMSAuthCache is the default kmsauth cache
-	DefaultKMSAuthCache = "kmsauth-cache.json"
+	DefaultKMSAuthCache = "kmsauth-cache"
 	// DefaultAWSProfile is the default bless aws profile
 	DefaultAWSProfile = "bless"
 )
@@ -31,6 +29,7 @@ const (
 type Config struct {
 	ClientConfig ClientConfig `json:"client_config" yaml:"client_config"`
 	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
+	Version      int          `json:"version" yaml:"version"`
 }
 
 // Region is an aws region
@@ -41,11 +40,10 @@ type Region struct {
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	ClientDir        string `json:"client_dir" yaml:"client_dir"`
-	ConfigFile       string `json:"config_file" yaml:"config_file"`
-	CacheDir         string `json:"cache_dir" yaml:"cache_dir"`
-	MFACacheFile     string `json:"mfa_cache_file" yaml:"mfa_cache_file"`
-	KMSAuthCacheFile string `json:"kms_auth_cache_file" yaml:"kms_auth_cache_file"`
+	ClientDir       string `json:"client_dir" yaml:"client_dir"`
+	ConfigFile      string `json:"config_file" yaml:"config_file"`
+	CacheDir        string `json:"cache_dir" yaml:"cache_dir"`
+	KMSAuthCacheDir string `json:"kmsauth_cache_dir" yaml:"kmsauth_cache_dir"`
 
 	SSHPrivateKey string `json:"ssh_private_key" yaml:"ssh_private_key"`
 
@@ -66,6 +64,11 @@ type LambdaConfig struct {
 // Duration is a wrapper around Duration to marshal/unmarshal
 type Duration struct {
 	time.Duration
+}
+
+// AsDuration returns as duration
+func (d Duration) AsDuration() time.Duration {
+	return d.Duration
 }
 
 // MarshalJSON marshals to json
@@ -99,11 +102,10 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 func DefaultConfig() *Config {
 	return &Config{
 		ClientConfig: ClientConfig{
-			ClientDir:        DefaultClientDir,
-			CacheDir:         DefaultCacheDir,
-			MFACacheFile:     DefaultMFACache,
-			KMSAuthCacheFile: DefaultKMSAuthCache,
-			CertLifetime:     Duration{30 * time.Minute},
+			ClientDir:       DefaultClientDir,
+			CacheDir:        DefaultCacheDir,
+			KMSAuthCacheDir: DefaultKMSAuthCache,
+			CertLifetime:    Duration{30 * time.Minute},
 		},
 		LambdaConfig: LambdaConfig{
 			RoleARN: DefaultAWSProfile, // seems like a sane default

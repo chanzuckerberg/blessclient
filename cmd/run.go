@@ -1,16 +1,21 @@
 package cmd
 
 import (
+	"fmt"
+	"path"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	multierror "github.com/hashicorp/go-multierror"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +29,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		log.Info("Running blessclient")
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -68,13 +74,38 @@ var runCmd = &cobra.Command{
 			}
 			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
 
-			// tg := kmsauth.NewTokenGenerator()
+			user, err := awsClient.IAM.GetCurrentUser()
+			if err != nil {
+				return err
+			}
+			if user == nil || user.UserName == nil {
+				return errors.New("AWS returned nil user")
+			}
 
-			client := bless.New(conf).WithAwsClient(awsClient)
+			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
+			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile)
+			kmsauthContext := &kmsauth.AuthContextV2{
+				From:     *user.UserName,
+				To:       conf.LambdaConfig.FunctionName,
+				UserType: "user",
+			}
 
+			tg := kmsauth.NewTokenGenerator(
+				region.KMSAuthKeyID,
+				kmsauth.TokenVersion2,
+				conf.ClientConfig.CertLifetime.AsDuration(),
+				&regionalKMSAuthCache,
+				kmsauthContext,
+				awsClient,
+			)
+
+			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
 			err = client.RequestCert()
 			if err != nil {
+				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
+			} else {
+				break // if no error then done
 			}
 		}
 		return regionErrors
