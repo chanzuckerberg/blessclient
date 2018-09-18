@@ -2,6 +2,7 @@ package aws
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -41,32 +42,40 @@ type UserTokenProvider struct {
 	cacheFile string
 	m         sync.RWMutex
 
-	expireWindow time.Duration
-	isLogin      bool
+	expireWindow  time.Duration
+	isLogin       bool
+	tokenProvider func() (string, error)
 }
 
 // NewUserTokenProvider returns a new user token provider
-func NewUserTokenProvider(c client.ConfigProvider, cacheFile string, isLogin bool) *UserTokenProvider {
+func NewUserTokenProvider(
+	c client.ConfigProvider,
+	cacheFile string,
+	isLogin bool,
+	tokenProvider func() (string, error)) *UserTokenProvider {
 	p := &UserTokenProvider{
 		Client:   NewClient(c, nil, nil),
 		Duration: stscreds.DefaultDuration,
 
-		cacheFile:    cacheFile,
-		expireWindow: 10 * time.Second,
-		isLogin:      isLogin,
+		cacheFile:     cacheFile,
+		expireWindow:  10 * time.Second,
+		isLogin:       isLogin,
+		tokenProvider: tokenProvider,
 	}
 	return p
 }
 
 // try reading from file cache
 func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
+	fmt.Println("FROM CACHE")
 	p.m.RLock()
 	defer p.m.RUnlock()
 
 	b, err := ioutil.ReadFile(p.cacheFile)
 	if err != nil {
-		// no cache -
+		// no cache - return nil credentials
 		if os.IsNotExist(err) {
+			fmt.Println("NO CACHE")
 			return nil, nil
 		}
 		return nil, errors.Wrapf(err, "Could not open mfa token cache %s", p.cacheFile)
@@ -78,11 +87,13 @@ func (p *UserTokenProvider) fromCache() (*sts.Credentials, error) {
 		return nil, errors.Wrapf(err, "Cache corrupted at %s, please delete", p.cacheFile)
 	}
 
-	// expired
+	// expired - return nil credentials
 	if time.Now().After(tokenCache.Expiration.Add(-1 * p.expireWindow)) {
+		fmt.Println("EXPIRED")
 		return nil, nil
 	}
 
+	// else return cached
 	creds := &sts.Credentials{
 		AccessKeyId:     tokenCache.AccessKeyID,
 		SecretAccessKey: tokenCache.SecretAccessKey,
@@ -144,7 +155,7 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 		if err != nil {
 			return creds, err
 		}
-		token, err := stscreds.StdinTokenProvider()
+		token, err := p.tokenProvider()
 		if err != nil {
 			return creds, errors.Wrap(err, "Could not read MFA token")
 		}
@@ -155,14 +166,14 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 	}
 
 	// Check that we have all of these
-	if stsCreds.AccessKeyId == nil ||
+	if stsCreds == nil ||
+		stsCreds.AccessKeyId == nil ||
 		stsCreds.Expiration == nil ||
 		stsCreds.SecretAccessKey == nil ||
 		stsCreds.SessionToken == nil {
 		return creds, errors.New("Received malformed credentials from aws.Sts.GetSTSToken")
 	}
 
-	// TODO: cache these on disk
 	p.SetExpiration(*stsCreds.Expiration, p.expireWindow)
 	creds.AccessKeyID = *stsCreds.AccessKeyId
 	creds.SecretAccessKey = *stsCreds.SecretAccessKey
