@@ -97,7 +97,7 @@ func sshConfig(conf *config.Config) error {
 
 	// Populate the inferred key
 	for i := range conf.SSHConfig.Bastions {
-		conf.SSHConfig.Bastions[i].IdentityFile = path.Base(conf.ClientConfig.SSHPrivateKey)
+		conf.SSHConfig.Bastions[i].IdentityFile = conf.ClientConfig.SSHPrivateKey
 	}
 
 	sshConfig, err := conf.SSHConfig.String()
