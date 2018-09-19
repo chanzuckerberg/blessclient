@@ -6,14 +6,13 @@ import (
 	"os"
 	"path"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	getter "github.com/hashicorp/go-getter"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/segmentio/go-prompt"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -105,8 +104,7 @@ func sshConfig(conf *config.Config) error {
 	if err != nil {
 		return err
 	}
-	logrus.Infof("Generated SSH Config:\n%s", sshConfig)
-
+	log.Infof("Generated SSH Config:\n%s", sshConfig)
 	openFileFlag := os.O_CREATE | os.O_WRONLY
 
 	options := []string{"append", "overwrite", "nothing"}
@@ -129,5 +127,9 @@ func sshConfig(conf *config.Config) error {
 	defer f.Close()
 
 	_, err = f.WriteString(sshConfig)
-	return errors.Wrapf(err, "Could not write ssh conf to %s", sshConfPath)
+	if err != nil {
+		return errors.Wrapf(err, "Could not write ssh conf to %s", sshConfPath)
+	}
+	log.Infof("ssh config %s to %s", options[i], sshConfPath)
+	return nil
 }
