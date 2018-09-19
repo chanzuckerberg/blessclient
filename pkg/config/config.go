@@ -27,9 +27,11 @@ const (
 
 // Config is a blessclient config
 type Config struct {
+	Version int `json:"version" yaml:"version"`
+
 	ClientConfig ClientConfig `json:"client_config" yaml:"client_config"`
 	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
-	Version      int          `json:"version" yaml:"version"`
+	SSHConfig    *SSHConfig   `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
 }
 
 // Region is an aws region
