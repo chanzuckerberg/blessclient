@@ -42,8 +42,9 @@ Once you have configured blessclient, running is as simple as `blessclient run`.
 
 ### .ssh/config
 
-In general, you can write an ssh config to transparently use blessclient.
-Such a config could look like:
+This is the nice part about blessclient - in general, you can write an ssh config to transparently use blessclient. scp, rsync, etc should all be compatible!
+
+Such an ssh config could look like:
 
 ```
 Match OriginalHost bastion.foo.com exec "blessclient run"
@@ -61,4 +62,3 @@ This ssh config does a couple of interesting things -
 
 - It transparently requests an ssh certificate if needed
 - It transparently does a ProxyJump through a bastion host (assuming 10.0.* is an ipblock for machines behind the bastion)
-
