@@ -85,7 +85,7 @@ func (c *Client) RequestCert() error {
 		return err
 	}
 
-	isFresh, err := s.IsCertFresh()
+	isFresh, err := s.IsCertFresh(c.conf)
 	if err != nil {
 		return err
 	}

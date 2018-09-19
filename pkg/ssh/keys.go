@@ -5,8 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
+	"strings"
 	"time"
 
+	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -68,7 +71,7 @@ func (s *SSH) ReadCert() ([]byte, error) {
 }
 
 // IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh() (bool, error) {
+func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	certBytes, err := s.ReadCert()
 	// err reading cert
 	if err != nil {
@@ -93,7 +96,17 @@ func (s *SSH) IsCertFresh() (bool, error) {
 	validAfter := time.Unix(int64(cert.ValidAfter), 0).Add(-1 * timeSkew) // lower bound
 
 	isFresh := now.After(validAfter) && now.Before(validBefore)
-	// TODO validation around principals and other cert things we might want
+	// TODO: add more validation for certificate critical options
+	for key, val := range cert.CriticalOptions {
+		switch key {
+		case "source-address":
+			isFresh = isFresh && val == strings.Join(c.ClientConfig.BastionIPS, ",")
+		}
+	}
+
+	// Compare principals
+	isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers)
+
 	return isFresh, nil
 }
 
