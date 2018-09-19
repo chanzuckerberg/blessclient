@@ -16,6 +16,7 @@ import (
 func init() {
 	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	importConfigCmd.Flags().StringP("url", "u", "", "Use this to specify the url used to fetch your bless config.")
+	rootCmd.AddCommand(importConfigCmd)
 }
 
 var importConfigCmd = &cobra.Command{
