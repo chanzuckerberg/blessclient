@@ -7,6 +7,7 @@ test:
 	go test -cover ./...
 
 release:
+	./release
 	goreleaser release --rm-dist
 	git push
 
