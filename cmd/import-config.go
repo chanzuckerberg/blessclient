@@ -3,7 +3,6 @@ package cmd
 import (
 	"io/ioutil"
 	"os"
-	"path"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
@@ -56,10 +55,7 @@ var importConfigCmd = &cobra.Command{
 			return err
 		}
 
-		conf.ClientConfig.ClientDir = path.Dir(configFileExpanded)
-		conf.ClientConfig.ConfigFile = configFileExpanded
-		conf.ClientConfig.CacheDir = path.Join(conf.ClientConfig.ClientDir, "cache") // TODO: version the cache
-		conf.ClientConfig.KMSAuthCacheDir = path.Join(conf.ClientConfig.CacheDir, config.DefaultKMSAuthCache)
+		conf.SetPaths(configFileExpanded)
 		return conf.Persist()
 	},
 }
