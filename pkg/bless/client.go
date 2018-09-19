@@ -1,4 +1,4 @@
-package client
+package bless
 
 import (
 	"encoding/json"
@@ -73,8 +73,8 @@ func (c *Client) RequestKMSAuthToken() (*kmsauth.EncryptedToken, error) {
 // RequestCert requests a cert
 func (c *Client) RequestCert() error {
 	payload := &LambdaPayload{
-		BastionUser:     c.username,
 		RemoteUsernames: strings.Join(c.conf.ClientConfig.RemoteUsers, ","),
+		BastionUser:     c.username,
 		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
 		BastionUserIP:   "0.0.0.0/0",
 		Command:         "*",
