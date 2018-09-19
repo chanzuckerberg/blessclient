@@ -65,11 +65,7 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
-		conf.ClientConfig.ClientDir = path.Dir(configFileExpanded)
-		conf.ClientConfig.ConfigFile = configFileExpanded
-		conf.ClientConfig.CacheDir = path.Join(conf.ClientConfig.ClientDir, "cache") // TODO: version the cache
-		conf.ClientConfig.KMSAuthCacheDir = path.Join(conf.ClientConfig.CacheDir, config.DefaultKMSAuthCache)
+		conf.SetPaths(configFileExpanded)
 
 		// Try to use the default id_rsa key
 		conf.ClientConfig.SSHPrivateKey = path.Join(sshDirExpanded, "id_rsa")

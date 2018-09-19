@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path"
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
@@ -20,7 +22,7 @@ const (
 	// DefaultCacheDir is a default cache dir
 	DefaultCacheDir = "~/.blessclient/cache"
 	// DefaultKMSAuthCache is the default kmsauth cache
-	DefaultKMSAuthCache = "kmsauth-cache"
+	DefaultKMSAuthCache = "kmsauth"
 	// DefaultAWSProfile is the default bless aws profile
 	DefaultAWSProfile = "bless"
 )
@@ -154,4 +156,12 @@ func (c *Config) Persist() error {
 	}
 	log.Infof("Config written to %s", c.ClientConfig.ConfigFile)
 	return nil
+}
+
+// SetPaths sets paths on the config
+func (c *Config) SetPaths(configPath string) {
+	c.ClientConfig.ClientDir = path.Dir(configPath)
+	c.ClientConfig.ConfigFile = configPath
+	c.ClientConfig.CacheDir = path.Join(c.ClientConfig.ClientDir, "cache", util.VersionCacheKey())
+	c.ClientConfig.KMSAuthCacheDir = path.Join(c.ClientConfig.CacheDir, DefaultKMSAuthCache)
 }
