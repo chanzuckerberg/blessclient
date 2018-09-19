@@ -33,7 +33,7 @@ You can also use pre-generated config files.
 
 `blessclient import-config -url http://github.com/..../teamA_blessclient.yml`
 
-This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config.
+This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter) supports.
 
 ### Run
 
