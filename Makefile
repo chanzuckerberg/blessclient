@@ -7,7 +7,9 @@ test:
 	go test -cover ./...
 
 release:
+	./release
 	goreleaser release --rm-dist
+	git push
 
 install:
 	go install  ${LDFLAGS} .
