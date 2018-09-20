@@ -2,4 +2,4 @@ language: go
 go:
 - '1.11'
 script:
-- make test
+- make enforce-cover

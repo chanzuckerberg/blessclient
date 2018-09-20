@@ -14,4 +14,10 @@ release:
 install:
 	go install  ${LDFLAGS} .
 
+update-cover:
+	@go run _bin/coverage/main.go -update -exclude .
+
+enforce-cover:
+	@go run _bin/coverage/main.go -enforce -exclude .
+
 .PHONY: test release install
