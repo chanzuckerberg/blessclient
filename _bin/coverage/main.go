@@ -1,3 +1,26 @@
+// MIT License
+
+// Copyright (c) 2018 Blend Labs, inc.
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+// From https://raw.githubusercontent.com/blend/go-sdk/master/_bin/coverage/main.go
 package main
 
 import (
@@ -135,6 +158,7 @@ func main() {
 	maybeFatal(writeCoverage(pwd, fmt.Sprintf("%.2f", finalCoverage)))
 	fmt.Fprintf(os.Stdout, "final coverage: %.2f\n", finalCoverage)
 	fmt.Fprintf(os.Stdout, "merging coverage output: %s\n", *reportOutputPath)
+	maybeFatal(execCoverageReportCompile())
 	maybeFatal(removeIfExists(*temporaryOutputPath))
 	fmt.Fprintln(os.Stdout, "coverage complete")
 }
@@ -259,6 +283,13 @@ func execCoverage(path string) ([]byte, error) {
 	cmd := exec.Command(gobin(), "test", "-timeout", "10s", "-short", "-covermode=set", "-coverprofile=profile.cov")
 	cmd.Dir = path
 	return cmd.CombinedOutput()
+}
+
+func execCoverageReportCompile() error {
+	cmd := exec.Command(gobin(), "tool", "cover", fmt.Sprintf("-html=%s", *temporaryOutputPath), fmt.Sprintf("-o=%s", *reportOutputPath))
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "GOCACHE=off")
+	return cmd.Run()
 }
 
 func mergeCoverageOutput(temp string, outFile *os.File) error {
