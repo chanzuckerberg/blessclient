@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -192,6 +194,53 @@ func (ts *TestSuite) TestBadCriticalOptionsCert() {
 	a.True(ts.mockLambda.Mock.AssertCalled(t, "Invoke", mock.Anything))
 }
 
+func (ts *TestSuite) TestReportsLambdaErrors() {
+	t := ts.T()
+	a := assert.New(t)
+
+	lambdaResponse := &bless.LambdaResponse{
+		Certificate:  aws.String("my new cert"),
+		ErrorType:    aws.String("rando error"),
+		ErrorMessage: aws.String("rando error message"),
+	}
+	lambdaBytes, err := json.Marshal(lambdaResponse)
+	a.Nil(err)
+	ts.lambdaExecuteOut = &lambda.InvokeOutput{
+		Payload: lambdaBytes,
+	}
+
+	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+
+	err = ts.client.RequestCert()
+	a.NotNil(err)
+	a.Contains(err.Error(), "bless error")
+	a.Contains(err.Error(), *lambdaResponse.ErrorMessage)
+	a.Contains(err.Error(), *lambdaResponse.ErrorType)
+}
+
+func (ts *TestSuite) TestNoCertificateInResponse() {
+	t := ts.T()
+	a := assert.New(t)
+
+	lambdaResponse := &bless.LambdaResponse{
+		Certificate:  nil,
+		ErrorType:    nil,
+		ErrorMessage: nil,
+	}
+	lambdaBytes, err := json.Marshal(lambdaResponse)
+	a.Nil(err)
+	ts.lambdaExecuteOut = &lambda.InvokeOutput{
+		Payload: lambdaBytes,
+	}
+
+	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+
+	err = ts.client.RequestCert()
+	a.NotNil(err)
+	a.Equal(err, errs.ErrNoCertificateInResponse)
+}
 func TestBlessClientSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }
