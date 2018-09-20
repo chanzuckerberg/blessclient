@@ -26,6 +26,7 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 ### Config
 
 By default, `blessclient` looks for configs in `~/.blessclient/config.yml`. You can always override this `blessclient run -c /my/new/config.yml`
+Some more information on the config can be found [here](pkg/config/config.go).
 
 #### Init
 
