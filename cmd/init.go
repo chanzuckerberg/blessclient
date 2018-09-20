@@ -33,6 +33,7 @@ var initCmd = &cobra.Command{
 
 		// Ask for some user values
 		conf.ClientConfig.SSHPrivateKey = prompt.StringRequired("path to the ssh private key to use")
+		conf.ClientConfig.AWSUserProfile = prompt.String("Enter AWS User Profile (default)")
 		conf.LambdaConfig.RoleARN = prompt.StringRequired("role arn to invoke lambda")
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
