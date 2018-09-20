@@ -24,6 +24,6 @@ brew:
   description: "SSH without pain."
   github:
     owner: chanzuckerberg
-    name: homebrew-hombrew
+    name: homebrew-tap
   homepage: "https://github.com/chanzuckerberg/blessclient"
   test: system "#{bin}/blessclient version"

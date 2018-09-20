@@ -14,7 +14,7 @@ We decided to write in Go because it is much easier to distribute a statically l
 You can use homebrew -
 
 ```
-brew tap chanzuckerberg/homebrew
+brew tap chanzuckerberg/tap
 brew install blessclient
 ```
 
