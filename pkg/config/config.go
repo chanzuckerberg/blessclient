@@ -29,40 +29,58 @@ const (
 
 // Config is a blessclient config
 type Config struct {
+	// Version versions this config
 	Version int `json:"version" yaml:"version"`
 
+	// ClientConfig is config for blessclient
 	ClientConfig ClientConfig `json:"client_config" yaml:"client_config"`
+	// LambdaConfig holds configuration around the bless lambda
 	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
-	SSHConfig    *SSHConfig   `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
+	// For convenience, you can bundle an ~/.ssh/config template here
+	SSHConfig *SSHConfig `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
 }
 
-// Region is an aws region
+// Region is an aws region that contains an aws lambda
 type Region struct {
-	AWSRegion    string `json:"aws_region" yaml:"aws_region"`
+	// name of the aws region (us-west-2)
+	AWSRegion string `json:"aws_region" yaml:"aws_region"`
+	// region specific kms key id (not arn) of the key used for kmsauth
 	KMSAuthKeyID string `json:"kms_auth_key_id" yaml:"kms_auth_key_id"`
 }
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	ClientDir       string `json:"client_dir" yaml:"client_dir"`
-	ConfigFile      string `json:"config_file" yaml:"config_file"`
-	CacheDir        string `json:"cache_dir" yaml:"cache_dir"`
+	// client dir is a directory used by blessclient to hold config and cache
+	ClientDir string `json:"client_dir" yaml:"client_dir"`
+	// ConfigFile is the path to blessclient config file
+	ConfigFile string `json:"config_file" yaml:"config_file"`
+	// CacheDir is a path to the blessclient cache
+	CacheDir string `json:"cache_dir" yaml:"cache_dir"`
+	// KMSAuthCacheDir is a path to the kmsauth cache directory
 	KMSAuthCacheDir string `json:"kmsauth_cache_dir" yaml:"kmsauth_cache_dir"`
+	// AWSUserProfile is an aws profile that references a user (not a role)
+	// leaving this empty typically means use `default` profile
+	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profule"`
 
+	// Path to your ssh private key
 	SSHPrivateKey string `json:"ssh_private_key" yaml:"ssh_private_key"`
 
 	// cert related
 	CertLifetime Duration `json:"cert_lifetime" yaml:"cert_lifetime,inline"`
-	RemoteUsers  []string `json:"remote_users" yaml:"remote_users"`
-	BastionIPS   []string `json:"bastion_ips" yaml:"bastion_ips"`
+	// ask bless to sign for these remote users
+	RemoteUsers []string `json:"remote_users" yaml:"remote_users"`
+	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
+	BastionIPS []string `json:"bastion_ips" yaml:"bastion_ips"`
 }
 
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
 	// RoleARN used to assume and invoke bless lambda
-	RoleARN      string   `json:"role_arn" yaml:"role_arn"`
-	FunctionName string   `json:"function_name" yaml:"function_name"`
-	Regions      []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
+	RoleARN string `json:"role_arn" yaml:"role_arn"`
+	// Bless lambda function name
+	FunctionName string `json:"function_name" yaml:"function_name"`
+	// bless lambda regions
+	Regions []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal

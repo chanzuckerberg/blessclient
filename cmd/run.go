@@ -10,6 +10,7 @@ import (
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	multierror "github.com/hashicorp/go-multierror"
@@ -44,11 +45,11 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
-		// TODO: we probably want to be able to specify the base aws profile here instead of just default
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
 				SharedConfigState:       session.SharedConfigEnable,
 				AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+				Profile:                 conf.ClientConfig.AWSUserProfile,
 			},
 		)
 		if err != nil {
@@ -83,7 +84,7 @@ var runCmd = &cobra.Command{
 			}
 
 			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile)
+			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
 			kmsauthContext := &kmsauth.AuthContextV2{
 				From:     *user.UserName,
 				To:       conf.LambdaConfig.FunctionName,
