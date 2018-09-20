@@ -10,10 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
+	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +34,7 @@ type TestSuite struct {
 	// some default vals
 	encryptOut       *kms.EncryptOutput
 	lambdaExecuteOut *lambda.InvokeOutput
-	conf             *bless.Config
+	conf             *config.Config
 	// cleanup
 	pathsToRemove []string
 	server        *httptest.Server
@@ -236,7 +239,7 @@ func (ts *TestSuite) TestNoCertificateInResponse() {
 
 	err = ts.client.RequestCert()
 	a.NotNil(err)
-	a.Equal(err, bless.ErrNoCertificateInResponse)
+	a.Equal(err, errs.ErrNoCertificateInResponse)
 }
 func TestBlessClientSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
@@ -250,7 +253,7 @@ func rmPaths(paths []string) {
 	}
 }
 
-func testConfig(t *testing.T) (*bless.Config, []string) {
+func testConfig(t *testing.T) (*config.Config, []string) {
 	a := assert.New(t)
 
 	pathsToRemove := []string{}
@@ -271,11 +274,11 @@ func testConfig(t *testing.T) (*bless.Config, []string) {
 	err = ioutil.WriteFile(pubKeyPath, []byte("public key"), 0644)
 	a.Nil(err)
 
-	conf := &bless.Config{
-		ClientConfig: bless.ClientConfig{},
-		LambdaConfig: bless.LambdaConfig{},
+	conf := &config.Config{
+		ClientConfig: config.ClientConfig{},
+		LambdaConfig: config.LambdaConfig{},
 	}
-	conf.SetPaths(path.Join(dirName, "bless.yml"))
+	conf.SetPaths(path.Join(dirName, "config.yml"))
 	conf.ClientConfig.SSHPrivateKey = f.Name()
 	conf.ClientConfig.RemoteUsers = []string{"test-principal"}
 

@@ -1,4 +1,4 @@
-package bless
+package errs
 
 // Error is an alias to a string
 type Error string

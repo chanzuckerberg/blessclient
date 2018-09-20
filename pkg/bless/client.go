@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/pkg/errors"
@@ -14,12 +17,12 @@ import (
 type Client struct {
 	Aws      *cziAWS.Client
 	tg       *kmsauth.TokenGenerator
-	conf     *Config
+	conf     *config.Config
 	username string
 }
 
 // New returns a new client
-func New(conf *Config) *Client {
+func New(conf *config.Config) *Client {
 	return &Client{
 		conf: conf,
 	}
@@ -77,7 +80,7 @@ func (c *Client) RequestCert() error {
 		Command:         "*",
 	}
 
-	s, err := NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
 		return err
 	}
@@ -102,7 +105,7 @@ func (c *Client) RequestCert() error {
 		return err
 	}
 	if token == nil {
-		return ErrMissingKMSAuthToken
+		return errs.ErrMissingKMSAuthToken
 	}
 
 	payload.KMSAuthToken = token.String()
@@ -130,7 +133,7 @@ func (c *Client) RequestCert() error {
 	}
 
 	if lambdaReponse.Certificate == nil {
-		return ErrNoCertificateInResponse
+		return errs.ErrNoCertificateInResponse
 	}
 	return s.WriteCert([]byte(*lambdaReponse.Certificate))
 }

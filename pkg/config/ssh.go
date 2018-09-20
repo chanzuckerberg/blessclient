@@ -1,4 +1,4 @@
-package bless
+package config
 
 import (
 	"bytes"
