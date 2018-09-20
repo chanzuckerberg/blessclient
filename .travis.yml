@@ -1,5 +1,7 @@
 language: go
 go:
 - '1.11'
+install:
+  - go get golang.org/x/tools/cover
 script:
-- make test
+- make enforce-cover

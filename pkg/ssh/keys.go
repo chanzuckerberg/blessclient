@@ -96,14 +96,10 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	validAfter := time.Unix(int64(cert.ValidAfter), 0).Add(-1 * timeSkew) // lower bound
 
 	isFresh := now.After(validAfter) && now.Before(validBefore)
-	// TODO: add more validation for certificate critical options
-	for key, val := range cert.CriticalOptions {
-		switch key {
-		case "source-address":
-			isFresh = isFresh && val == strings.Join(c.ClientConfig.BastionIPS, ",")
-		}
-	}
 
+	// TODO: add more validation for certificate critical options
+	val, ok := cert.CriticalOptions["source=address"]
+	isFresh = isFresh && ok && val == strings.Join(c.ClientConfig.BastionIPS, ",")
 	// Compare principals
 	isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers)
 

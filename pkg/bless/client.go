@@ -1,4 +1,4 @@
-package client
+package bless
 
 import (
 	"encoding/json"
