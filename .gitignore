@@ -1,2 +1,5 @@
 blessclient
 dist
+coverage.html
+profile.cov
+coverage.cov
