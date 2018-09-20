@@ -6,8 +6,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	getter "github.com/hashicorp/go-getter"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -17,8 +16,8 @@ import (
 )
 
 func init() {
-	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
-	importConfigCmd.Flags().StringP("url", "u", "", "Use this to specify the url used to fetch your bless config.")
+	importConfigCmd.Flags().StringP("config", "c", bless.DefaultConfigFile, "Use this to override the bless config file.")
+	importConfigCmd.Flags().StringP("url", "u", "", "Use this to specify the url used to fetch your bless bless.")
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -30,7 +29,7 @@ var importConfigCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
-			return errs.ErrMissingConfig
+			return bless.ErrMissingConfig
 		}
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
@@ -46,7 +45,7 @@ var importConfigCmd = &cobra.Command{
 
 		src, err := cmd.Flags().GetString("url")
 		if err != nil || src == "" {
-			return errs.ErrMissingConfigURL
+			return bless.ErrMissingConfigURL
 		}
 		f, err := ioutil.TempFile("", "blessconfig")
 		if err != nil {
@@ -61,7 +60,7 @@ var importConfigCmd = &cobra.Command{
 		}
 
 		// Need to add some specific conf for user environment
-		conf, err := config.FromFile(f.Name())
+		conf, err := bless.FromFile(f.Name())
 		if err != nil {
 			return err
 		}
@@ -86,7 +85,7 @@ var importConfigCmd = &cobra.Command{
 	},
 }
 
-func sshConfig(conf *config.Config) error {
+func sshConfig(conf *bless.Config) error {
 	if conf.SSHConfig == nil {
 		return nil // nothing to do
 	}

@@ -7,10 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
-	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
-	kmsauth "github.com/chanzuckerberg/go-kmsauth"
+	"github.com/chanzuckerberg/blessclient/pkg/bless"
+	"github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	multierror "github.com/hashicorp/go-multierror"
 	homedir "github.com/mitchellh/go-homedir"
@@ -20,7 +18,7 @@ import (
 )
 
 func init() {
-	runCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
+	runCmd.Flags().StringP("config", "c", bless.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(runCmd)
 }
 
@@ -32,14 +30,14 @@ var runCmd = &cobra.Command{
 		log.Info("Running blessclient")
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
-			return errs.ErrMissingConfig
+			return bless.ErrMissingConfig
 		}
 		expandedConfigFile, err := homedir.Expand(configFile)
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
 
-		conf, err := config.FromFile(expandedConfigFile)
+		conf, err := bless.FromFile(expandedConfigFile)
 		if err != nil {
 			return err
 		}

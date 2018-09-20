@@ -1,4 +1,4 @@
-package ssh
+package bless
 
 import (
 	"fmt"
@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
@@ -38,7 +36,7 @@ func NewSSH(privateKey string) (*SSH, error) {
 	_, err = os.Stat(expandedPrivateKey)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, errs.ErrSSHKeyNotFound
+			return nil, ErrSSHKeyNotFound
 		}
 		return nil, errors.Wrapf(err, "Could not stat key at %s", expandedPrivateKey)
 	}
@@ -71,7 +69,7 @@ func (s *SSH) ReadCert() ([]byte, error) {
 }
 
 // IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
+func (s *SSH) IsCertFresh(c *Config) (bool, error) {
 	certBytes, err := s.ReadCert()
 	// err reading cert
 	if err != nil {

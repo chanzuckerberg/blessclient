@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	prompt "github.com/segmentio/go-prompt"
@@ -10,7 +9,7 @@ import (
 )
 
 func init() {
-	initCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
+	initCmd.Flags().StringP("config", "c", bless.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(initCmd)
 }
 
@@ -22,9 +21,9 @@ var initCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
-			return errs.ErrMissingConfig
+			return bless.ErrMissingConfig
 		}
-		conf := config.DefaultConfig()
+		conf := bless.DefaultConfig()
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
@@ -37,9 +36,9 @@ var initCmd = &cobra.Command{
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
 		// Add regions
-		regions := []config.Region{}
+		regions := []bless.Region{}
 		for prompt.Confirm("Would you like to add another region to your bless config? (y/n)") {
-			region := config.Region{
+			region := bless.Region{
 				AWSRegion:    prompt.StringRequired("Aws region (ex: us-west-2)"),
 				KMSAuthKeyID: prompt.StringRequired("The kms auth key_id for this region"),
 			}

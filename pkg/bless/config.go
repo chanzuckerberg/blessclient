@@ -1,4 +1,4 @@
-package config
+package bless
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -124,7 +123,7 @@ func FromFile(file string) (*Config, error) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.Wrapf(
-				errs.ErrMissingConfig,
+				ErrMissingConfig,
 				"Missing config at %s, please run blessclient init to generate one",
 				file)
 		}
