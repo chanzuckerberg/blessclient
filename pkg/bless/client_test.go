@@ -274,10 +274,11 @@ func testConfig(t *testing.T) (*config.Config, []string) {
 	a.Nil(err)
 
 	conf := &config.Config{
-		ClientConfig: config.ClientConfig{},
+		ClientConfig: config.ClientConfig{
+			ConfigFile: path.Join(dirName, "config.yml"),
+		},
 		LambdaConfig: config.LambdaConfig{},
 	}
-	conf.SetPaths(path.Join(dirName, "config.yml"))
 	conf.ClientConfig.SSHPrivateKey = f.Name()
 	conf.ClientConfig.RemoteUsers = []string{"test-principal"}
 

@@ -28,7 +28,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Infof("Running blessclient %s", util.VersionCacheKey())
+		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig

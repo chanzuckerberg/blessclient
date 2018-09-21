@@ -94,7 +94,7 @@ func (c *Client) RequestCert() error {
 		return nil
 	}
 
-	log.Infof("Requesting new cert")
+	log.Debug("Requesting new cert")
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {
 		return err
