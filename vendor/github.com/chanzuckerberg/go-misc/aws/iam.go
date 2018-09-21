@@ -78,3 +78,26 @@ func (i *IAM) GetAnMFASerial(username *string) (string, error) {
 	}
 	return serials[0], nil
 }
+
+// ListAllUsers will get all users in the current account and invoke f for each
+func (i *IAM) ListAllUsers(f func(*iam.User)) error {
+	input := &iam.ListUsersInput{}
+	i.Svc.ListUsersPages(input, func(output *iam.ListUsersOutput, lastPage bool) bool {
+		for _, u := range output.Users {
+			f(u)
+		}
+		return true
+	})
+	return nil
+}
+
+// GetLoginProfile gets the login profile for this user if it exists
+func (i *IAM) GetLoginProfile(username string) (*iam.LoginProfile, error) {
+	input := &iam.GetLoginProfileInput{UserName: &username}
+	output, err := i.Svc.GetLoginProfile(input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not get login profile for %s", username)
+	}
+
+	return output.LoginProfile, nil
+}

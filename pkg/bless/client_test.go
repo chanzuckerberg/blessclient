@@ -10,13 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/stretchr/testify/assert"

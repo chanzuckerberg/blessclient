@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:290ebce12c4232722bcad98512cad7b7ade11a77d2bcaae9e29a04695e6f9c80"
+  digest = "1:8840f2c1bb4c70a6abca0029dbc7e1117c13910e974e335baf1ad2a1b7bb59e9"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -27,6 +27,7 @@
     "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/ec2query",
     "private/protocol/eventstream",
     "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
@@ -37,6 +38,8 @@
     "private/protocol/restjson",
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/ec2",
+    "service/ec2/ec2iface",
     "service/iam",
     "service/iam/iamiface",
     "service/kms",
@@ -44,12 +47,13 @@
     "service/lambda",
     "service/lambda/lambdaiface",
     "service/s3",
+    "service/s3/s3iface",
     "service/sts",
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "3dd4f56d3cb9d194293525540562216f81bd3f27"
-  version = "v1.15.37"
+  revision = "a93d31c26045c00c52f58dda4dcad02a3e622534"
+  version = "v1.15.39"
 
 [[projects]]
   branch = "master"
@@ -69,19 +73,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7918479151194c6614c385b14618f401b8e7d94ede06c410a21529557d237ee2"
+  digest = "1:b7084ab24ca47e1563a00b1a8069c6b85f04af9a79f64cfedefeb34ca232b5c6"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "559481f317270fe22b308720b00d294aeb7fa4d2"
+  revision = "e3f0a4587e5c8efa985dc42dded379ffcb157242"
 
 [[projects]]
   branch = "master"
-  digest = "1:f9f2efde46b70cfd1542eac836f5c3461200c299858f3116de58da4305abc552"
+  digest = "1:eeb5c9b8e5223ae1b49bece793807f33d4af656cce27df50357fca506bc04cf4"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "f873512ea14aede5fb0c66af456ea3cea3899579"
+  revision = "4efddeff742d4c86221e1847908b98d24a9082e6"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -225,12 +229,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:4618466244d5f6dbca839b6c0151f76bc58b592d81c83fe909ea9a070269f324"
+  digest = "1:e72adbbaead420f680d3067133a3043c033e89e5a174400c7a5cb1e9af9e779a"
   name = "github.com/segmentio/go-prompt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
+  revision = "0be3d6bb7dff1db1f7d4127e5861ce97772dd891"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
@@ -309,14 +313,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e10551220bea6da5274318545537df1012268056be6484b83a3338328050cde0"
+  digest = "1:3bb4674103eef9bf860b88e59048c67ad646de4274ea7de8d71d16e9f8209bff"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ee1b12c67af419cf5a9be3bdbeea7fc1c5f32f11"
+  revision = "d641721ec2dead6fe5ca284096fe4b1fcd49e427"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"

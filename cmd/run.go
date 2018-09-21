@@ -58,9 +58,18 @@ var runCmd = &cobra.Command{
 
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
+			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
+			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
+			regionalSTSTokenCache := path.Join(conf.ClientConfig.)
 			// for things meant to be run as a user
+			providerConf := &aws.Config{
+				Region: aws.String(region.AWSRegion),
+			}
+			providerClient := cziAWS.New(sess).WithAllServices(providerConf)
+			userTokenProvider := cziAWS.NewUserTokenProvider()
 			userConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
+				Credentials:
 			}
 			// for things meant to be run as an assumed role
 			roleCreds := stscreds.NewCredentials(
@@ -73,7 +82,11 @@ var runCmd = &cobra.Command{
 				Credentials: roleCreds,
 				Region:      aws.String(region.AWSRegion),
 			}
-			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
+			awsClient := cziAWS.New(sess).
+				WithIAM(userConf).
+				WithKMS(userConf).
+				WithSTS(userConf).
+				WithLambda(roleConf)
 
 			user, err := awsClient.IAM.GetCurrentUser()
 			if err != nil {
@@ -83,8 +96,6 @@ var runCmd = &cobra.Command{
 				return errors.New("AWS returned nil user")
 			}
 
-			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
 			kmsauthContext := &kmsauth.AuthContextV2{
 				From:     *user.UserName,
 				To:       conf.LambdaConfig.FunctionName,

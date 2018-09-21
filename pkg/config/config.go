@@ -23,6 +23,8 @@ const (
 	DefaultCacheDir = "~/.blessclient/cache"
 	// DefaultKMSAuthCache is the default kmsauth cache
 	DefaultKMSAuthCache = "kmsauth"
+	// DefaultAWSSessionCache is the default aws session cache
+	DefaultAWSSessionCache = "session"
 	// DefaultAWSProfile is the default bless aws profile
 	DefaultAWSProfile = "bless"
 )
@@ -58,6 +60,8 @@ type ClientConfig struct {
 	CacheDir string `json:"cache_dir" yaml:"cache_dir"`
 	// KMSAuthCacheDir is a path to the kmsauth cache directory
 	KMSAuthCacheDir string `json:"kmsauth_cache_dir" yaml:"kmsauth_cache_dir"`
+	// STSCacheDir is a path to the sts cache directory
+	STSCacheDir string `json:"sts_cache_dir" yaml:"sts_cache_dir"`
 	// AWSUserProfile is an aws profile that references a user (not a role)
 	// leaving this empty typically means use `default` profile
 	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profule"`
@@ -182,4 +186,5 @@ func (c *Config) SetPaths(configPath string) {
 	c.ClientConfig.ConfigFile = configPath
 	c.ClientConfig.CacheDir = path.Join(c.ClientConfig.ClientDir, "cache", util.VersionCacheKey())
 	c.ClientConfig.KMSAuthCacheDir = path.Join(c.ClientConfig.CacheDir, DefaultKMSAuthCache)
+	c.ClientConfig.STSCacheDir = path.Join(c.ClientConfig.CacheDir, DefaultAWSSessionCache)
 }
