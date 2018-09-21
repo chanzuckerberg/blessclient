@@ -56,20 +56,22 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
+		tokenProvider := util.TokenProvider("AWS MFA token:")
+
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
 			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
-			regionalSTSTokenCache := path.Join(conf.ClientConfig.)
+			regionalSTSTokenCache := path.Join(conf.ClientConfig.STSCacheDir, util.VersionCacheKey(), regionCacheFile)
 			// for things meant to be run as a user
 			providerConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
 			providerClient := cziAWS.New(sess).WithAllServices(providerConf)
-			userTokenProvider := cziAWS.NewUserTokenProvider()
+			// TODO
 			userConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
-				Credentials:
+				// Credentials:
 			}
 			// for things meant to be run as an assumed role
 			roleCreds := stscreds.NewCredentials(
