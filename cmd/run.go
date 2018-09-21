@@ -60,7 +60,6 @@ var runCmd = &cobra.Command{
 		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
-			fmt.Printf("Trying region %s\n", region.AWSRegion)
 			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
 			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
 			regionalAWSSessionTokenCAche := path.Join(conf.ClientConfig.AWSSessionCache, util.VersionCacheKey(), regionCacheFile)
