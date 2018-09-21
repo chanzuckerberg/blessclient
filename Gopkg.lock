@@ -81,11 +81,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:eeb5c9b8e5223ae1b49bece793807f33d4af656cce27df50357fca506bc04cf4"
+  digest = "1:130005f1c9d0aef367f351759a9564f6db3f395d7d8232d59fe88b0aba780549"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "4efddeff742d4c86221e1847908b98d24a9082e6"
+  revision = "2c4bce6e68dfdaecf368785fa51d6162636aca8e"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
