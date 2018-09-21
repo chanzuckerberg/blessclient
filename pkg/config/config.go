@@ -52,7 +52,8 @@ type Region struct {
 // ClientConfig is the client config
 type ClientConfig struct {
 	// ConfigFile is the path to blessclient config file
-	ConfigFile string `json:"config_file" yaml:"config_file"`
+	ConfigFile string
+
 	// AWSUserProfile is an aws profile that references a user (not a role)
 	// leaving this empty typically means use `default` profile
 	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profule"`

@@ -29,6 +29,7 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
+		// override the config path if needed
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
