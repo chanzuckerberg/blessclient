@@ -38,6 +38,9 @@ type Config struct {
 	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
+
+	// Telemetry does telemetry
+	Telemetry Telemetry `yaml:"telemetry"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -118,6 +121,17 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	default:
 		return errors.New("invalid duration")
 	}
+}
+
+// Telemetry to track adoption
+type Telemetry struct {
+	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
+}
+
+// Honeycomb telemetry configuration
+type Honeycomb struct {
+	WriteKey string `yaml:"write_key,omitempty"`
+	Dataset  string `yaml:"dataset,omitempty"`
 }
 
 // DefaultConfig generates a config with some defaults

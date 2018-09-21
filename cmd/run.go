@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"path"
 
@@ -10,10 +11,12 @@ import (
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	multierror "github.com/hashicorp/go-multierror"
+	beeline "github.com/honeycombio/beeline-go"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -31,6 +34,7 @@ var runCmd = &cobra.Command{
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Info("Running blessclient")
+
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -44,6 +48,19 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		// TODO find out what happens if config is bad
+		// TODO turn this off as needed
+		ctx := context.Background()
+		beelineConfig := beeline.Config{
+			WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
+			Dataset:     conf.Telemetry.Honeycomb.Dataset,
+			ServiceName: "blessclient",
+			STDOUT:      true, // TODO rm once done developing
+		}
+		beeline.Init(beelineConfig)
+		defer beeline.Flush(ctx)
+		beeline.AddField(ctx, telemetry.FieldBlessclientVersion, util.VersionCacheKey())
 
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
