@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -30,7 +32,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Info("Running blessclient")
+		log.Infof("Running blessclient %s", util.VersionCacheKey())
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -56,22 +58,23 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
-		tokenProvider := util.TokenProvider("AWS MFA token:")
-
+		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
+			fmt.Printf("Trying region %s\n", region.AWSRegion)
 			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
 			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
-			regionalSTSTokenCache := path.Join(conf.ClientConfig.STSCacheDir, util.VersionCacheKey(), regionCacheFile)
-			// for things meant to be run as a user
-			providerConf := &aws.Config{
+			regionalAWSSessionTokenCAche := path.Join(conf.ClientConfig.AWSSessionCache, util.VersionCacheKey(), regionCacheFile)
+
+			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
-			providerClient := cziAWS.New(sess).WithAllServices(providerConf)
-			// TODO
+			awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
+			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(regionalAWSSessionTokenCAche, awsSessionProviderClient, mfaTokenProvider)
+
 			userConf := &aws.Config{
-				Region: aws.String(region.AWSRegion),
-				// Credentials:
+				Region:      aws.String(region.AWSRegion),
+				Credentials: credentials.NewCredentials(awsSessionTokenProvider),
 			}
 			// for things meant to be run as an assumed role
 			roleCreds := stscreds.NewCredentials(

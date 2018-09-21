@@ -2,6 +2,7 @@ package util
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -20,7 +21,11 @@ func TokenProvider(prompt string) func() (string, error) {
 	// that allows us to request MFA tokens from users
 	return func() (string, error) {
 		newStdIn := os.NewFile(uintptr(syscall.Stderr), "/dev/stdin")
+		newStdOut := os.NewFile(uintptr(syscall.Stderr), "/dev/stdout")
 		defer newStdIn.Close()
+		defer newStdOut.Close()
+
+		fmt.Fprintf(newStdOut, "AWS MFA token:")
 		reader := bufio.NewReader(newStdIn)
 		text, err := reader.ReadString('\n')
 		text = strings.TrimSuffix(text, "\n")
