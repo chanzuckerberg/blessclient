@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
