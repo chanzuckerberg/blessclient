@@ -26,6 +26,8 @@ const (
 	defaultKMSAuthCache = "kmsauth"
 	// defaultAWSSessionCache is the default aws session cache
 	defaultAWSSessionCache = "session"
+	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
+	DefaultSSHPrivateKey = "~/.ssh/id_rsa"
 )
 
 // Config is a blessclient config
@@ -123,10 +125,16 @@ func DefaultConfig() (*Config, error) {
 		return nil, errors.Wrapf(err, "Could not expand %s", DefaultConfigFile)
 	}
 
+	expandedSSHPrivateKey, err := homedir.Expand(DefaultSSHPrivateKey)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not expand %s", DefaultSSHPrivateKey)
+	}
+
 	c := &Config{
 		ClientConfig: ClientConfig{
-			ConfigFile:   expandedDefaultConfigFile,
-			CertLifetime: Duration{30 * time.Minute},
+			ConfigFile:    expandedDefaultConfigFile,
+			CertLifetime:  Duration{30 * time.Minute},
+			SSHPrivateKey: expandedSSHPrivateKey,
 		},
 		LambdaConfig: LambdaConfig{},
 	}
