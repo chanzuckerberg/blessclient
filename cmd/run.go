@@ -84,7 +84,8 @@ var runCmd = &cobra.Command{
 			}
 
 			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
+			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, util.VersionCacheKey(), regionCacheFile)
+
 			kmsauthContext := &kmsauth.AuthContextV2{
 				From:     *user.UserName,
 				To:       conf.LambdaConfig.FunctionName,
