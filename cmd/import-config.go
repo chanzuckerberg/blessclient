@@ -65,7 +65,6 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		conf.SetPaths(configFileExpanded)
 
 		// Try to use the default id_rsa key
 		conf.ClientConfig.SSHPrivateKey = path.Join(sshDirExpanded, "id_rsa")

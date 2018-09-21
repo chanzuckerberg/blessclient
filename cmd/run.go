@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"path"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -60,31 +57,27 @@ var runCmd = &cobra.Command{
 		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
-			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, regionCacheFile, util.VersionCacheKey())
-			regionalAWSSessionTokenCAche := path.Join(conf.ClientConfig.AWSSessionCache, util.VersionCacheKey(), regionCacheFile)
-
 			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
 			awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
-			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(regionalAWSSessionTokenCAche, awsSessionProviderClient, mfaTokenProvider)
 
+			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
 			userConf := &aws.Config{
 				Region:      aws.String(region.AWSRegion),
 				Credentials: credentials.NewCredentials(awsSessionTokenProvider),
 			}
 			// for things meant to be run as an assumed role
-			roleCreds := stscreds.NewCredentials(
-				sess,
-				conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-					p.TokenProvider = stscreds.StdinTokenProvider
-				},
-			)
 			roleConf := &aws.Config{
-				Credentials: roleCreds,
-				Region:      aws.String(region.AWSRegion),
+				Region: aws.String(region.AWSRegion),
+				Credentials: stscreds.NewCredentials(
+					sess,
+					conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+						p.TokenProvider = stscreds.StdinTokenProvider
+					},
+				),
 			}
+
 			awsClient := cziAWS.New(sess).
 				WithIAM(userConf).
 				WithKMS(userConf).
@@ -109,7 +102,7 @@ var runCmd = &cobra.Command{
 				region.KMSAuthKeyID,
 				kmsauth.TokenVersion2,
 				conf.ClientConfig.CertLifetime.AsDuration(),
-				&regionalKMSAuthCache,
+				aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
 				kmsauthContext,
 				awsClient,
 			)

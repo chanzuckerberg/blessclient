@@ -24,15 +24,20 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			return errs.ErrMissingConfig
 		}
-		conf := config.DefaultConfig()
+		conf, err := config.DefaultConfig()
+		if err != nil {
+			return err
+		}
+
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
-		conf.SetPaths(configFileExpanded)
+		conf.ClientConfig.ConfigFile = configFileExpanded
 
 		// Ask for some user values
 		conf.ClientConfig.SSHPrivateKey = prompt.StringRequired("path to the ssh private key to use")
+		conf.ClientConfig.AWSUserProfile = prompt.String("Enter AWS User Profile (default)")
 		conf.LambdaConfig.RoleARN = prompt.StringRequired("role arn to invoke lambda")
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
