@@ -131,6 +131,7 @@ func DefaultConfig() *Config {
 			ClientDir:       DefaultClientDir,
 			CacheDir:        DefaultCacheDir,
 			KMSAuthCacheDir: DefaultKMSAuthCache,
+			STSCacheDir:     DefaultAWSSessionCache,
 			CertLifetime:    Duration{30 * time.Minute},
 		},
 		LambdaConfig: LambdaConfig{
