@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"path"
-
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
@@ -30,7 +28,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Info("Running blessclient")
+		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -56,24 +54,35 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
+		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
-			// for things meant to be run as a user
-			userConf := &aws.Config{
+			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
-			// for things meant to be run as an assumed role
-			roleCreds := stscreds.NewCredentials(
-				sess,
-				conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-					p.TokenProvider = stscreds.StdinTokenProvider
-				},
-			)
-			roleConf := &aws.Config{
-				Credentials: roleCreds,
+			awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
+
+			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
+			userConf := &aws.Config{
 				Region:      aws.String(region.AWSRegion),
+				Credentials: credentials.NewCredentials(awsSessionTokenProvider),
 			}
-			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
+			// for things meant to be run as an assumed role
+			roleConf := &aws.Config{
+				Region: aws.String(region.AWSRegion),
+				Credentials: stscreds.NewCredentials(
+					sess,
+					conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+						p.TokenProvider = stscreds.StdinTokenProvider
+					},
+				),
+			}
+
+			awsClient := cziAWS.New(sess).
+				WithIAM(userConf).
+				WithKMS(userConf).
+				WithSTS(userConf).
+				WithLambda(roleConf)
 
 			user, err := awsClient.IAM.GetCurrentUser()
 			if err != nil {
@@ -82,9 +91,6 @@ var runCmd = &cobra.Command{
 			if user == nil || user.UserName == nil {
 				return errors.New("AWS returned nil user")
 			}
-
-			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, util.VersionCacheKey(), regionCacheFile)
 
 			kmsauthContext := &kmsauth.AuthContextV2{
 				From:     *user.UserName,
@@ -96,7 +102,7 @@ var runCmd = &cobra.Command{
 				region.KMSAuthKeyID,
 				kmsauth.TokenVersion2,
 				conf.ClientConfig.CertLifetime.AsDuration(),
-				&regionalKMSAuthCache,
+				aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
 				kmsauthContext,
 				awsClient,
 			)

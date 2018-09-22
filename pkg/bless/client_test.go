@@ -10,13 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/stretchr/testify/assert"
@@ -275,10 +274,11 @@ func testConfig(t *testing.T) (*config.Config, []string) {
 	a.Nil(err)
 
 	conf := &config.Config{
-		ClientConfig: config.ClientConfig{},
+		ClientConfig: config.ClientConfig{
+			ConfigFile: path.Join(dirName, "config.yml"),
+		},
 		LambdaConfig: config.LambdaConfig{},
 	}
-	conf.SetPaths(path.Join(dirName, "config.yml"))
 	conf.ClientConfig.SSHPrivateKey = f.Name()
 	conf.ClientConfig.RemoteUsers = []string{"test-principal"}
 
