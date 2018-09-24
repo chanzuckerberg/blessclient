@@ -37,23 +37,30 @@ var initCmd = &cobra.Command{
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
 		// Ask for some user values
-		conf.ClientConfig.SSHPrivateKey = prompt.StringRequired("path to the ssh private key to use")
-		conf.ClientConfig.AWSUserProfile = prompt.String("Enter AWS User Profile (default)")
+		conf.ClientConfig.SSHPrivateKey = promptWithDefault("~/.ssh/id_rsa", "path to the ssh private key to use (~/.ssh/id_rsa)")
+		conf.ClientConfig.AWSUserProfile = promptWithDefault("default", "Enter AWS User Profile (default)")
 		conf.LambdaConfig.RoleARN = prompt.StringRequired("role arn to invoke lambda")
 		conf.LambdaConfig.FunctionName = prompt.StringRequired("bless lambda function name")
 
 		// Add regions
 		regions := []config.Region{}
-		for prompt.Confirm("Would you like to add another region to your bless config? (y/n)") {
+		for prompt.Confirm("Would you like to add a region to your bless config? (y/n)") {
 			region := config.Region{
-				AWSRegion:    prompt.StringRequired("Aws region (ex: us-west-2)"),
+				AWSRegion:    promptWithDefault("us-west-2", "Aws region (us-west-2)"),
 				KMSAuthKeyID: prompt.StringRequired("The kms auth key_id for this region"),
 			}
 			regions = append(regions, region)
 		}
 
 		conf.LambdaConfig.Regions = regions
-
 		return conf.Persist()
 	},
+}
+
+func promptWithDefault(defaultValue string, promptString string, args ...interface{}) string {
+	input := prompt.String(promptString, args)
+	if input == "" {
+		return defaultValue
+	}
+	return input
 }
