@@ -55,7 +55,7 @@ var importConfigCmd = &cobra.Command{
 
 		err = getter.GetFile(f.Name(), src)
 		if err != nil {
-			return errors.Wrapf(err, "Could not fetch %s to %s", src, configFileExpanded)
+			return errors.Wrapf(err, "Could not fetch %s", src)
 		}
 
 		// Need to add some specific conf for user environment
@@ -63,6 +63,7 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		conf.ClientConfig.ConfigFile = configFileExpanded
 
 		// Try to use the default id_rsa key
 		conf.ClientConfig.SSHPrivateKey = path.Join(sshDirExpanded, "id_rsa")
