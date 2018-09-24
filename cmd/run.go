@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -30,6 +32,8 @@ var runCmd = &cobra.Command{
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
+		ctx := context.Background()
+
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -89,7 +93,7 @@ var runCmd = &cobra.Command{
 				WithLambda(roleConf)
 
 			log.Debugf("Getting current aws iam user")
-			user, err := awsClient.IAM.GetCurrentUser()
+			user, err := awsClient.IAM.GetCurrentUser(ctx)
 			if err != nil {
 				return err
 			}
@@ -113,7 +117,7 @@ var runCmd = &cobra.Command{
 			)
 
 			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
-			err = client.RequestCert()
+			err = client.RequestCert(ctx)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)

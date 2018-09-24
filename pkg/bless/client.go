@@ -1,6 +1,7 @@
 package bless
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -66,13 +67,13 @@ type LambdaResponse struct {
 }
 
 // RequestKMSAuthToken requests a new kmsauth token
-func (c *Client) RequestKMSAuthToken() (*kmsauth.EncryptedToken, error) {
-	token, err := c.tg.GetEncryptedToken()
+func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedToken, error) {
+	token, err := c.tg.GetEncryptedToken(ctx)
 	return token, errors.Wrap(err, "Error requesting kmsauth token")
 }
 
 // RequestCert requests a cert
-func (c *Client) RequestCert() error {
+func (c *Client) RequestCert(ctx context.Context) error {
 	log.Debugf("Requesting certificate")
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
@@ -103,7 +104,7 @@ func (c *Client) RequestCert() error {
 	}
 	log.Debugf("Using public key: %s", string(pubKey))
 
-	token, err := c.RequestKMSAuthToken()
+	token, err := c.RequestKMSAuthToken(ctx)
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func (c *Client) RequestCert() error {
 	if err != nil {
 		return errors.Wrap(err, "Could not serialize lambda payload")
 	}
-	responseBytes, err := c.Aws.Lambda.Execute(c.conf.LambdaConfig.FunctionName, payloadB)
+	responseBytes, err := c.Aws.Lambda.Execute(ctx, c.conf.LambdaConfig.FunctionName, payloadB)
 	if err != nil {
 		return err
 	}
