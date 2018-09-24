@@ -11,6 +11,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
+	"github.com/davecgh/go-spew/spew"
 	multierror "github.com/hashicorp/go-multierror"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -37,11 +38,13 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
+		log.Debugf("Reading config from %s", expandedConfigFile)
 
 		conf, err := config.FromFile(expandedConfigFile)
 		if err != nil {
 			return err
 		}
+		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
@@ -57,6 +60,7 @@ var runCmd = &cobra.Command{
 		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
+			log.Debugf("Attempting region %s", region.AWSRegion)
 			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
@@ -84,6 +88,7 @@ var runCmd = &cobra.Command{
 				WithSTS(userConf).
 				WithLambda(roleConf)
 
+			log.Debugf("Getting current aws iam user")
 			user, err := awsClient.IAM.GetCurrentUser()
 			if err != nil {
 				return err

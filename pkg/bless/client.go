@@ -9,6 +9,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -72,6 +73,7 @@ func (c *Client) RequestKMSAuthToken() (*kmsauth.EncryptedToken, error) {
 
 // RequestCert requests a cert
 func (c *Client) RequestCert() error {
+	log.Debugf("Requesting certificate")
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
 		RemoteUsernames: strings.Join(c.conf.ClientConfig.RemoteUsers, ","),
@@ -90,15 +92,16 @@ func (c *Client) RequestCert() error {
 		return err
 	}
 	if isFresh {
-		log.Info("Cert is already fresh - using it")
+		log.Debug("Cert is already fresh - using it")
 		return nil
 	}
-
 	log.Debug("Requesting new cert")
+
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {
 		return err
 	}
+	log.Debugf("Using public key: %s", string(pubKey))
 
 	token, err := c.RequestKMSAuthToken()
 	if err != nil {
@@ -107,9 +110,11 @@ func (c *Client) RequestCert() error {
 	if token == nil {
 		return errs.ErrMissingKMSAuthToken
 	}
+	log.Debugf("With KMSAuthToken %s", token.String())
 
 	payload.KMSAuthToken = token.String()
 	payload.PublicKeyToSign = string(pubKey)
+	log.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
 
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
@@ -119,12 +124,14 @@ func (c *Client) RequestCert() error {
 	if err != nil {
 		return err
 	}
-
+	log.Debugf("Raw lambda response %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
 	err = json.Unmarshal(responseBytes, lambdaReponse)
 	if err != nil {
 		return errors.Wrap(err, "Could not deserialize lambda reponse")
 	}
+	log.Debugf("Parsed lambda response %s", spew.Sdump(lambdaReponse))
+
 	if lambdaReponse.ErrorType != nil {
 		if lambdaReponse.ErrorMessage != nil {
 			return errors.Errorf("bless error: %s: %s", *lambdaReponse.ErrorType, *lambdaReponse.ErrorMessage)
