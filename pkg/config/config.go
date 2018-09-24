@@ -58,7 +58,7 @@ type ClientConfig struct {
 
 	// AWSUserProfile is an aws profile that references a user (not a role)
 	// leaving this empty typically means use `default` profile
-	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profule"`
+	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profile"`
 
 	// Path to your ssh private key
 	SSHPrivateKey string `json:"ssh_private_key" yaml:"ssh_private_key"`
