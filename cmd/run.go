@@ -76,6 +76,10 @@ var runCmd = &cobra.Command{
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			// for things meant to be run as a user
+			ctx, span := beeline.StartSpan(ctx, telemetry.FieldRegion)
+			defer span.Send()
+			beeline.AddField(ctx, telemetry.FieldRegion, region.AWSRegion)
+
 			userConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
@@ -92,6 +96,8 @@ var runCmd = &cobra.Command{
 			}
 			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
 
+			ctx, span = beeline.StartSpan(ctx, telemetry.FieldGetCurrentUser)
+			defer span.Send()
 			user, err := awsClient.IAM.GetCurrentUser(ctx)
 			if err != nil {
 				return err
@@ -117,8 +123,10 @@ var runCmd = &cobra.Command{
 				kmsauthContext,
 				awsClient,
 			)
-
 			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
+			ctx, span = beeline.StartSpan(ctx, telemetry.FieldRequestCert)
+			defer span.Send()
+
 			err = client.RequestCert(ctx)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())

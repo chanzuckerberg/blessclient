@@ -125,7 +125,7 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 
 // Telemetry to track adoption
 type Telemetry struct {
-	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
+	Honeycomb Honeycomb `yaml:"honeycomb,omitempty"`
 }
 
 // Honeycomb telemetry configuration
