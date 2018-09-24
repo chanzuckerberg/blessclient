@@ -18,13 +18,13 @@ import (
 
 func init() {
 	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
-	importConfigCmd.Flags().StringP("url", "u", "", "Use this to specify the url used to fetch your bless config.")
 	rootCmd.AddCommand(importConfigCmd)
 }
 
 var importConfigCmd = &cobra.Command{
 	Use:           "import-config",
 	Short:         "Import a blessclient config from a remote source",
+	Args:          cobra.ExactArgs(1),
 	Long:          "This command fetches a config from a remote source and writes it to disk",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -44,10 +44,8 @@ var importConfigCmd = &cobra.Command{
 			return errors.Wrapf(err, "Could not exapnd %s", "~/.ssh")
 		}
 
-		src, err := cmd.Flags().GetString("url")
-		if err != nil || src == "" {
-			return errs.ErrMissingConfigURL
-		}
+		src := args[0]
+
 		f, err := ioutil.TempFile("", "blessconfig")
 		if err != nil {
 			return errors.Wrap(err, "Could not create temporary file for config")
