@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -29,8 +30,8 @@ func NewSTS(c client.ConfigProvider, config *aws.Config) *STS {
 }
 
 // GetSTSToken gets an sts token
-func (s *STS) GetSTSToken(input *sts.GetSessionTokenInput) (*sts.Credentials, error) {
-	output, err := s.Svc.GetSessionToken(input)
+func (s *STS) GetSTSToken(ctx context.Context, input *sts.GetSessionTokenInput) (*sts.Credentials, error) {
+	output, err := s.Svc.GetSessionTokenWithContext(ctx, input)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not request sts tokens")
 	}
@@ -55,6 +56,7 @@ type UserTokenProviderCache struct {
 }
 
 // UserTokenProvider is a token provider that gets sts tokens for a user
+// Implementes the credentials.Provider interface
 type UserTokenProvider struct {
 	credentials.Expiry
 	Client        *Client
@@ -147,11 +149,12 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 	}
 
 	if stsCreds == nil {
-		user, err := p.Client.IAM.GetCurrentUser()
+		// TODO: is there no better way than context.Background?
+		user, err := p.Client.IAM.GetCurrentUser(context.Background())
 		if err != nil {
 			return creds, err
 		}
-		mfaSerial, err := p.Client.IAM.GetAnMFASerial(user.UserName)
+		mfaSerial, err := p.Client.IAM.GetAnMFASerial(context.Background(), user.UserName)
 		if err != nil {
 			return creds, err
 		}
@@ -161,7 +164,7 @@ func (p *UserTokenProvider) Retrieve() (credentials.Value, error) {
 		}
 		stsTokenInput := &sts.GetSessionTokenInput{}
 		stsTokenInput.SetSerialNumber(mfaSerial).SetTokenCode(token)
-		stsCreds, err = p.Client.STS.GetSTSToken(stsTokenInput)
+		stsCreds, err = p.Client.STS.GetSTSToken(context.Background(), stsTokenInput)
 		if err != nil {
 			return creds, err
 		}

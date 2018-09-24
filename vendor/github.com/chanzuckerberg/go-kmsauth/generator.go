@@ -1,6 +1,7 @@
 package kmsauth
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -143,7 +144,7 @@ func (tg *TokenGenerator) getToken() (*Token, error) {
 }
 
 // GetEncryptedToken returns the encrypted kmsauth token
-func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
+func (tg *TokenGenerator) GetEncryptedToken(ctx context.Context) (*EncryptedToken, error) {
 	token, err := tg.getToken()
 	if err != nil {
 		return nil, err
@@ -155,6 +156,7 @@ func (tg *TokenGenerator) GetEncryptedToken() (*EncryptedToken, error) {
 	}
 
 	encryptedStr, err := tg.awsClient.KMS.EncryptBytes(
+		ctx,
 		tg.AuthKey,
 		tokenBytes,
 		tg.AuthContext.GetKMSContext())

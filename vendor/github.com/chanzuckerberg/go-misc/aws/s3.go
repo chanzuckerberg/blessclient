@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -19,19 +21,19 @@ func NewS3(c client.ConfigProvider, config *aws.Config) *S3 {
 }
 
 // ListBuckets lists buckets
-func (s *S3) ListBuckets() (*s3.ListBucketsOutput, error) {
+func (s *S3) ListBuckets(ctx context.Context) (*s3.ListBucketsOutput, error) {
 	input := &s3.ListBucketsInput{}
-	out, err := s.Svc.ListBuckets(input)
+	out, err := s.Svc.ListBucketsWithContext(ctx, input)
 	return out, errors.Wrap(err, "Error listing s3 buckets")
 }
 
 // GetBucketLocation gets the bucket's location (region)
-func (s *S3) GetBucketLocation(bucketName string) (string, error) {
+func (s *S3) GetBucketLocation(ctx context.Context, bucketName string) (string, error) {
 	input := &s3.GetBucketLocationInput{
 		Bucket: aws.String(bucketName),
 	}
 
-	out, err := s.Svc.GetBucketLocation(input)
+	out, err := s.Svc.GetBucketLocationWithContext(ctx, input)
 	if err != nil {
 		return "", errors.Wrapf(err, "Error getting bucket %s location", bucketName)
 	}
@@ -47,19 +49,19 @@ func (s *S3) GetBucketLocation(bucketName string) (string, error) {
 }
 
 // GetBucketTagging returns the bucket's tags
-func (s *S3) GetBucketTagging(bucketName string) (*s3.GetBucketTaggingOutput, error) {
+func (s *S3) GetBucketTagging(ctx context.Context, bucketName string) (*s3.GetBucketTaggingOutput, error) {
 	input := &s3.GetBucketTaggingInput{
 		Bucket: aws.String(bucketName),
 	}
-	out, err := s.Svc.GetBucketTagging(input)
+	out, err := s.Svc.GetBucketTaggingWithContext(ctx, input)
 	return out, errors.Wrapf(err, "Error getting bucket tags for %s", bucketName)
 }
 
 // GetBucketACL gets the bucket's ACL
-func (s *S3) GetBucketACL(bucketName string) (*s3.GetBucketAclOutput, error) {
+func (s *S3) GetBucketACL(ctx context.Context, bucketName string) (*s3.GetBucketAclOutput, error) {
 	input := &s3.GetBucketAclInput{}
 	input.SetBucket(bucketName)
 
-	out, err := s.Svc.GetBucketAcl(input)
+	out, err := s.Svc.GetBucketAclWithContext(ctx, input)
 	return out, errors.Wrapf(err, "Error getting bucket %s ACL", bucketName)
 }

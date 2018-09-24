@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -19,7 +21,7 @@ func NewLambda(c client.ConfigProvider, config *aws.Config) *Lambda {
 }
 
 // Execute executes the given function with the given payload and returns the output
-func (l *Lambda) Execute(functionName string, payload []byte) ([]byte, error) {
+func (l *Lambda) Execute(ctx context.Context, functionName string, payload []byte) ([]byte, error) {
 	input := &lambda.InvokeInput{}
 	input.
 		SetPayload(payload).
@@ -27,7 +29,7 @@ func (l *Lambda) Execute(functionName string, payload []byte) ([]byte, error) {
 		SetInvocationType(lambda.InvocationTypeRequestResponse).
 		SetLogType(lambda.LogTypeTail)
 
-	output, err := l.Svc.Invoke(input)
+	output, err := l.Svc.InvokeWithContext(ctx, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Error invoking lambda function %s", functionName)
 	}
