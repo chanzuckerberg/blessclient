@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:1b6e1d225ca722f1b19a3116be37f9e1293b76fa564da2fa3c3b8a884f8c64d1"
+  digest = "1:ecc1f0675a6f2782a68ddded9a7f3c0ddc39c38074fcab9e9ee3992a45313377"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -27,33 +27,41 @@
     "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/ec2query",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/restjson",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/ec2",
+    "service/ec2/ec2iface",
     "service/iam",
     "service/iam/iamiface",
     "service/kms",
     "service/kms/kmsiface",
     "service/lambda",
     "service/lambda/lambdaiface",
+    "service/s3",
+    "service/s3/s3iface",
     "service/sts",
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "3dd4f56d3cb9d194293525540562216f81bd3f27"
-  version = "v1.15.37"
+  revision = "d8ab6d22cfd270ded73e7d59feba528ffd963edd"
+  version = "v1.15.40"
 
 [[projects]]
   branch = "master"
-  digest = "1:f9f2efde46b70cfd1542eac836f5c3461200c299858f3116de58da4305abc552"
+  digest = "1:8c7c01c627f48355552e75369926bae615cdaa659aab85023612116f60ea4619"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "f873512ea14aede5fb0c66af456ea3cea3899579"
+  revision = "fff4f5944f96378315187fa77fe94340d9ebdfb7"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -150,14 +158,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e10551220bea6da5274318545537df1012268056be6484b83a3338328050cde0"
+  digest = "1:575e6cd3c8c00d02a978e6e2ca66f58b013d09bbae6e3b1e37fca9f87b2d8ece"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ee1b12c67af419cf5a9be3bdbeea7fc1c5f32f11"
+  revision = "f02c79500a9c629cd7cf2f3abadbbf2f5a9161d3"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"

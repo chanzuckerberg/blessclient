@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:290ebce12c4232722bcad98512cad7b7ade11a77d2bcaae9e29a04695e6f9c80"
+  digest = "1:ecc1f0675a6f2782a68ddded9a7f3c0ddc39c38074fcab9e9ee3992a45313377"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -27,6 +27,7 @@
     "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/ec2query",
     "private/protocol/eventstream",
     "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
@@ -37,6 +38,8 @@
     "private/protocol/restjson",
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "service/ec2",
+    "service/ec2/ec2iface",
     "service/iam",
     "service/iam/iamiface",
     "service/kms",
@@ -44,12 +47,13 @@
     "service/lambda",
     "service/lambda/lambdaiface",
     "service/s3",
+    "service/s3/s3iface",
     "service/sts",
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "3dd4f56d3cb9d194293525540562216f81bd3f27"
-  version = "v1.15.37"
+  revision = "d8ab6d22cfd270ded73e7d59feba528ffd963edd"
+  version = "v1.15.40"
 
 [[projects]]
   branch = "master"
@@ -68,20 +72,20 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:7918479151194c6614c385b14618f401b8e7d94ede06c410a21529557d237ee2"
+  branch = "edu/ctx"
+  digest = "1:6105bbd7d3160cec835e80348bb2c1bc98fb6dc493767fb51c67789d01a0f696"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "559481f317270fe22b308720b00d294aeb7fa4d2"
+  revision = "f2c49024d4f559b8fe04956af4792898bbab2bed"
 
 [[projects]]
   branch = "master"
-  digest = "1:f9f2efde46b70cfd1542eac836f5c3461200c299858f3116de58da4305abc552"
+  digest = "1:8c7c01c627f48355552e75369926bae615cdaa659aab85023612116f60ea4619"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "f873512ea14aede5fb0c66af456ea3cea3899579"
+  revision = "fff4f5944f96378315187fa77fe94340d9ebdfb7"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -90,6 +94,30 @@
   pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5fe3f6ede1c208a2efd3b78fe4df0306aa9624edd39476143d14f0326e5a8d29"
+  name = "github.com/facebookgo/clock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "600d898af40aa09a7a93ecb9265d87b0504b6f03"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3b9db7dec579a1b2385b8de0b9359c052b1ba815d283dcf28d7270d0e7c38237"
+  name = "github.com/facebookgo/limitgroup"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6abd8d71ec01451d7f1929eacaa263bbe2935d05"
+
+[[projects]]
+  branch = "master"
+  digest = "1:94b198563e9ee4272105ad87ae469b216cafb9437b955ae866ce85b956569aac"
+  name = "github.com/facebookgo/muster"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"
 
 [[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
@@ -117,6 +145,14 @@
   pruneopts = "UT"
   revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
   version = "v0.16.0"
+
+[[projects]]
+  digest = "1:3a26588bc48b96825977c1b3df964f8fd842cd6860cc26370588d3563433cf11"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d460ce9f8df2e77fb1ba55ca87fafed96c607494"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:0ade334594e69404d80d9d323445d2297ff8161637f9b2d347cc6973d2d6f05b"
@@ -168,6 +204,28 @@
   pruneopts = "UT"
   revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
   version = "v1.0.0"
+
+[[projects]]
+  digest = "1:1abf0577e1282b9a65849837b017c8eb68abf9ce3a2e76d365b430509bb5b743"
+  name = "github.com/honeycombio/beeline-go"
+  packages = [
+    ".",
+    "propagation",
+    "sample",
+    "timer",
+    "trace",
+  ]
+  pruneopts = "UT"
+  revision = "08f0ed449695b7dbb5f8c464c6373f5387cad956"
+  version = "v0.2.2"
+
+[[projects]]
+  digest = "1:a680d6a18dedc62896b28bd40fa93a1947fd6e999a4dfa6b5a99742fc07571b2"
+  name = "github.com/honeycombio/libhoney-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "741c87cf6e228e5c509705847b67a3245bc79b8b"
+  version = "v1.7.0"
 
 [[projects]]
   branch = "master"
@@ -309,14 +367,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e10551220bea6da5274318545537df1012268056be6484b83a3338328050cde0"
+  digest = "1:575e6cd3c8c00d02a978e6e2ca66f58b013d09bbae6e3b1e37fca9f87b2d8ece"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ee1b12c67af419cf5a9be3bdbeea7fc1c5f32f11"
+  revision = "f02c79500a9c629cd7cf2f3abadbbf2f5a9161d3"
+
+[[projects]]
+  digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
+  name = "gopkg.in/alexcesaro/statsd.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7fea3f0d2fab1ad973e641e51dba45443a311a90"
+  version = "v2.0.0"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
@@ -348,6 +414,7 @@
     "github.com/chanzuckerberg/go-misc/aws",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
+    "github.com/honeycombio/beeline-go",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",

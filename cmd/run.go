@@ -92,7 +92,7 @@ var runCmd = &cobra.Command{
 			}
 			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
 
-			user, err := awsClient.IAM.GetCurrentUser()
+			user, err := awsClient.IAM.GetCurrentUser(ctx)
 			if err != nil {
 				return err
 			}
@@ -119,9 +119,9 @@ var runCmd = &cobra.Command{
 			)
 
 			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
-			err = client.RequestCert()
+			err = client.RequestCert(ctx)
 			if err != nil {
-				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
+				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
 			} else {
 				return nil

@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"context"
 	"encoding/base64"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,10 +23,10 @@ func NewKMS(s *session.Session, conf *aws.Config) *KMS {
 
 // EncryptBytes encrypts the plaintext using the keyID key and the given context
 // result is base64 encoded string
-func (k *KMS) EncryptBytes(keyID string, plaintext []byte, context map[string]*string) (string, error) {
+func (k *KMS) EncryptBytes(ctx context.Context, keyID string, plaintext []byte, context map[string]*string) (string, error) {
 	input := &kms.EncryptInput{}
 	input.SetKeyId(keyID).SetPlaintext(plaintext).SetEncryptionContext(context)
-	response, err := k.Svc.Encrypt(input)
+	response, err := k.Svc.EncryptWithContext(ctx, input)
 	if err != nil {
 		return "", errors.Wrap(err, "KMS encryption failed")
 	}
@@ -36,10 +37,10 @@ func (k *KMS) EncryptBytes(keyID string, plaintext []byte, context map[string]*s
 }
 
 // Decrypt decrypts
-func (k *KMS) Decrypt(ciphertext []byte, context map[string]*string) ([]byte, string, error) {
+func (k *KMS) Decrypt(ctx context.Context, ciphertext []byte, context map[string]*string) ([]byte, string, error) {
 	input := &kms.DecryptInput{}
 	input.SetCiphertextBlob(ciphertext).SetEncryptionContext(context)
-	response, err := k.Svc.Decrypt(input)
+	response, err := k.Svc.DecryptWithContext(ctx, input)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "KMS decryption failed")
 	}
