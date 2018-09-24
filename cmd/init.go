@@ -44,7 +44,9 @@ var initCmd = &cobra.Command{
 
 		// Add regions
 		regions := []config.Region{}
-		for prompt.Confirm("Would you like to add a region to your bless config? (y/n)") {
+		article := "a"
+		for prompt.Confirm("Would you like to add %s region to your bless config? (y/n)", article) {
+			article = "another"
 			region := config.Region{
 				AWSRegion:    promptWithDefault("us-west-2", "Aws region (us-west-2)"),
 				KMSAuthKeyID: prompt.StringRequired("The kms auth key_id for this region"),
