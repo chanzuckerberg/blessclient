@@ -95,7 +95,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		return nil
 	}
 
-	log.Infof("Requesting new cert")
+	log.Debug("Requesting new cert")
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {
 		return err

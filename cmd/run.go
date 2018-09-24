@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"context"
-	"fmt"
-	"path"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
@@ -17,6 +16,7 @@ import (
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	multierror "github.com/hashicorp/go-multierror"
 	beeline "github.com/honeycombio/beeline-go"
+	"github.com/honeycombio/beeline-go/trace"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -33,8 +33,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Info("Running blessclient")
-
+		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -56,7 +55,7 @@ var runCmd = &cobra.Command{
 			WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
 			Dataset:     conf.Telemetry.Honeycomb.Dataset,
 			ServiceName: "blessclient",
-			STDOUT:      true, // TODO rm once done developing
+			// STDOUT:      true, // TODO rm once done developing
 		}
 		beeline.Init(beelineConfig)
 		defer beeline.Flush(ctx)
@@ -72,32 +71,46 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "Could not create aws session")
 		}
+		ctx, tr := trace.NewTrace(ctx, "")
+		span := tr.GetRootSpan()
+		span.AddField(telemetry.FieldCommand, cmd.Use)
 
+		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
-			// for things meant to be run as a user
-			ctx, span := beeline.StartSpan(ctx, telemetry.FieldRegion)
-			defer span.Send()
-			beeline.AddField(ctx, telemetry.FieldRegion, region.AWSRegion)
+			ctx, span = span.CreateChild(ctx)
 
-			userConf := &aws.Config{
+			// for things meant to be run as a user
+			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
-			// for things meant to be run as an assumed role
-			roleCreds := stscreds.NewCredentials(
-				sess,
-				conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-					p.TokenProvider = stscreds.StdinTokenProvider
-				},
-			)
-			roleConf := &aws.Config{
-				Credentials: roleCreds,
-				Region:      aws.String(region.AWSRegion),
-			}
-			awsClient := cziAWS.New(sess).WithIAM(userConf).WithLambda(roleConf).WithKMS(userConf)
+			awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
 
-			ctx, span = beeline.StartSpan(ctx, telemetry.FieldGetCurrentUser)
-			defer span.Send()
+			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
+			userConf := &aws.Config{
+				Region:      aws.String(region.AWSRegion),
+				Credentials: credentials.NewCredentials(awsSessionTokenProvider),
+			}
+			// for things meant to be run as an assumed role
+			roleConf := &aws.Config{
+				Region: aws.String(region.AWSRegion),
+				Credentials: stscreds.NewCredentials(
+					sess,
+					conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+						p.TokenProvider = stscreds.StdinTokenProvider
+					},
+				),
+			}
+
+			awsClient := cziAWS.New(sess).
+				WithIAM(userConf).
+				WithKMS(userConf).
+				WithSTS(userConf).
+				WithLambda(roleConf)
+
+			ctx, currentUserSpan := span.CreateChild(ctx)
+			defer currentUserSpan.Send()
+
 			user, err := awsClient.IAM.GetCurrentUser(ctx)
 			if err != nil {
 				return err
@@ -105,9 +118,6 @@ var runCmd = &cobra.Command{
 			if user == nil || user.UserName == nil {
 				return errors.New("AWS returned nil user")
 			}
-
-			regionCacheFile := fmt.Sprintf("%s.json", region.AWSRegion)
-			regionalKMSAuthCache := path.Join(conf.ClientConfig.KMSAuthCacheDir, util.VersionCacheKey(), regionCacheFile)
 
 			kmsauthContext := &kmsauth.AuthContextV2{
 				From:     *user.UserName,
@@ -119,7 +129,7 @@ var runCmd = &cobra.Command{
 				region.KMSAuthKeyID,
 				kmsauth.TokenVersion2,
 				conf.ClientConfig.CertLifetime.AsDuration(),
-				&regionalKMSAuthCache,
+				aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
 				kmsauthContext,
 				awsClient,
 			)
@@ -137,4 +147,19 @@ var runCmd = &cobra.Command{
 		}
 		return regionErrors
 	},
+}
+
+// runForRegion runs for a region
+func runForRegion(
+	ctx context.Context,
+	sess *session.Session,
+	mfaTokenProvider func() (string, error),
+	region string,
+) error {
+
+	span := trace.GetSpanFromContext(ctx)
+	if span == nil {
+
+	}
+	return nil
 }

@@ -2,10 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"time"
+
+	"github.com/mitchellh/go-homedir"
 
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
@@ -15,16 +18,16 @@ import (
 )
 
 const (
-	// DefaultClientDir is the default dir where blessclient will look for a config and cache
-	DefaultClientDir = "~/.blessclient"
 	// DefaultConfigFile is the default file where blessclient will look for its config
 	DefaultConfigFile = "~/.blessclient/config.yml"
-	// DefaultCacheDir is a default cache dir
-	DefaultCacheDir = "~/.blessclient/cache"
-	// DefaultKMSAuthCache is the default kmsauth cache
-	DefaultKMSAuthCache = "kmsauth"
-	// DefaultAWSProfile is the default bless aws profile
-	DefaultAWSProfile = "bless"
+	// defaultCacheDir is a default cache dir
+	defaultCacheDir = "cache"
+	// defaultKMSAuthCache is the default kmsauth cache
+	defaultKMSAuthCache = "kmsauth"
+	// defaultAWSSessionCache is the default aws session cache
+	defaultAWSSessionCache = "session"
+	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
+	DefaultSSHPrivateKey = "~/.ssh/id_rsa"
 )
 
 // Config is a blessclient config
@@ -53,17 +56,12 @@ type Region struct {
 
 // ClientConfig is the client config
 type ClientConfig struct {
-	// client dir is a directory used by blessclient to hold config and cache
-	ClientDir string `json:"client_dir" yaml:"client_dir"`
 	// ConfigFile is the path to blessclient config file
-	ConfigFile string `json:"config_file" yaml:"config_file"`
-	// CacheDir is a path to the blessclient cache
-	CacheDir string `json:"cache_dir" yaml:"cache_dir"`
-	// KMSAuthCacheDir is a path to the kmsauth cache directory
-	KMSAuthCacheDir string `json:"kmsauth_cache_dir" yaml:"kmsauth_cache_dir"`
+	ConfigFile string
+
 	// AWSUserProfile is an aws profile that references a user (not a role)
 	// leaving this empty typically means use `default` profile
-	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profule"`
+	AWSUserProfile string `json:"aws_user_profile" yaml:"aws_user_profile"`
 
 	// Path to your ssh private key
 	SSHPrivateKey string `json:"ssh_private_key" yaml:"ssh_private_key"`
@@ -84,6 +82,17 @@ type LambdaConfig struct {
 	FunctionName string `json:"function_name" yaml:"function_name"`
 	// bless lambda regions
 	Regions []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
+}
+
+// Telemetry to track adoption
+type Telemetry struct {
+	Honeycomb Honeycomb `yaml:"honeycomb,omitempty"`
+}
+
+// Honeycomb telemetry configuration
+type Honeycomb struct {
+	WriteKey string `yaml:"write_key,omitempty"`
+	Dataset  string `yaml:"dataset,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
@@ -123,35 +132,32 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	}
 }
 
-// Telemetry to track adoption
-type Telemetry struct {
-	Honeycomb Honeycomb `yaml:"honeycomb,omitempty"`
-}
-
-// Honeycomb telemetry configuration
-type Honeycomb struct {
-	WriteKey string `yaml:"write_key,omitempty"`
-	Dataset  string `yaml:"dataset,omitempty"`
-}
-
 // DefaultConfig generates a config with some defaults
-func DefaultConfig() *Config {
-	return &Config{
-		ClientConfig: ClientConfig{
-			ClientDir:       DefaultClientDir,
-			CacheDir:        DefaultCacheDir,
-			KMSAuthCacheDir: DefaultKMSAuthCache,
-			CertLifetime:    Duration{30 * time.Minute},
-		},
-		LambdaConfig: LambdaConfig{
-			RoleARN: DefaultAWSProfile, // seems like a sane default
-		},
+func DefaultConfig() (*Config, error) {
+	expandedDefaultConfigFile, err := homedir.Expand(DefaultConfigFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not expand %s", DefaultConfigFile)
 	}
+
+	expandedSSHPrivateKey, err := homedir.Expand(DefaultSSHPrivateKey)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not expand %s", DefaultSSHPrivateKey)
+	}
+
+	c := &Config{
+		ClientConfig: ClientConfig{
+			ConfigFile:    expandedDefaultConfigFile,
+			CertLifetime:  Duration{30 * time.Minute},
+			SSHPrivateKey: expandedSSHPrivateKey,
+		},
+		LambdaConfig: LambdaConfig{},
+	}
+	return c, nil
 }
 
 // FromFile reads the config from file
 func FromFile(file string) (*Config, error) {
-	conf := DefaultConfig()
+	conf, err := DefaultConfig()
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -172,9 +178,9 @@ func FromFile(file string) (*Config, error) {
 
 // Persist persists a config to disk
 func (c *Config) Persist() error {
-	err := os.MkdirAll(c.ClientConfig.ClientDir, 0755)
+	err := os.MkdirAll(c.getBlessclientDir(), 0755)
 	if err != nil {
-		return errors.Wrapf(err, "Could not create client config dir %s", c.ClientConfig.ClientDir)
+		return errors.Wrapf(err, "Could not create client config dir %s", c.getBlessclientDir())
 	}
 
 	b, err := yaml.Marshal(c)
@@ -190,10 +196,20 @@ func (c *Config) Persist() error {
 	return nil
 }
 
-// SetPaths sets paths on the config
-func (c *Config) SetPaths(configPath string) {
-	c.ClientConfig.ClientDir = path.Dir(configPath)
-	c.ClientConfig.ConfigFile = configPath
-	c.ClientConfig.CacheDir = path.Join(c.ClientConfig.ClientDir, "cache", util.VersionCacheKey())
-	c.ClientConfig.KMSAuthCacheDir = path.Join(c.ClientConfig.CacheDir, DefaultKMSAuthCache)
+func (c *Config) getBlessclientDir() string {
+	return path.Dir(c.ClientConfig.ConfigFile)
+}
+func (c *Config) getCacheDir() string {
+	return path.Join(c.getBlessclientDir(), defaultCacheDir, util.VersionCacheKey())
+}
+
+// GetKMSAuthCachePath gets a path to kmsauth cache file
+// kmsauth is regional
+func (c *Config) GetKMSAuthCachePath(region string) string {
+	return path.Join(c.getCacheDir(), defaultKMSAuthCache, fmt.Sprintf("%s.json", region))
+}
+
+// GetAWSSessionCachePath gets path to aws user session cache file
+func (c *Config) GetAWSSessionCachePath() string {
+	return path.Join(c.getCacheDir(), defaultAWSSessionCache, "cache.json")
 }
