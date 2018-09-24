@@ -60,7 +60,7 @@ var initCmd = &cobra.Command{
 }
 
 func promptWithDefault(defaultValue string, promptString string, args ...interface{}) string {
-	input := prompt.String(promptString, args)
+	input := prompt.String(promptString, args...)
 	if input == "" {
 		return defaultValue
 	}
