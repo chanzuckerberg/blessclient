@@ -13,6 +13,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -108,7 +109,8 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 
 // WriteCert writes a cert to disk
 func (s *SSH) WriteCert(b []byte) error {
-	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
-	err := ioutil.WriteFile(cert, b, 0644)
-	return errors.Wrapf(err, "Could not write cert to %s", cert)
+	certPath := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
+	log.Debugf("Writing cert to %s", certPath)
+	err := ioutil.WriteFile(certPath, b, 0644)
+	return errors.Wrapf(err, "Could not write cert to %s", certPath)
 }

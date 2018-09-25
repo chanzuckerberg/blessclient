@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:ecc1f0675a6f2782a68ddded9a7f3c0ddc39c38074fcab9e9ee3992a45313377"
+  digest = "1:5f9e51efe4c04e8a002e998bda5ab202abcf269e386b8f22f6db448c59ea60fb"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -52,8 +52,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "d8ab6d22cfd270ded73e7d59feba528ffd963edd"
-  version = "v1.15.40"
+  revision = "0d5157217e4c72d0fc7fabad8e0501d3d5cb768d"
+  version = "v1.15.41"
 
 [[projects]]
   branch = "master"
@@ -367,14 +367,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:75cb7164c3c9e028922e69b10842159549ab96ffc4800ea189c4a6865dc3bc08"
+  digest = "1:fc06d26f7b6384b7cd00ba98d47690c1c690bd905d8e2936bb223da74b9733ca"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "90868a75fefd03942536221d7c0e2f84ec62a668"
+  revision = "b09afc3d579e346c4a7e4705953acaf6f9e551bd"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -413,9 +413,11 @@
     "github.com/blang/semver",
     "github.com/chanzuckerberg/go-kmsauth",
     "github.com/chanzuckerberg/go-misc/aws",
+    "github.com/davecgh/go-spew/spew",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
     "github.com/honeycombio/beeline-go",
+    "github.com/honeycombio/beeline-go/trace",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",

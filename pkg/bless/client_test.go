@@ -36,7 +36,6 @@ type TestSuite struct {
 	lambdaExecuteOut *lambda.InvokeOutput
 	conf             *config.Config
 	ctx              context.Context
-
 	// cleanup
 	pathsToRemove []string
 	server        *httptest.Server
@@ -51,6 +50,7 @@ func (ts *TestSuite) TearDownTest() {
 func (ts *TestSuite) SetupTest() {
 	t := ts.T()
 	a := assert.New(t)
+	ts.ctx = context.Background()
 
 	ts.ctx = context.Background()
 	conf, pathsToRemove := testConfig(t)
