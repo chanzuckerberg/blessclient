@@ -71,7 +71,6 @@ var runCmd = &cobra.Command{
 		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
 		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
 		span.AddTraceField(telemetry.FieldBlessclientDirty, util.Dirty)
-
 		defer span.Send()
 
 		sess, err := session.NewSessionWithOptions(
