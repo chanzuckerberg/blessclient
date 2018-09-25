@@ -7,7 +7,7 @@
   version = "3.5.1"
 
 [[constraint]]
-  branch = "edu/ctx"
+  branch = "master"
   name = "github.com/chanzuckerberg/go-kmsauth"
 
 [[constraint]]

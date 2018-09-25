@@ -72,12 +72,12 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "edu/ctx"
+  branch = "master"
   digest = "1:6105bbd7d3160cec835e80348bb2c1bc98fb6dc493767fb51c67789d01a0f696"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f2c49024d4f559b8fe04956af4792898bbab2bed"
+  revision = "e3137094b7051367282cc65d3987e6030535f66f"
 
 [[projects]]
   branch = "master"

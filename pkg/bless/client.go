@@ -8,9 +8,11 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/ssh"
+	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/honeycombio/beeline-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -68,6 +70,8 @@ type LambdaResponse struct {
 
 // RequestKMSAuthToken requests a new kmsauth token
 func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedToken, error) {
+	ctx, span := beeline.StartSpan(ctx, "request_kmsauth")
+	defer span.Send()
 	token, err := c.tg.GetEncryptedToken(ctx)
 	return token, errors.Wrap(err, "Error requesting kmsauth token")
 }
@@ -75,6 +79,9 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 // RequestCert requests a cert
 func (c *Client) RequestCert(ctx context.Context) error {
 	log.Debugf("Requesting certificate")
+	ctx, span := beeline.StartSpan(ctx, "request_cert")
+	defer span.Send()
+
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
 		RemoteUsernames: strings.Join(c.conf.ClientConfig.RemoteUsers, ","),
@@ -92,12 +99,13 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	span.AddField(telemetry.FieldFreshCert, isFresh)
 	if isFresh {
 		log.Debug("Cert is already fresh - using it")
 		return nil
 	}
-	log.Debug("Requesting new cert")
 
+	log.Debug("Requesting new cert")
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {
 		return err
@@ -116,32 +124,43 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	payload.KMSAuthToken = token.String()
 	payload.PublicKeyToSign = string(pubKey)
 	log.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
+	lambdaResponse, err := c.getCert(ctx, payload)
+	if err != nil {
+		span.AddField(telemetry.FieldError, err.Error())
+		return err
+	}
+	return s.WriteCert([]byte(*lambdaResponse.Certificate))
+}
+
+func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
+	ctx, span := beeline.StartSpan(ctx, "bless_lambda")
+	defer span.Send()
 
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
-		return errors.Wrap(err, "Could not serialize lambda payload")
+		return nil, errors.Wrap(err, "Could not serialize lambda payload")
 	}
 	responseBytes, err := c.Aws.Lambda.Execute(ctx, c.conf.LambdaConfig.FunctionName, payloadB)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Debugf("Raw lambda response %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
 	err = json.Unmarshal(responseBytes, lambdaReponse)
 	if err != nil {
-		return errors.Wrap(err, "Could not deserialize lambda reponse")
+		return nil, errors.Wrap(err, "Could not deserialize lambda reponse")
 	}
-	log.Debugf("Parsed lambda response %s", spew.Sdump(lambdaReponse))
 
+	log.Debugf("Parsed lambda response %s", spew.Sdump(lambdaReponse))
 	if lambdaReponse.ErrorType != nil {
 		if lambdaReponse.ErrorMessage != nil {
-			return errors.Errorf("bless error: %s: %s", *lambdaReponse.ErrorType, *lambdaReponse.ErrorMessage)
+			return nil, errors.Errorf("bless error: %s: %s", *lambdaReponse.ErrorType, *lambdaReponse.ErrorMessage)
 		}
-		return errors.Errorf("bless error: %s", *lambdaReponse.ErrorType)
+		return nil, errors.Errorf("bless error: %s", *lambdaReponse.ErrorType)
 	}
 
 	if lambdaReponse.Certificate == nil {
-		return errs.ErrNoCertificateInResponse
+		return nil, errs.ErrNoCertificateInResponse
 	}
-	return s.WriteCert([]byte(*lambdaReponse.Certificate))
+	return lambdaReponse, nil
 }
