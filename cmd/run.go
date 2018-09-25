@@ -156,10 +156,13 @@ func runForRegion(
 	mfaTokenProvider func() (string, error),
 	region string,
 ) error {
-
 	span := trace.GetSpanFromContext(ctx)
+	var tr *trace.Trace
 	if span == nil {
-
+		ctx, tr = trace.NewTrace(ctx, "")
+		span = tr.GetRootSpan()
+	} else {
+		ctx, span = span.CreateChild(ctx)
 	}
 	return nil
 }

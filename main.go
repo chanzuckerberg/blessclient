@@ -1,9 +1,22 @@
 package main
 
 import (
-	"github.com/chanzuckerberg/blessclient/cmd"
+	"fmt"
 )
 
 func main() {
-	cmd.Execute()
+
+	a := 3
+	var b string
+	if true {
+		a, b = test()
+		fmt.Printf("%d\n", a)
+		fmt.Printf("%s\n", b)
+	}
+	fmt.Printf("%d\n", a)
+	// cmd.Execute()
+}
+
+func test() (int, string) {
+	return 4, "test"
 }
