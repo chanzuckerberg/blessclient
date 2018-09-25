@@ -51,10 +51,17 @@ var runCmd = &cobra.Command{
 		}
 		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
+		// By default we turn off honeycomb and discard all output
 		beelineConfig := beeline.Config{
-			WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
-			Dataset:     conf.Telemetry.Honeycomb.Dataset,
-			ServiceName: "blessclient",
+			Mute: true,
+		}
+		if conf.Telemetry.Honeycomb != nil {
+			beelineConfig = beeline.Config{
+				WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
+				Dataset:     conf.Telemetry.Honeycomb.Dataset,
+				ServiceName: "blessclient",
+				Mute:        false,
+			}
 		}
 		beeline.Init(beelineConfig)
 		defer beeline.Flush(ctx)
@@ -81,7 +88,7 @@ var runCmd = &cobra.Command{
 
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
-			log.Debugf("Attempting region %s", region)
+			log.Debugf("Attempting region %s", region.AWSRegion)
 			err = processRegion(ctx, conf, sess, region)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())

@@ -86,7 +86,7 @@ type LambdaConfig struct {
 
 // Telemetry to track adoption, performance, errors
 type Telemetry struct {
-	Honeycomb Honeycomb `yaml:"honeycomb,omitempty"`
+	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
 }
 
 // Honeycomb telemetry configuration
