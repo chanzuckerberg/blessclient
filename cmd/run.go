@@ -112,7 +112,6 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 		return err
 	}
 	return getCert(ctx, conf, awsClient, username, region)
-
 }
 
 // getAWSClient configures an aws client
