@@ -60,8 +60,13 @@ var runCmd = &cobra.Command{
 		}
 		beeline.Init(beelineConfig)
 		defer beeline.Flush(ctx)
-		beeline.AddField(ctx, telemetry.FieldBlessclientVersion, util.VersionCacheKey())
+
 		ctx, span := beeline.StartSpan(ctx, cmd.Use)
+		span.AddTraceField(telemetry.FieldBlessclientVersion, util.VersionCacheKey())
+		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
+		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
+		span.AddTraceField(telemetry.FieldBlessclientDirty, util.Dirty)
+
 		defer span.Send()
 
 		sess, err := session.NewSessionWithOptions(
