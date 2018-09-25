@@ -8,10 +8,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
-
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
