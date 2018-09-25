@@ -84,7 +84,7 @@ type LambdaConfig struct {
 	Regions []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
 }
 
-// Telemetry to track adoption
+// Telemetry to track adoption, performance, errors
 type Telemetry struct {
 	Honeycomb Honeycomb `yaml:"honeycomb,omitempty"`
 }

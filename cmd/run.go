@@ -72,6 +72,7 @@ var runCmd = &cobra.Command{
 			},
 		)
 		if err != nil {
+			span.AddField(telemetry.FieldError, err.Error())
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
