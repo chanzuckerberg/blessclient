@@ -51,8 +51,6 @@ var runCmd = &cobra.Command{
 		}
 		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
-		// TODO find out what happens if config is bad
-		// TODO turn this off as needed
 		beelineConfig := beeline.Config{
 			WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
 			Dataset:     conf.Telemetry.Honeycomb.Dataset,
