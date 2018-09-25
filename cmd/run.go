@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -11,6 +13,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
+	"github.com/davecgh/go-spew/spew"
 	multierror "github.com/hashicorp/go-multierror"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -29,6 +32,8 @@ var runCmd = &cobra.Command{
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
+		ctx := context.Background()
+
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -37,11 +42,13 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
+		log.Debugf("Reading config from %s", expandedConfigFile)
 
 		conf, err := config.FromFile(expandedConfigFile)
 		if err != nil {
 			return err
 		}
+		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
@@ -57,6 +64,7 @@ var runCmd = &cobra.Command{
 		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
+			log.Debugf("Attempting region %s", region.AWSRegion)
 			awsUserSessionProviderConf := &aws.Config{
 				Region: aws.String(region.AWSRegion),
 			}
@@ -84,7 +92,8 @@ var runCmd = &cobra.Command{
 				WithSTS(userConf).
 				WithLambda(roleConf)
 
-			user, err := awsClient.IAM.GetCurrentUser()
+			log.Debugf("Getting current aws iam user")
+			user, err := awsClient.IAM.GetCurrentUser(ctx)
 			if err != nil {
 				return err
 			}
@@ -108,7 +117,7 @@ var runCmd = &cobra.Command{
 			)
 
 			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
-			err = client.RequestCert()
+			err = client.RequestCert(ctx)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)

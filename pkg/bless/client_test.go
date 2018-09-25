@@ -1,6 +1,7 @@
 package bless_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -34,6 +35,7 @@ type TestSuite struct {
 	encryptOut       *kms.EncryptOutput
 	lambdaExecuteOut *lambda.InvokeOutput
 	conf             *config.Config
+	ctx              context.Context
 	// cleanup
 	pathsToRemove []string
 	server        *httptest.Server
@@ -48,6 +50,7 @@ func (ts *TestSuite) TearDownTest() {
 func (ts *TestSuite) SetupTest() {
 	t := ts.T()
 	a := assert.New(t)
+	ts.ctx = context.Background()
 
 	conf, pathsToRemove := testConfig(t)
 	ts.pathsToRemove = pathsToRemove
@@ -113,10 +116,10 @@ func (ts *TestSuite) TestEverythingOk() {
 	t := ts.T()
 	a := assert.New(t)
 
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 
-	err := ts.client.RequestCert()
+	err := ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
 }
 
@@ -130,7 +133,7 @@ func (ts *TestSuite) TestErrOnMalformedCert() {
 	a.Nil(err)
 	defer os.RemoveAll(certPath)
 
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)
 	a.Contains(err.Error(), "Could not parse cert")
 }
@@ -142,17 +145,17 @@ func (ts *TestSuite) TestFreshCert() {
 	// cert generated as follows:
 	// ssh-keygen -t rsa -f test_key
 	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
 	cert, err := ioutil.ReadFile("testdata/cert")
 	a.Nil(err)
 	err = ioutil.WriteFile(certPath, cert, 0644)
 	a.Nil(err)
 	defer os.RemoveAll(certPath)
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertNotCalled(t, "Invoke"))
+	a.True(ts.mockLambda.Mock.AssertNotCalled(t, "InvokeWithContext"))
 }
 
 func (ts *TestSuite) TestBadPrincipalsCert() {
@@ -161,17 +164,17 @@ func (ts *TestSuite) TestBadPrincipalsCert() {
 	// cert generated as follows:
 	// ssh-keygen -t rsa -f test_key
 	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
 	cert, err := ioutil.ReadFile("testdata/bad-principal")
 	a.Nil(err)
 	err = ioutil.WriteFile(certPath, cert, 0644)
 	a.Nil(err)
 	defer os.RemoveAll(certPath)
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertCalled(t, "Invoke", mock.Anything))
+	a.True(ts.mockLambda.Mock.AssertCalled(t, "InvokeWithContext", mock.Anything))
 }
 
 func (ts *TestSuite) TestBadCriticalOptionsCert() {
@@ -180,17 +183,17 @@ func (ts *TestSuite) TestBadCriticalOptionsCert() {
 	// cert generated as follows:
 	// ssh-keygen -t rsa -f test_key
 	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
 	cert, err := ioutil.ReadFile("testdata/bad-critical-options")
 	a.Nil(err)
 	err = ioutil.WriteFile(certPath, cert, 0644)
 	a.Nil(err)
 	defer os.RemoveAll(certPath)
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertCalled(t, "Invoke", mock.Anything))
+	a.True(ts.mockLambda.Mock.AssertCalled(t, "InvokeWithContext", mock.Anything))
 }
 
 func (ts *TestSuite) TestReportsLambdaErrors() {
@@ -208,10 +211,10 @@ func (ts *TestSuite) TestReportsLambdaErrors() {
 		Payload: lambdaBytes,
 	}
 
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)
 	a.Contains(err.Error(), "bless error")
 	a.Contains(err.Error(), *lambdaResponse.ErrorMessage)
@@ -233,10 +236,10 @@ func (ts *TestSuite) TestNoCertificateInResponse() {
 		Payload: lambdaBytes,
 	}
 
-	ts.mockKMS.On("Encrypt", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("Invoke", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
+	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
 
-	err = ts.client.RequestCert()
+	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)
 	a.Equal(err, errs.ErrNoCertificateInResponse)
 }

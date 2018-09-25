@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -20,13 +22,13 @@ func NewIAM(c client.ConfigProvider, config *aws.Config) *IAM {
 }
 
 // GetCurrentUser describes the calling user
-func (i *IAM) GetCurrentUser() (*iam.User, error) {
-	return i.GetUser(nil)
+func (i *IAM) GetCurrentUser(ctx context.Context) (*iam.User, error) {
+	return i.GetUser(ctx, nil)
 }
 
 // GetUser returns the caller aws user
-func (i *IAM) GetUser(username *string) (*iam.User, error) {
-	output, err := i.Svc.GetUser(&iam.GetUserInput{UserName: username})
+func (i *IAM) GetUser(ctx context.Context, username *string) (*iam.User, error) {
+	output, err := i.Svc.GetUserWithContext(ctx, &iam.GetUserInput{UserName: username})
 	if err != nil {
 		return nil, errors.Wrap(err, "Can't get your user information from AWS.")
 	}
@@ -37,12 +39,12 @@ func (i *IAM) GetUser(username *string) (*iam.User, error) {
 }
 
 // GetMFASerials gets the mfaSerials for the username
-func (i *IAM) GetMFASerials(username *string) ([]string, error) {
+func (i *IAM) GetMFASerials(ctx context.Context, username *string) ([]string, error) {
 	input := &iam.ListMFADevicesInput{
 		UserName: username,
 	}
 	serialNumbers := []string{}
-	err := i.Svc.ListMFADevicesPages(input, func(output *iam.ListMFADevicesOutput, lastPage bool) bool {
+	err := i.Svc.ListMFADevicesPagesWithContext(ctx, input, func(output *iam.ListMFADevicesOutput, lastPage bool) bool {
 		if output == nil {
 			return true
 		}
@@ -68,8 +70,8 @@ func (i *IAM) GetMFASerials(username *string) ([]string, error) {
 }
 
 // GetAnMFASerial returns the first MFA serial on the user, errors if no MFA found
-func (i *IAM) GetAnMFASerial(username *string) (string, error) {
-	serials, err := i.GetMFASerials(username)
+func (i *IAM) GetAnMFASerial(ctx context.Context, username *string) (string, error) {
+	serials, err := i.GetMFASerials(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -80,21 +82,21 @@ func (i *IAM) GetAnMFASerial(username *string) (string, error) {
 }
 
 // ListAllUsers will get all users in the current account and invoke f for each
-func (i *IAM) ListAllUsers(f func(*iam.User)) error {
+func (i *IAM) ListAllUsers(ctx context.Context, f func(*iam.User)) error {
 	input := &iam.ListUsersInput{}
-	i.Svc.ListUsersPages(input, func(output *iam.ListUsersOutput, lastPage bool) bool {
+	err := i.Svc.ListUsersPagesWithContext(ctx, input, func(output *iam.ListUsersOutput, lastPage bool) bool {
 		for _, u := range output.Users {
 			f(u)
 		}
 		return true
 	})
-	return nil
+	return errors.Wrap(err, "Could not list users")
 }
 
 // GetLoginProfile gets the login profile for this user if it exists
-func (i *IAM) GetLoginProfile(username string) (*iam.LoginProfile, error) {
+func (i *IAM) GetLoginProfile(ctx context.Context, username string) (*iam.LoginProfile, error) {
 	input := &iam.GetLoginProfileInput{UserName: &username}
-	output, err := i.Svc.GetLoginProfile(input)
+	output, err := i.Svc.GetLoginProfileWithContext(ctx, input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get login profile for %s", username)
 	}

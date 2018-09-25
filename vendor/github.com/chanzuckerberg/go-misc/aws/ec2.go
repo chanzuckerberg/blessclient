@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -19,10 +21,10 @@ func NewEC2(c client.ConfigProvider, config *aws.Config) *EC2 {
 }
 
 // GetAllInstances will walk all instances and call func for each
-func (e *EC2) GetAllInstances(f func(*ec2.Instance)) error {
+func (e *EC2) GetAllInstances(ctx context.Context, f func(*ec2.Instance)) error {
 	var err error
 	input := &ec2.DescribeInstancesInput{}
-	err = e.Svc.DescribeInstancesPages(input, func(output *ec2.DescribeInstancesOutput, lastPage bool) bool {
+	err = e.Svc.DescribeInstancesPagesWithContext(ctx, input, func(output *ec2.DescribeInstancesOutput, lastPage bool) bool {
 		for _, reservation := range output.Reservations {
 			if reservation == nil {
 				continue
