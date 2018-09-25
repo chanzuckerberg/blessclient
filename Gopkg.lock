@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:8840f2c1bb4c70a6abca0029dbc7e1117c13910e974e335baf1ad2a1b7bb59e9"
+  digest = "1:5f9e51efe4c04e8a002e998bda5ab202abcf269e386b8f22f6db448c59ea60fb"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -52,8 +52,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "a93d31c26045c00c52f58dda4dcad02a3e622534"
-  version = "v1.15.39"
+  revision = "0d5157217e4c72d0fc7fabad8e0501d3d5cb768d"
+  version = "v1.15.41"
 
 [[projects]]
   branch = "master"
@@ -73,19 +73,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b7084ab24ca47e1563a00b1a8069c6b85f04af9a79f64cfedefeb34ca232b5c6"
+  digest = "1:6105bbd7d3160cec835e80348bb2c1bc98fb6dc493767fb51c67789d01a0f696"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e3f0a4587e5c8efa985dc42dded379ffcb157242"
+  revision = "e3137094b7051367282cc65d3987e6030535f66f"
 
 [[projects]]
   branch = "master"
-  digest = "1:130005f1c9d0aef367f351759a9564f6db3f395d7d8232d59fe88b0aba780549"
+  digest = "1:8c7c01c627f48355552e75369926bae615cdaa659aab85023612116f60ea4619"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "2c4bce6e68dfdaecf368785fa51d6162636aca8e"
+  revision = "fff4f5944f96378315187fa77fe94340d9ebdfb7"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -313,14 +313,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4d2869b8df54b3a687c426758d0891720e8bedfa6ff5d472671ce1d31d29bdfb"
+  digest = "1:75cb7164c3c9e028922e69b10842159549ab96ffc4800ea189c4a6865dc3bc08"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "d47a0f3392421c5624713c9a19fe781f651f8a50"
+  revision = "90868a75fefd03942536221d7c0e2f84ec62a668"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
@@ -351,6 +351,7 @@
     "github.com/blang/semver",
     "github.com/chanzuckerberg/go-kmsauth",
     "github.com/chanzuckerberg/go-misc/aws",
+    "github.com/davecgh/go-spew/spew",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
     "github.com/mitchellh/go-homedir",

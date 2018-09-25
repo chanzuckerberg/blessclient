@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/stretchr/testify/mock"
@@ -19,8 +21,8 @@ func NewMockSTS() *MockSTSSvc {
 	return &MockSTSSvc{}
 }
 
-// GetSessionToken mocks GetSessionToken
-func (s *MockSTSSvc) GetSessionToken(in *sts.GetSessionTokenInput) (*sts.GetSessionTokenOutput, error) {
+// GetSessionTokenWithContext mocks GetSessionToken
+func (s *MockSTSSvc) GetSessionTokenWithContext(ctx aws.Context, in *sts.GetSessionTokenInput, ro ...request.Option) (*sts.GetSessionTokenOutput, error) {
 	args := s.Called(in)
 	out := args.Get(0).(*sts.GetSessionTokenOutput)
 	return out, args.Error(1)

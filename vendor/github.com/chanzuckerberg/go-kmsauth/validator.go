@@ -1,6 +1,7 @@
 package kmsauth
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"time"
@@ -45,8 +46,8 @@ func (tv *TokenValidator) validate() error {
 }
 
 // ValidateToken validates a token
-func (tv *TokenValidator) ValidateToken(tokenb64 string) error {
-	token, err := tv.decryptToken(tokenb64)
+func (tv *TokenValidator) ValidateToken(ctx context.Context, tokenb64 string) error {
+	token, err := tv.decryptToken(ctx, tokenb64)
 	if err != nil {
 		return err
 	}
@@ -54,12 +55,12 @@ func (tv *TokenValidator) ValidateToken(tokenb64 string) error {
 }
 
 // decryptToken decrypts a token
-func (tv *TokenValidator) decryptToken(tokenb64 string) (*Token, error) {
+func (tv *TokenValidator) decryptToken(ctx context.Context, tokenb64 string) (*Token, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(tokenb64)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not base64 decode token")
 	}
-	plaintext, keyID, err := tv.AwsClient.KMS.Decrypt(ciphertext, tv.AuthContext.GetKMSContext())
+	plaintext, keyID, err := tv.AwsClient.KMS.Decrypt(ctx, ciphertext, tv.AuthContext.GetKMSContext())
 	if err != nil {
 		return nil, err
 	}
