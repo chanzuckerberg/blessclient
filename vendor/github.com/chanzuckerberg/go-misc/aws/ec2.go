@@ -38,3 +38,16 @@ func (e *EC2) GetAllInstances(ctx context.Context, f func(*ec2.Instance)) error 
 
 	return errors.Wrap(err, "error when getting all EC2 instances")
 }
+
+// GetAllVPCs will call f for each VPCs
+func (e *EC2) GetAllVPCs(ctx context.Context, f func(*ec2.Vpc)) error {
+	input := &ec2.DescribeVpcsInput{}
+	out, err := e.Svc.DescribeVpcsWithContext(ctx, input)
+	if err != nil {
+		return err
+	}
+	for _, vpc := range out.Vpcs {
+		f(vpc)
+	}
+	return nil
+}

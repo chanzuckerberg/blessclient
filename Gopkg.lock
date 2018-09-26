@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:5f9e51efe4c04e8a002e998bda5ab202abcf269e386b8f22f6db448c59ea60fb"
+  digest = "1:2ce5c5bcaa65c88da542a0f1d4b4edad9abff492fb94e2389aaaab4804a0532c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -52,8 +52,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "0d5157217e4c72d0fc7fabad8e0501d3d5cb768d"
-  version = "v1.15.41"
+  revision = "85d9dfd77e6d694e83c3ac054141cb5e81eecc7f"
+  version = "v1.15.43"
 
 [[projects]]
   branch = "master"
@@ -81,11 +81,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8c7c01c627f48355552e75369926bae615cdaa659aab85023612116f60ea4619"
+  digest = "1:3b18fe1db47a78bd806e0f9be62a3d049436186bfb89262665cdb17e95b4cf85"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "fff4f5944f96378315187fa77fe94340d9ebdfb7"
+  revision = "a0f48314cc2baaab9015acf611fd56c404913947"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -251,6 +251,14 @@
   revision = "0b12d6b5"
 
 [[projects]]
+  branch = "master"
+  digest = "1:f44d34fda864bed6d6c71514cd40b2ee097e6e67f745d5d014113e1faa5af8b7"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b729f2633dfe35f4d1d8a32385f6685610ce1cb5"
+
+[[projects]]
   digest = "1:78bbb1ba5b7c3f2ed0ea1eab57bdd3859aec7e177811563edc41198a760b06af"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -291,12 +299,12 @@
   revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
 
 [[projects]]
-  digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
+  digest = "1:dc2d85c13ac22c22a1f3170a41a8e1b897fa05134aaf533f16df44f66a25b4a1"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
-  version = "v1.0.6"
+  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -367,14 +375,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fc06d26f7b6384b7cd00ba98d47690c1c690bd905d8e2936bb223da74b9733ca"
+  digest = "1:6fb1dd382722f93fcf7c52ff631f7b899d8c5d54314d88d42dd1f4e5ac404a30"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "b09afc3d579e346c4a7e4705953acaf6f9e551bd"
+  revision = "c2ed4eda69e7f62900806e4cd6e45f0429f859fa"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -405,7 +413,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
-    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/kms",
