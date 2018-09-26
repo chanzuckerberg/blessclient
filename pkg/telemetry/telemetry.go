@@ -7,6 +7,7 @@ const (
 	FieldBlessclientRelease = "blessclient.release"
 	FieldBlessclientDirty   = "blessclient.dirty"
 
+	FieldID        = "id"
 	FieldRegion    = "aws_region"
 	FieldError     = "error"
 	FieldUser      = "user"

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
@@ -15,6 +14,7 @@ import (
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	beeline "github.com/honeycombio/beeline-go"
 	homedir "github.com/mitchellh/go-homedir"
@@ -67,6 +67,7 @@ var runCmd = &cobra.Command{
 		defer beeline.Flush(ctx)
 
 		ctx, span := beeline.StartSpan(ctx, cmd.Use)
+		span.AddTraceField(telemetry.FieldID, uuid.New().String())
 		span.AddTraceField(telemetry.FieldBlessclientVersion, util.VersionCacheKey())
 		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
 		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
@@ -119,15 +120,8 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	ctx, span := beeline.StartSpan(ctx, "get_aws_client")
 	defer span.Send()
 	// for things meant to be run as a user
-	mfaTokenProvider := util.TokenProvider("AWS MFA token:")
-	awsUserSessionProviderConf := &aws.Config{
-		Region: aws.String(region.AWSRegion),
-	}
-	awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
-	awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
 	userConf := &aws.Config{
-		Region:      aws.String(region.AWSRegion),
-		Credentials: credentials.NewCredentials(awsSessionTokenProvider),
+		Region: aws.String(region.AWSRegion),
 	}
 	// for things meant to be run as an assumed role
 	roleConf := &aws.Config{
