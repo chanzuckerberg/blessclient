@@ -33,7 +33,15 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		id, err := uuid.NewUUID()
+		if err != nil {
+			// Just for telemetry so ignore errors
+			log.Debugf("Failed to generate UUID with error %s", err.Error())
+		}
+
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
+		log.Debugf("RunID: %s", id.String())
+
 		ctx := context.Background()
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
@@ -67,7 +75,7 @@ var runCmd = &cobra.Command{
 		defer beeline.Flush(ctx)
 
 		ctx, span := beeline.StartSpan(ctx, cmd.Use)
-		span.AddTraceField(telemetry.FieldID, uuid.New().String())
+		span.AddTraceField(telemetry.FieldID, id.String())
 		span.AddTraceField(telemetry.FieldBlessclientVersion, util.VersionCacheKey())
 		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
 		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
