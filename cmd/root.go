@@ -6,11 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	debug bool
-	quiet bool
-)
-
 func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Use this to enable verbose mode")
 }

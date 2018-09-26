@@ -10,11 +10,13 @@ import (
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/davecgh/go-spew/spew"
 	multierror "github.com/hashicorp/go-multierror"
+	beeline "github.com/honeycombio/beeline-go"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -33,7 +35,6 @@ var runCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
 		ctx := context.Background()
-
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -50,6 +51,28 @@ var runCmd = &cobra.Command{
 		}
 		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
+		// By default we turn off honeycomb and discard all output
+		beelineConfig := beeline.Config{
+			Mute: true,
+		}
+		if conf.Telemetry.Honeycomb != nil {
+			beelineConfig = beeline.Config{
+				WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
+				Dataset:     conf.Telemetry.Honeycomb.Dataset,
+				ServiceName: "blessclient",
+				Mute:        false,
+			}
+		}
+		beeline.Init(beelineConfig)
+		defer beeline.Flush(ctx)
+
+		ctx, span := beeline.StartSpan(ctx, cmd.Use)
+		span.AddTraceField(telemetry.FieldBlessclientVersion, util.VersionCacheKey())
+		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
+		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
+		span.AddTraceField(telemetry.FieldBlessclientDirty, util.Dirty)
+		defer span.Send()
+
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
 				SharedConfigState:       session.SharedConfigEnable,
@@ -58,68 +81,16 @@ var runCmd = &cobra.Command{
 			},
 		)
 		if err != nil {
+			span.AddField(telemetry.FieldError, err.Error())
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
-		mfaTokenProvider := util.TokenProvider("AWS MFA token:")
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			log.Debugf("Attempting region %s", region.AWSRegion)
-			awsUserSessionProviderConf := &aws.Config{
-				Region: aws.String(region.AWSRegion),
-			}
-			awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
-
-			awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
-			userConf := &aws.Config{
-				Region:      aws.String(region.AWSRegion),
-				Credentials: credentials.NewCredentials(awsSessionTokenProvider),
-			}
-			// for things meant to be run as an assumed role
-			roleConf := &aws.Config{
-				Region: aws.String(region.AWSRegion),
-				Credentials: stscreds.NewCredentials(
-					sess,
-					conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-						p.TokenProvider = stscreds.StdinTokenProvider
-					},
-				),
-			}
-
-			awsClient := cziAWS.New(sess).
-				WithIAM(userConf).
-				WithKMS(userConf).
-				WithSTS(userConf).
-				WithLambda(roleConf)
-
-			log.Debugf("Getting current aws iam user")
-			user, err := awsClient.IAM.GetCurrentUser(ctx)
+			err = processRegion(ctx, conf, sess, region)
 			if err != nil {
-				return err
-			}
-			if user == nil || user.UserName == nil {
-				return errors.New("AWS returned nil user")
-			}
-
-			kmsauthContext := &kmsauth.AuthContextV2{
-				From:     *user.UserName,
-				To:       conf.LambdaConfig.FunctionName,
-				UserType: "user",
-			}
-
-			tg := kmsauth.NewTokenGenerator(
-				region.KMSAuthKeyID,
-				kmsauth.TokenVersion2,
-				conf.ClientConfig.CertLifetime.AsDuration(),
-				aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
-				kmsauthContext,
-				awsClient,
-			)
-
-			client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(*user.UserName)
-			err = client.RequestCert(ctx)
-			if err != nil {
-				log.Errorf("Error in region %s: %s. Attempting other regions is available.", region.AWSRegion, err.Error())
+				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
 			} else {
 				return nil
@@ -127,4 +98,96 @@ var runCmd = &cobra.Command{
 		}
 		return regionErrors
 	},
+}
+
+func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) error {
+	ctx, span := beeline.StartSpan(ctx, "process_region")
+	defer span.Send()
+	span.AddField(telemetry.FieldRegion, region.AWSRegion)
+
+	awsClient := getAWSClient(ctx, conf, sess, region)
+	username, err := getAWSUsername(ctx, awsClient)
+	if err != nil {
+		span.AddField(telemetry.FieldError, err.Error())
+		return err
+	}
+	return getCert(ctx, conf, awsClient, username, region)
+}
+
+// getAWSClient configures an aws client
+func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) *cziAWS.Client {
+	ctx, span := beeline.StartSpan(ctx, "get_aws_client")
+	defer span.Send()
+	// for things meant to be run as a user
+	mfaTokenProvider := util.TokenProvider("AWS MFA token:")
+	awsUserSessionProviderConf := &aws.Config{
+		Region: aws.String(region.AWSRegion),
+	}
+	awsSessionProviderClient := cziAWS.New(sess).WithAllServices(awsUserSessionProviderConf)
+	awsSessionTokenProvider := cziAWS.NewUserTokenProvider(conf.GetAWSSessionCachePath(), awsSessionProviderClient, mfaTokenProvider)
+	userConf := &aws.Config{
+		Region:      aws.String(region.AWSRegion),
+		Credentials: credentials.NewCredentials(awsSessionTokenProvider),
+	}
+	// for things meant to be run as an assumed role
+	roleConf := &aws.Config{
+		Region: aws.String(region.AWSRegion),
+		Credentials: stscreds.NewCredentials(
+			sess,
+			conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+				p.TokenProvider = stscreds.StdinTokenProvider
+			},
+		),
+	}
+	awsClient := cziAWS.New(sess).
+		WithIAM(userConf).
+		WithKMS(userConf).
+		WithSTS(userConf).
+		WithLambda(roleConf)
+	return awsClient
+}
+
+// getAWSUsername gets the caller's aws username for kmsauth
+func getAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
+	ctx, span := beeline.StartSpan(ctx, "get_aws_username")
+	defer span.Send()
+	log.Debugf("Getting current aws iam user")
+	user, err := awsClient.IAM.GetCurrentUser(ctx)
+	if err != nil {
+		span.AddField(telemetry.FieldError, err.Error())
+		return "", err
+	}
+	if user == nil || user.UserName == nil {
+		err = errors.New("AWS returned nil user")
+		span.AddField(telemetry.FieldError, err.Error())
+		return "", err
+	}
+	beeline.AddFieldToTrace(ctx, telemetry.FieldUser, *user.UserName)
+	return *user.UserName, nil
+}
+
+// getCert requests a cert and persists it to disk
+func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region) error {
+	ctx, span := beeline.StartSpan(ctx, "get_cert")
+	defer span.Send()
+	kmsauthContext := &kmsauth.AuthContextV2{
+		From:     username,
+		To:       conf.LambdaConfig.FunctionName,
+		UserType: "user",
+	}
+	tg := kmsauth.NewTokenGenerator(
+		region.KMSAuthKeyID,
+		kmsauth.TokenVersion2,
+		conf.ClientConfig.CertLifetime.AsDuration(),
+		aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
+		kmsauthContext,
+		awsClient,
+	)
+	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
+	err := client.RequestCert(ctx)
+	if err != nil {
+		span.AddField(telemetry.FieldError, err.Error())
+		return err
+	}
+	return nil
 }

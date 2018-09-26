@@ -96,6 +96,30 @@
   version = "v1.1.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:5fe3f6ede1c208a2efd3b78fe4df0306aa9624edd39476143d14f0326e5a8d29"
+  name = "github.com/facebookgo/clock"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "600d898af40aa09a7a93ecb9265d87b0504b6f03"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3b9db7dec579a1b2385b8de0b9359c052b1ba815d283dcf28d7270d0e7c38237"
+  name = "github.com/facebookgo/limitgroup"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6abd8d71ec01451d7f1929eacaa263bbe2935d05"
+
+[[projects]]
+  branch = "master"
+  digest = "1:94b198563e9ee4272105ad87ae469b216cafb9437b955ae866ce85b956569aac"
+  name = "github.com/facebookgo/muster"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"
+
+[[projects]]
   digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -121,6 +145,14 @@
   pruneopts = "UT"
   revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
   version = "v0.16.0"
+
+[[projects]]
+  digest = "1:3a26588bc48b96825977c1b3df964f8fd842cd6860cc26370588d3563433cf11"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d460ce9f8df2e77fb1ba55ca87fafed96c607494"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:0ade334594e69404d80d9d323445d2297ff8161637f9b2d347cc6973d2d6f05b"
@@ -172,6 +204,28 @@
   pruneopts = "UT"
   revision = "b5a281d3160aa11950a6182bd9a9dc2cb1e02d50"
   version = "v1.0.0"
+
+[[projects]]
+  digest = "1:1abf0577e1282b9a65849837b017c8eb68abf9ce3a2e76d365b430509bb5b743"
+  name = "github.com/honeycombio/beeline-go"
+  packages = [
+    ".",
+    "propagation",
+    "sample",
+    "timer",
+    "trace",
+  ]
+  pruneopts = "UT"
+  revision = "08f0ed449695b7dbb5f8c464c6373f5387cad956"
+  version = "v0.2.2"
+
+[[projects]]
+  digest = "1:a680d6a18dedc62896b28bd40fa93a1947fd6e999a4dfa6b5a99742fc07571b2"
+  name = "github.com/honeycombio/libhoney-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "741c87cf6e228e5c509705847b67a3245bc79b8b"
+  version = "v1.7.0"
 
 [[projects]]
   branch = "master"
@@ -313,14 +367,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:75cb7164c3c9e028922e69b10842159549ab96ffc4800ea189c4a6865dc3bc08"
+  digest = "1:fc06d26f7b6384b7cd00ba98d47690c1c690bd905d8e2936bb223da74b9733ca"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "90868a75fefd03942536221d7c0e2f84ec62a668"
+  revision = "b09afc3d579e346c4a7e4705953acaf6f9e551bd"
+
+[[projects]]
+  digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
+  name = "gopkg.in/alexcesaro/statsd.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7fea3f0d2fab1ad973e641e51dba45443a311a90"
+  version = "v2.0.0"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
@@ -354,6 +416,7 @@
     "github.com/davecgh/go-spew/spew",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
+    "github.com/honeycombio/beeline-go",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",

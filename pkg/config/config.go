@@ -8,10 +8,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
-
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
@@ -41,6 +40,9 @@ type Config struct {
 	LambdaConfig LambdaConfig `json:"lambda_config" yaml:"lambda_config"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
+
+	// Telemetry does telemetry
+	Telemetry Telemetry `yaml:"telemetry"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -79,6 +81,17 @@ type LambdaConfig struct {
 	FunctionName string `json:"function_name" yaml:"function_name"`
 	// bless lambda regions
 	Regions []Region `json:"regions,omitempty" yaml:"regions,omitempty"`
+}
+
+// Telemetry to track adoption, performance, errors
+type Telemetry struct {
+	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
+}
+
+// Honeycomb telemetry configuration
+type Honeycomb struct {
+	WriteKey string `yaml:"write_key,omitempty"`
+	Dataset  string `yaml:"dataset,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal

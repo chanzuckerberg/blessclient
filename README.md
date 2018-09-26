@@ -33,9 +33,9 @@ Some more information on the config can be found [here](pkg/config/config.go).
 `blessclient init` will ask you some questions in order to assemble some basic configuration.
 
 #### Import-config
-You can also use pre-generated config files.
+Alternatively, you can also use pre-generated config files.
 
-`blessclient import-config -url http://github.com/..../teamA_blessclient.yml`
+`blessclient import-config http://github.com/..../teamA_blessclient.yml`
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter) supports.
 
@@ -66,3 +66,6 @@ This ssh config does a couple of interesting things -
 
 - It transparently requests an ssh certificate if needed
 - It transparently does a ProxyJump through a bastion host (assuming 10.0.* is an ipblock for machines behind the bastion)
+
+## Telemetry
+There currently is some basic trace instrumentation using [honeycomb](https://www.honeycomb.io/). We use this internally to track usage, gather performance statistics, and error reporting. Telemetry is disabled without a honeycomb write key - which you must provide through the [config](pkg/config/config.go).

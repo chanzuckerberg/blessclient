@@ -52,6 +52,7 @@ func (ts *TestSuite) SetupTest() {
 	a := assert.New(t)
 	ts.ctx = context.Background()
 
+	ts.ctx = context.Background()
 	conf, pathsToRemove := testConfig(t)
 	ts.pathsToRemove = pathsToRemove
 	sess, server := cziAws.NewMockSession()
