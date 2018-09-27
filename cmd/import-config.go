@@ -97,7 +97,7 @@ var importConfigCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 		awsClient := cziAWS.New(sess).WithAllServices(nil)
-		err = setTracingSecret(ctx, conf, awsClient)
+		err = setTelemetrySecret(ctx, conf, awsClient)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ var importConfigCmd = &cobra.Command{
 	},
 }
 
-func setTracingSecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {
+func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {
 	// TODO: fail here or just ignore errors?
 	if conf.Telemetry.Honeycomb == nil {
 		return nil
