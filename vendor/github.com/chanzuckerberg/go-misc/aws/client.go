@@ -43,6 +43,7 @@ func (c *Client) WithSecretsManager(conf *aws.Config) *Client {
 	c.SecretsManager = NewSecretsManager(c.session, conf)
 	return c
 }
+
 // TODO secretsmanager mock
 
 // ------- S3 -----------
@@ -122,4 +123,3 @@ func (c *Client) WithEC2(conf *aws.Config) *Client {
 	c.EC2 = NewEC2(c.session, conf)
 	return c
 }
-

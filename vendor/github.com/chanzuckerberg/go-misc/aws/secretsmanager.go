@@ -33,4 +33,3 @@ func (s *SecretsManager) ReadStringLatestVersion(ctx context.Context, secretID s
 	}
 	return output.SecretString, nil
 }
-
