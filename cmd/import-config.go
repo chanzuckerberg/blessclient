@@ -106,6 +106,7 @@ var importConfigCmd = &cobra.Command{
 }
 
 func fetchTracingSecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) (*config.Config, error) {
+	// TODO: fail here or just ignore errors?
 	if conf.Telemetry.Honeycomb == nil {
 		return nil, nil
 	}
