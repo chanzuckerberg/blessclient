@@ -10,12 +10,13 @@ type Client struct {
 	session *session.Session
 
 	// services
-	EC2    *EC2
-	IAM    *IAM
-	KMS    *KMS
-	Lambda *Lambda
-	S3     *S3
-	STS    *STS
+	EC2            *EC2
+	IAM            *IAM
+	KMS            *KMS
+	Lambda         *Lambda
+	S3             *S3
+	STS            *STS
+	SecretsManager *SecretsManager
 }
 
 // New returns a new aws client
@@ -31,8 +32,19 @@ func (c *Client) WithAllServices(conf *aws.Config) *Client {
 		WithLambda(conf).
 		WithKMS(conf).
 		WithS3(conf).
-		WithEC2(conf)
+		WithEC2(conf).
+		WithSecretsManager(conf)
 }
+
+// ------- SecretsManager -----------
+
+// WithSecretsManager configures a secrets manager
+func (c *Client) WithSecretsManager(conf *aws.Config) *Client {
+	c.SecretsManager = NewSecretsManager(c.session, conf)
+	return c
+}
+
+// TODO secretsmanager mock
 
 // ------- S3 -----------
 

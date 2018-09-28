@@ -42,7 +42,7 @@ type Config struct {
 	SSHConfig *SSHConfig `json:"ssh_config,omitempty" yaml:"ssh_config,omitempty"`
 
 	// Telemetry does telemetry
-	Telemetry Telemetry `yaml:"telemetry"`
+	Telemetry Telemetry `yaml:"telemetry,omitempty"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -92,6 +92,8 @@ type Telemetry struct {
 type Honeycomb struct {
 	WriteKey string `yaml:"write_key,omitempty"`
 	Dataset  string `yaml:"dataset,omitempty"`
+	// SecretManagerARN is a secret that holds the honeycomb write key
+	SecretManagerARN string `yaml:"secret_manager_arn,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal

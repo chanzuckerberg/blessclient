@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
+	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	getter "github.com/hashicorp/go-getter"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -28,6 +32,7 @@ var importConfigCmd = &cobra.Command{
 	Long:          "This command fetches a config from a remote source and writes it to disk",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := context.Background()
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
 			return errs.ErrMissingConfig
@@ -74,14 +79,47 @@ var importConfigCmd = &cobra.Command{
 			}
 			return errors.Wrapf(err, "Error reading %s", conf.ClientConfig.SSHPrivateKey)
 		}
-
 		// Now try doing something about the ssh config
 		err = sshConfig(conf)
 		if err != nil {
 			return err
 		}
+
+		// fetch telemetry secrets
+		sess, err := session.NewSessionWithOptions(
+			session.Options{
+				SharedConfigState:       session.SharedConfigEnable,
+				AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+				Profile:                 conf.ClientConfig.AWSUserProfile,
+			},
+		)
+		if err != nil {
+			return errors.Wrap(err, "Could not create aws session")
+		}
+		awsClient := cziAWS.New(sess).WithAllServices(nil)
+		err = setTelemetrySecret(ctx, conf, awsClient)
+		if err != nil {
+			return err
+		}
 		return conf.Persist()
 	},
+}
+
+func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {
+	// TODO: fail here or just ignore errors?
+	if conf.Telemetry.Honeycomb == nil {
+		return nil
+	}
+	secretARN := conf.Telemetry.Honeycomb.SecretManagerARN
+	secret, err := awsClient.SecretsManager.ReadStringLatestVersion(ctx, secretARN)
+	if err != nil {
+		return err
+	}
+	if secret == nil {
+		return errors.New("No telemetry secret found")
+	}
+	conf.Telemetry.Honeycomb.WriteKey = *secret
+	return nil
 }
 
 func sshConfig(conf *config.Config) error {

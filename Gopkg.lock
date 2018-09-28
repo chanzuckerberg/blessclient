@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:2ce5c5bcaa65c88da542a0f1d4b4edad9abff492fb94e2389aaaab4804a0532c"
+  digest = "1:f1d3b0408ac51b5f878ac6a49d12d0a46884050b7b680ae5d75590090ec560da"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -48,12 +48,14 @@
     "service/lambda/lambdaiface",
     "service/s3",
     "service/s3/s3iface",
+    "service/secretsmanager",
+    "service/secretsmanager/secretsmanageriface",
     "service/sts",
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "85d9dfd77e6d694e83c3ac054141cb5e81eecc7f"
-  version = "v1.15.43"
+  revision = "a5158a897b80d434ed8704bb42fed46ff9bf8b91"
+  version = "v1.15.44"
 
 [[projects]]
   branch = "master"
@@ -81,11 +83,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3b18fe1db47a78bd806e0f9be62a3d049436186bfb89262665cdb17e95b4cf85"
+  digest = "1:89778389889b26adf5bf4b7f2504f9bc0b7bf517b843ac967bcbe4aea694c69f"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "a0f48314cc2baaab9015acf611fd56c404913947"
+  revision = "92a1d644d70db434c55463f9276ebc5756d01622"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -206,7 +208,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:1abf0577e1282b9a65849837b017c8eb68abf9ce3a2e76d365b430509bb5b743"
+  digest = "1:51c43964bc99ca75d7680d40da72b590b228720aca21cb5884e15bb29feb9528"
   name = "github.com/honeycombio/beeline-go"
   packages = [
     ".",
@@ -216,8 +218,8 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "08f0ed449695b7dbb5f8c464c6373f5387cad956"
-  version = "v0.2.2"
+  revision = "63a6c77ef26f9c9571dbf9f62eba02e1852a2b37"
+  version = "v0.2.3"
 
 [[projects]]
   digest = "1:a680d6a18dedc62896b28bd40fa93a1947fd6e999a4dfa6b5a99742fc07571b2"
@@ -371,18 +373,18 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
+  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
 
 [[projects]]
   branch = "master"
-  digest = "1:6fb1dd382722f93fcf7c52ff631f7b899d8c5d54314d88d42dd1f4e5ac404a30"
+  digest = "1:2c607ffa8a0a34a9acba4aba7b33d981b5a2150bfcec41b1f2ef1d791bcf6c14"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c2ed4eda69e7f62900806e4cd6e45f0429f859fa"
+  revision = "dad3d9fb7b6e83d0f9ac8f54670f6334c3a287b4"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -421,6 +423,7 @@
     "github.com/chanzuckerberg/go-kmsauth",
     "github.com/chanzuckerberg/go-misc/aws",
     "github.com/davecgh/go-spew/spew",
+    "github.com/google/uuid",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
     "github.com/honeycombio/beeline-go",
