@@ -150,7 +150,7 @@ func sshConfig(conf *config.Config) error {
 	openFileFlag := os.O_CREATE | os.O_WRONLY
 
 	options := []string{"append", "overwrite", "nothing"}
-	i := prompt.Choose("What would you like us to do with the generated ssh config", options)
+	i := prompt.Choose("What would you like us to do with the generated ~/.ssh/config", options)
 	switch options[i] {
 	case "append":
 		openFileFlag = openFileFlag | os.O_APPEND
