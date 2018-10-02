@@ -51,6 +51,7 @@ type txDefaultClient struct {
 }
 
 func (t *txDefaultClient) Start() error {
+	logger.Printf("default transmission starting")
 	t.muster.MaxBatchSize = t.maxBatchSize
 	t.muster.BatchTimeout = t.batchTimeout
 	t.muster.MaxConcurrentBatches = t.maxConcurrentBatches
@@ -66,10 +67,12 @@ func (t *txDefaultClient) Start() error {
 }
 
 func (t *txDefaultClient) Stop() error {
+	logger.Printf("default transmission stopping")
 	return t.muster.Stop()
 }
 
 func (t *txDefaultClient) Add(ev *Event) {
+	logger.Printf("adding event to transmission; queue length %d", len(t.muster.Work))
 	sd.Gauge("queue_length", len(t.muster.Work))
 	if t.blockOnSend {
 		t.muster.Work <- ev
@@ -84,14 +87,7 @@ func (t *txDefaultClient) Add(ev *Event) {
 				Err:      errors.New("queue overflow"),
 				Metadata: ev.Metadata,
 			}
-			if t.blockOnResponses {
-				responses <- r
-			} else {
-				select {
-				case responses <- r:
-				default:
-				}
-			}
+			writeToResponse(r, t.blockOnResponses)
 		}
 	}
 }
@@ -127,15 +123,9 @@ func (b *batchAgg) Add(ev interface{}) {
 }
 
 func (b *batchAgg) enqueueResponse(resp Response) {
-	if b.blockOnResponses {
-		responses <- resp
-	} else {
-		select {
-		case responses <- resp:
-		default: // drop on the floor (and maybe notify tests)
-			if b.testBlocker != nil {
-				b.testBlocker.Done()
-			}
+	if writeToResponse(resp, b.blockOnResponses) {
+		if b.testBlocker != nil {
+			b.testBlocker.Done()
 		}
 	}
 }
