@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
@@ -96,7 +97,7 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "Could not create aws session")
 		}
-		awsClient := cziAWS.New(sess).WithAllServices(nil)
+		awsClient := cziAWS.New(sess)
 		err = setTelemetrySecret(ctx, conf, awsClient)
 		if err != nil {
 			return err
@@ -110,6 +111,9 @@ func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *czi
 	if conf.Telemetry.Honeycomb == nil {
 		return nil
 	}
+	// Configure the region
+	awsClient.WithAllServices(&aws.Config{Region: conf.Telemetry.Honeycomb.SecretManagerRegion})
+
 	secretARN := conf.Telemetry.Honeycomb.SecretManagerARN
 	secret, err := awsClient.SecretsManager.ReadStringLatestVersion(ctx, secretARN)
 	if err != nil {

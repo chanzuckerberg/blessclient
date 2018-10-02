@@ -94,6 +94,8 @@ type Honeycomb struct {
 	Dataset  string `yaml:"dataset,omitempty"`
 	// SecretManagerARN is a secret that holds the honeycomb write key
 	SecretManagerARN string `yaml:"secret_manager_arn,omitempty"`
+	// SecretManagerRegion is the region for the SecretManagerARN
+	SecretManagerRegion *string `yaml:"secret_manager_region,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
