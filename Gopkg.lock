@@ -2,10 +2,11 @@
 
 
 [[projects]]
-  digest = "1:f1d3b0408ac51b5f878ac6a49d12d0a46884050b7b680ae5d75590090ec560da"
+  digest = "1:c5a930f9d85cdd6e3da3fc0bdceced1570df416cdd44b51ba65db952acea97b1"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
+    "aws/arn",
     "aws/awserr",
     "aws/awsutil",
     "aws/client",
@@ -54,8 +55,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "a5158a897b80d434ed8704bb42fed46ff9bf8b91"
-  version = "v1.15.44"
+  revision = "53e36ebb6b2c26d228ba9563d06caf306227f110"
+  version = "v1.15.46"
 
 [[projects]]
   branch = "master"
@@ -122,12 +123,12 @@
   revision = "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"
 
 [[projects]]
-  digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
+  digest = "1:b98e7574fc27ec166fb31195ec72c3bd0bffd73926d3612eb4c929bc5236f75b"
   name = "github.com/go-ini/ini"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
-  version = "v1.38.2"
+  revision = "7b294651033cd7d9e7f0d9ffa1b75ed1e198e737"
+  version = "v1.38.3"
 
 [[projects]]
   digest = "1:e1ff887e232b2d8f4f7c7db15a5fac7be418025afc4dda53c59c765dbb5aa6b4"
@@ -222,12 +223,12 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:a680d6a18dedc62896b28bd40fa93a1947fd6e999a4dfa6b5a99742fc07571b2"
+  digest = "1:59f836e44b86778fca355bf9e81ffc7a830d3aa51dffd1af201f5358aeb55f32"
   name = "github.com/honeycombio/libhoney-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "741c87cf6e228e5c509705847b67a3245bc79b8b"
-  version = "v1.7.0"
+  revision = "7316df5ca5dd8fd4102363da40431a41c266e886"
+  version = "v1.8.0"
 
 [[projects]]
   branch = "master"
@@ -373,18 +374,18 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "5295e8364332db77d75fce11f1d19c053919a9c9"
+  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
 
 [[projects]]
   branch = "master"
-  digest = "1:2c607ffa8a0a34a9acba4aba7b33d981b5a2150bfcec41b1f2ef1d791bcf6c14"
+  digest = "1:6f82ed211591ecb407897ca46ff6149d618223088aecad72675804f106033629"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "dad3d9fb7b6e83d0f9ac8f54670f6334c3a287b4"
+  revision = "e4b3c5e9061176387e7cea65e4dc5853801f3fb7"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -415,6 +416,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/arn",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/kms",

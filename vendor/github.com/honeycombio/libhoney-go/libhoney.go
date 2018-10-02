@@ -30,7 +30,7 @@ func init() {
 const (
 	defaultSampleRate = 1
 	defaultAPIHost    = "https://api.honeycomb.io/"
-	version           = "1.7.0"
+	version           = "1.8.0"
 
 	// DefaultMaxBatchSize how many events to collect in a batch
 	DefaultMaxBatchSize = 50
@@ -50,6 +50,8 @@ var (
 var (
 	tx     Output
 	txOnce sync.Once
+
+	logger Logger = &nullLogger{}
 
 	blockOnResponses = false
 	sd, _            = statsd.New(statsd.Mute(true)) // init working default, to be overridden
@@ -128,46 +130,53 @@ type Config struct {
 	// Honeycomb servers. Intended for use in tests in order to assert on
 	// expected behavior.
 	Transport http.RoundTripper
+
+	// Logger defaults to nil and the SDK is silent. If you supply a logger here
+	// (or set it to &DefaultLogger{}), some debugging output will be emitted.
+	// Intended for human consumption during development to understand what the
+	// SDK is doing and diagnose trouble emitting events.
+	Logger Logger
 }
 
 // VerifyWriteKey calls out to the Honeycomb API to validate the write key, so
 // we can exit immediately if desired instead of happily sending events that
 // are all rejected.
-func VerifyWriteKey(config Config) (string, error) {
+func VerifyWriteKey(config Config) (team string, err error) {
+	defer func() { logger.Printf("verify write key got back %s with err=%s", team, err) }()
 	if config.WriteKey == "" {
-		return "", errors.New("Write key is empty")
+		return team, errors.New("Write key is empty")
 	}
 	if config.APIHost == "" {
 		config.APIHost = defaultAPIHost
 	}
 	u, err := url.Parse(config.APIHost)
 	if err != nil {
-		return "", fmt.Errorf("Error parsing API URL: %s", err)
+		return team, fmt.Errorf("Error parsing API URL: %s", err)
 	}
 	u.Path = path.Join(u.Path, "1", "team_slug")
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
-		return "", err
+		return team, err
 	}
 	req.Header.Set("User-Agent", UserAgentAddition)
 	req.Header.Add("X-Honeycomb-Team", config.WriteKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return team, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusUnauthorized {
-		return "", errors.New("Write key provided is invalid")
+		return team, errors.New("Write key provided is invalid")
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf(`Abnormal non-200 response verifying Honeycomb write key: %d
+		return team, fmt.Errorf(`Abnormal non-200 response verifying Honeycomb write key: %d
 Response body: %s`, resp.StatusCode, string(body))
 	}
 	ret := map[string]string{}
 	if err := json.Unmarshal(body, &ret); err != nil {
-		return "", err
+		return team, err
 	}
 
 	return ret["team_slug"], nil
@@ -334,10 +343,18 @@ func Init(config Config) error {
 	if config.PendingWorkCapacity == 0 {
 		config.PendingWorkCapacity = DefaultPendingWorkCapacity
 	}
+	if config.Logger == nil {
+		config.Logger = &nullLogger{}
+	}
 
 	blockOnResponses = config.BlockOnResponse
 
+	logger = config.Logger
+	logger.Printf("initializing libhoney")
+	logger.Printf("libhoney configuration: %+v", config)
+
 	if config.Output == nil {
+		logger.Printf("Using default transmission client")
 		// reset the global transmission
 		tx = &txDefaultClient{
 			maxBatchSize:         config.MaxBatchSize,
@@ -352,6 +369,7 @@ func Init(config Config) error {
 		tx = config.Output
 	}
 	if err := tx.Start(); err != nil {
+		logger.Printf("transmission client failed to start: %s", err.Error())
 		return err
 	}
 
@@ -375,6 +393,7 @@ func Init(config Config) error {
 // Close waits for all in-flight messages to be sent. You should
 // call Close() before app termination.
 func Close() {
+	logger.Printf("closing libhoney")
 	if tx != nil {
 		tx.Stop()
 	}
@@ -389,22 +408,28 @@ func Close() {
 // Flush is not thread safe - use it only when you are sure that no other
 // parts of your program are calling Send
 func Flush() {
+	logger.Printf("flushing libhoney")
 	if tx != nil {
 		tx.Stop()
 		tx.Start()
 	}
 }
 
-// SendNow is a shortcut to create an event, add data, and send the event.
+// SendNow is deprecated and may be removed in a future major release.
+// Contrary to its name, SendNow does not block and send data
+// immediately, but only enqueues to be sent asynchronously.
+// It is equivalent to:
+//   ev := libhoney.NewEvent()
+//   ev.Add(data)
+//   ev.Send()
 func SendNow(data interface{}) error {
 	ev := NewEvent()
 	if err := ev.Add(data); err != nil {
 		return err
 	}
-	if err := ev.Send(); err != nil {
-		return err
-	}
-	return nil
+	err := ev.Send()
+	logger.Printf("SendNow enqueued event, err=%v", err)
+	return err
 }
 
 // Responses returns the channel from which the caller can read the responses
@@ -569,6 +594,7 @@ func (f *fieldHolder) Fields() map[string]interface{} {
 // in an Event override Config.
 func (e *Event) Send() error {
 	if shouldDrop(e.SampleRate) {
+		logger.Printf("dropping event due to sampling")
 		sd.Increment("sampled")
 		sendDroppedResponse(e, "event dropped due to sampling")
 		return nil
@@ -587,7 +613,8 @@ func (e *Event) Send() error {
 // required fields are specified in neither Config nor the Event, Send will
 // return an error.  Required fields are APIHost, WriteKey, and Dataset. Values
 // specified in an Event override Config.
-func (e *Event) SendPresampled() error {
+func (e *Event) SendPresampled() (err error) {
+	defer func() { logger.Printf("Send enqueued event with fields %+v; err=%v", e.Fields(), err) }()
 	e.lock.RLock()
 	defer e.lock.RUnlock()
 	if len(e.data) == 0 {
@@ -625,14 +652,7 @@ func sendDroppedResponse(e *Event, message string) {
 		Err:      errors.New(message),
 		Metadata: e.Metadata,
 	}
-	if blockOnResponses {
-		responses <- r
-	} else {
-		select {
-		case responses <- r:
-		default:
-		}
-	}
+	writeToResponse(r, blockOnResponses)
 }
 
 // returns true if the sample should be dropped
@@ -659,17 +679,20 @@ func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
 	return nil
 }
 
-// SendNow is a shortcut to create an event from this builder, add data, and
-// send the event.
+// SendNow is deprecated and may be removed in a future major release.
+// Contrary to its name, SendNow does not block and send data
+// immediately, but only enqueues to be sent asynchronously.
+// It is equivalent to:
+//   ev := builder.NewEvent()
+//   ev.Add(data)
+//   ev.Send()
 func (b *Builder) SendNow(data interface{}) error {
 	ev := b.NewEvent()
 	if err := ev.Add(data); err != nil {
 		return err
 	}
-	if err := ev.Send(); err != nil {
-		return err
-	}
-	return nil
+	err := ev.Send()
+	return err
 }
 
 // NewEvent creates a new Event prepopulated with fields, dynamic
