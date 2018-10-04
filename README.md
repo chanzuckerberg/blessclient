@@ -45,7 +45,7 @@ There are two built-in methods to facilitate the generation of blessclient confi
 #### Import-config
 Alternatively, you can also use pre-generated config files.
 
-`blessclient import-config http://github.com/..../teamA_blessclient.yml`
+`blessclient import-config git@github.com:/..../teamA/blessconfig.yml`
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter) supports.
 
