@@ -45,9 +45,13 @@ There are two built-in methods to facilitate the generation of blessclient confi
 #### Import-config
 Alternatively, you can also use pre-generated config files.
 
+A few options here:
 `blessclient import-config git@github.com:/..../teamA/blessconfig.yml`
+`blessclient import-config https://www.github.com/..../teamA/blessconfig.yml`
+`blessclient import-config /home/user/.../teamA/blessconfig.yml`
+`blessclient import-config s3::https://s3.amazonaws.com/bucket/teamA/blessconfig.yml`
 
-This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter) supports.
+This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter#supported-protocols-and-detectors) supports.
 
 ### .ssh/config
 
