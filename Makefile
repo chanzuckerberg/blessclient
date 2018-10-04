@@ -8,8 +8,8 @@ test:
 
 release:
 	./release
-	goreleaser release --rm-dist
 	git push
+	goreleaser release --rm-dist
 
 install:
 	go install  ${LDFLAGS} .
