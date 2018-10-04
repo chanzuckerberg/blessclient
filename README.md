@@ -26,9 +26,9 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 At a high level:
 1. [Install](#Install) blessclient
 1. If you don't have an SSH key, generate one with `ssh-keygen -t rsa -b 4096`
-1. [Import](#Import-config) or [generate](#Init) a blessclient config
+1. [Import](#import-config) or [generate](#init) a blessclient config
 1. Run `blessclient run` and make sure there are no errors
-1. Modify your [ssh config](#.ssh/config) to be bless compatible
+1. Modify your [ssh config](#sshconfig) to be bless compatible
 1. ssh, scp, rsync as you normally would
 
 ### Config
