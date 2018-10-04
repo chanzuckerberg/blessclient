@@ -24,7 +24,7 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 ## Usage
 
 At a high level:
-1. [Install](#Install) blessclient
+1. [Install](#install) blessclient
 1. If you don't have an SSH key, generate one with `ssh-keygen -t rsa -b 4096`
 1. [Import](#import-config) or [generate](#init) a blessclient config
 1. Run `blessclient run` and make sure there are no errors
