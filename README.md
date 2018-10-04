@@ -23,10 +23,20 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 
 ## Usage
 
+At a high level:
+1. [Install](#Install) blessclient
+1. If you don't have an SSH key, generate one with `ssh-keygen -t rsa -b 4096`
+1. [Import](#Import-config) or [generate](#Init) a blessclient config
+1. Run `blessclient run` and make sure there are no errors
+1. Modify your [ssh config](#.ssh/config) to be bless compatible
+1. ssh, scp, rsync as you normally would
+
 ### Config
 
 By default, `blessclient` looks for configs in `~/.blessclient/config.yml`. You can always override this `blessclient run -c /my/new/config.yml`
 Some more information on the config can be found [here](pkg/config/config.go).
+
+There are two built-in methods to facilitate the generation of blessclient configs:
 
 #### Init
 
@@ -38,11 +48,6 @@ Alternatively, you can also use pre-generated config files.
 `blessclient import-config http://github.com/..../teamA_blessclient.yml`
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter) supports.
-
-### Run
-
-Once you have configured blessclient, running is as simple as `blessclient run`. If needed, this command will fetch a new certificate. We do a fair amount of caching to avoid round-trips to the Bless lambda.
-
 
 ### .ssh/config
 
@@ -69,3 +74,8 @@ This ssh config does a couple of interesting things -
 
 ## Telemetry
 There currently is some basic trace instrumentation using [honeycomb](https://www.honeycomb.io/). We use this internally to track usage, gather performance statistics, and error reporting. Telemetry is disabled without a honeycomb write key - which you must provide through the [config](pkg/config/config.go).
+
+## Common Errors
+
+### Unsafe RSA public key
+Bless lambda is rejecting your key because because it is not cryptographically sound. You can generate a new key `ssh-keygen -t rsa -b 4096` and use that instead.
