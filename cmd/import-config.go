@@ -9,7 +9,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
@@ -87,19 +86,21 @@ var importConfigCmd = &cobra.Command{
 			return err
 		}
 
-		// fetch telemetry secrets
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
-				SharedConfigState:       session.SharedConfigEnable,
-				AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-				Profile:                 conf.ClientConfig.AWSUserProfile,
+				SharedConfigState: session.SharedConfigEnable,
+				Profile:           conf.ClientConfig.AWSUserProfile,
 			},
 		)
 		if err != nil {
 			return errors.Wrap(err, "Could not create aws session")
 		}
-		awsClient := cziAWS.New(sess)
+		awsClient := cziAWS.New(sess).WithAllServices(nil)
 		err = setTelemetrySecret(ctx, conf, awsClient)
+		if err != nil {
+			return err
+		}
+		err = conf.SetAWSUsernameIfMissing(ctx, awsClient)
 		if err != nil {
 			return err
 		}
@@ -172,6 +173,6 @@ func sshConfig(conf *config.Config) error {
 	if err != nil {
 		return errors.Wrapf(err, "Could not write ssh conf to %s", sshConfPath)
 	}
-	log.Infof("ssh config %s to %s", options[i], sshConfPath)
+	log.Infof("%s ssh config to %s", options[i], sshConfPath)
 	return nil
 }
