@@ -115,7 +115,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 	span.AddField(telemetry.FieldRegion, region.AWSRegion)
 
 	awsClient := getAWSClient(ctx, conf, sess, region)
-	username, err := getAWSUsername(ctx, awsClient)
+	username, err := conf.GetAWSUsername(ctx, awsClient)
 	if err != nil {
 		span.AddField(telemetry.FieldError, err.Error())
 		return err
@@ -147,25 +147,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		WithSTS(userConf).
 		WithLambda(roleConf)
 	return awsClient
-}
-
-// getAWSUsername gets the caller's aws username for kmsauth
-func getAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
-	ctx, span := beeline.StartSpan(ctx, "get_aws_username")
-	defer span.Send()
-	log.Debugf("Getting current aws iam user")
-	user, err := awsClient.IAM.GetCurrentUser(ctx)
-	if err != nil {
-		span.AddField(telemetry.FieldError, err.Error())
-		return "", err
-	}
-	if user == nil || user.UserName == nil {
-		err = errors.New("AWS returned nil user")
-		span.AddField(telemetry.FieldError, err.Error())
-		return "", err
-	}
-	beeline.AddFieldToTrace(ctx, telemetry.FieldUser, *user.UserName)
-	return *user.UserName, nil
 }
 
 // getCert requests a cert and persists it to disk
