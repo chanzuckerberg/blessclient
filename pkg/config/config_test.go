@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/blend/go-sdk/assert"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	yaml "gopkg.in/yaml.v2"

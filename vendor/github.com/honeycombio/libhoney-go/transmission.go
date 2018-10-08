@@ -58,8 +58,11 @@ func (t *txDefaultClient) Start() error {
 	t.muster.PendingWorkCapacity = t.pendingWorkCapacity
 	t.muster.BatchMaker = func() muster.Batch {
 		return &batchAgg{
-			batches:          map[string][]*Event{},
-			httpClient:       &http.Client{Transport: t.transport},
+			batches: map[string][]*Event{},
+			httpClient: &http.Client{
+				Transport: t.transport,
+				Timeout:   10 * time.Second,
+			},
 			blockOnResponses: t.blockOnResponses,
 		}
 	}
