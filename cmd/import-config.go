@@ -100,7 +100,7 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		err = conf.UpdateAWSUsername(ctx, awsClient)
+		err = conf.SetAWSUsernameIfMissing(ctx, awsClient)
 		if err != nil {
 			return err
 		}

@@ -100,11 +100,11 @@ func (ts *TestSuite) TestUpdateAWSUsername() {
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 
-	err = c.UpdateAWSUsername(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
 	a.Nil(err)
 	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
 
-	err = c.UpdateAWSUsername(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
 	a.Nil(err)
 	// Should read the username from the config
 	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)

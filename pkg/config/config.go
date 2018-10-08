@@ -214,8 +214,8 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 	return *user.UserName, nil
 }
 
-// UpdateAWSUsername queries AWS for the username and sets it in the config
-func (c *Config) UpdateAWSUsername(ctx context.Context, awsClient *cziAWS.Client) error {
+// SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing
+func (c *Config) SetAWSUsernameIfMissing(ctx context.Context, awsClient *cziAWS.Client) error {
 	username, err := c.GetAWSUsername(ctx, awsClient)
 	if err != nil {
 		return err
