@@ -120,6 +120,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 		span.AddField(telemetry.FieldError, err.Error())
 		return err
 	}
+	beeline.AddFieldToTrace(ctx, telemetry.FieldUser, username)
 	return getCert(ctx, conf, awsClient, username, region)
 }
 
