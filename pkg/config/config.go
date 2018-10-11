@@ -210,7 +210,6 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 		span.AddField(telemetry.FieldError, err.Error())
 		return "", err
 	}
-	beeline.AddFieldToTrace(ctx, telemetry.FieldUser, *user.UserName)
 	return *user.UserName, nil
 }
 
