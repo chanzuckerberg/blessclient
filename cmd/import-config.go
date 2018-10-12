@@ -145,7 +145,7 @@ func sshConfig(conf *config.Config) error {
 	err := backupFile(sshConfPath, fmt.Sprintf("%s.%d.bak", sshConfPath, time.Now().UTC().Unix()))
 	if err != nil {
 		// Unsure if we want to error out here
-		log.Warnf("Error backing up ~/.ssh/config: %s", err.Error())
+		log.Warnf("Error backing up %s: %s", sshConfPath, err.Error())
 	}
 
 	// Populate the inferred key
