@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -141,7 +142,7 @@ func sshConfig(conf *config.Config) error {
 
 	sshDir := path.Dir(conf.ClientConfig.SSHPrivateKey)
 	sshConfPath := path.Join(sshDir, "config")
-	err := backupFile(sshConfPath, fmt.Sprintf("%s.bak", sshConfPath))
+	err := backupFile(sshConfPath, fmt.Sprintf("%s.%d.bak", sshConfPath, time.Now().UTC().Unix()))
 	if err != nil {
 		// Unsure if we want to error out here
 		log.Warnf("Error backing up ~/.ssh/config: %s", err.Error())
