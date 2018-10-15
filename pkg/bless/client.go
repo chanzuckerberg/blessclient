@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
@@ -166,15 +167,20 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 		return err
 	}
 
+	// calculate how many seconds before cert expiry
+	// leave a buffer of 10s
+	certLifetimeSecs := time.Unix(int64(cert.ValidBefore), 0).
+		Sub(time.Now().Add(10*time.Second)) / time.Second
+
 	a := agent.NewClient(agentSock)
 	key := agent.AddedKey{
-		PrivateKey:  privKey,
-		Certificate: cert,
-		Comment:     "Added by blessclient",
+		PrivateKey:   privKey,
+		Certificate:  cert,
+		Comment:      "Added by blessclient",
+		LifetimeSecs: uint32(certLifetimeSecs),
 	}
 
-	err = a.Add(key)
-	return errors.Wrap(err, "Could not add key to SSH_AGENT_SOCK")
+	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
