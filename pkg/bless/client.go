@@ -142,6 +142,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 
 func (c *Client) updateSSHAgent(ctx context.Context) error {
 	if !c.conf.ClientConfig.UpdateSSHAgent {
+		log.Debug("Skipping adding to ssh-agent")
 		return nil
 	}
 	authSock := os.Getenv("SSH_AUTH_SOCK")
@@ -169,15 +170,16 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 
 	// calculate how many seconds before cert expiry
 	// leave a buffer of 10s
-	certLifetimeSecs := time.Unix(int64(cert.ValidBefore), 0).
-		Sub(time.Now().Add(10*time.Second)) / time.Second
+	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).
+		Sub(time.Now().Add(10*time.Second)) / time.Second)
+	log.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
 
 	a := agent.NewClient(agentSock)
 	key := agent.AddedKey{
 		PrivateKey:   privKey,
 		Certificate:  cert,
 		Comment:      "Added by blessclient",
-		LifetimeSecs: uint32(certLifetimeSecs),
+		LifetimeSecs: certLifetimeSecs,
 	}
 
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
