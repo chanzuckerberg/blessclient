@@ -362,7 +362,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a0319f9ca4ef4105cd909596be58789777f985d3ed96bdd01893bb54f639dda"
+  digest = "1:967a731dd27fec4dbd18c48b6ff7802be75ad37c35228c3f1d5d10049ed1c753"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -372,6 +372,7 @@
     "internal/subtle",
     "poly1305",
     "ssh",
+    "ssh/agent",
     "ssh/terminal",
   ]
   pruneopts = "UT"
@@ -440,6 +441,7 @@
     "github.com/stretchr/testify/mock",
     "github.com/stretchr/testify/suite",
     "golang.org/x/crypto/ssh",
+    "golang.org/x/crypto/ssh/agent",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"

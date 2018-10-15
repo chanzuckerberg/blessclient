@@ -1,6 +1,9 @@
 package ssh
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -58,6 +61,41 @@ func (s *SSH) ReadPublicKey() ([]byte, error) {
 	return bytes, errors.Wrap(err, "Could not read public key")
 }
 
+// ReadAndParsePublicKey reads and unmarshals a public key
+func (s *SSH) ReadAndParsePublicKey() (*rsa.PublicKey, error) {
+	bytes, err := s.ReadPublicKey()
+	if err != nil {
+		return nil, err
+	}
+	block, _ := pem.Decode(bytes)
+	if block == nil {
+		return nil, errors.New("Nil public key PEM block decoded")
+	}
+	key, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	return key, errors.Wrap(err, "Could not parse public key")
+}
+
+// ReadPrivateKey reads the private key
+func (s *SSH) ReadPrivateKey() ([]byte, error) {
+	privKey := path.Join(s.sshDirectory, s.keyName)
+	bytes, err := ioutil.ReadFile(privKey)
+	return bytes, errors.Wrapf(err, "Could not read private key %s", privKey)
+}
+
+// ReadAndParsePrivateKey reads and unmarshals a private key
+func (s *SSH) ReadAndParsePrivateKey() (*rsa.PrivateKey, error) {
+	bytes, err := s.ReadPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+	block, _ := pem.Decode(bytes)
+	if block == nil {
+		return nil, errors.New("Nil private key PEM block decoded")
+	}
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	return key, errors.Wrap(err, "Could not parse private key")
+}
+
 // ReadCert reads the ssh cert
 func (s *SSH) ReadCert() ([]byte, error) {
 	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
@@ -71,25 +109,35 @@ func (s *SSH) ReadCert() ([]byte, error) {
 	return bytes, nil
 }
 
-// IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
-	certBytes, err := s.ReadCert()
-	// err reading cert
+// ReadAndParseCert reads a certificate off disk and attempts to unmarshal it
+func (s *SSH) ReadAndParseCert() (*ssh.Certificate, error) {
+	bytes, err := s.ReadCert()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	// no cert
-	if certBytes == nil {
-		return false, nil
+	if bytes == nil {
+		return nil, nil
 	}
-
-	k, _, _, _, err := ssh.ParseAuthorizedKey(certBytes)
+	k, _, _, _, err := ssh.ParseAuthorizedKey(bytes)
 	if err != nil {
-		return false, errors.Wrap(err, "Could not parse cert")
+		return nil, errors.Wrap(err, "Could not parse cert")
 	}
 	cert, ok := k.(*ssh.Certificate)
 	if !ok {
-		return false, errors.New("Bytes do not correspond to an ssh certificate")
+		return nil, errors.New("Bytes do not correspond to an ssh certificate")
+	}
+	return cert, nil
+}
+
+// IsCertFresh determines if the cert is still fresh
+func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
+	cert, err := s.ReadAndParseCert()
+	if err != nil {
+		return false, err
+	}
+	if cert == nil {
+		return false, nil
 	}
 
 	now := time.Now()

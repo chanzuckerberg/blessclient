@@ -3,7 +3,10 @@ package bless
 import (
 	"context"
 	"encoding/json"
+	"net"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/errs"
@@ -15,6 +18,7 @@ import (
 	"github.com/honeycombio/beeline-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 // Client is a bless client
@@ -129,7 +133,59 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		span.AddField(telemetry.FieldError, err.Error())
 		return err
 	}
-	return s.WriteCert([]byte(*lambdaResponse.Certificate))
+	err = s.WriteCert([]byte(*lambdaResponse.Certificate))
+	if err != nil {
+		return errors.Wrap(err, "Error writing cert to disk")
+	}
+	err = c.updateSSHAgent(ctx)
+	if err != nil {
+		// Not a fatal error so just printing a warning
+		log.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
+	}
+	return nil
+}
+
+func (c *Client) updateSSHAgent(ctx context.Context) error {
+	if !c.conf.ClientConfig.UpdateSSHAgent {
+		log.Debug("Skipping adding to ssh-agent")
+		return nil
+	}
+	authSock := os.Getenv("SSH_AUTH_SOCK")
+	if authSock == "" {
+		return errors.New("SSH_AUTH_SOCK environment variable empty")
+	}
+	agentSock, err := net.Dial("unix", authSock)
+	if err != nil {
+		return errors.Wrap(err, "Could not dial SSH_AUTH_SOCK")
+	}
+
+	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	privKey, err := s.ReadAndParsePrivateKey()
+	if err != nil {
+		return err
+	}
+	cert, err := s.ReadAndParseCert()
+	if err != nil {
+		return err
+	}
+
+	// calculate how many seconds before cert expiry
+	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).Sub(time.Now()) / time.Second)
+	log.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
+
+	a := agent.NewClient(agentSock)
+	key := agent.AddedKey{
+		PrivateKey:   privKey,
+		Certificate:  cert,
+		Comment:      "Added by blessclient",
+		LifetimeSecs: certLifetimeSecs,
+	}
+
+	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {

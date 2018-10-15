@@ -68,7 +68,8 @@ type ClientConfig struct {
 	AWSUserName *string ` yaml:"aws_username,omitempty"`
 
 	// Path to your ssh private key
-	SSHPrivateKey string `yaml:"ssh_private_key"`
+	SSHPrivateKey  string `yaml:"ssh_private_key"`
+	UpdateSSHAgent bool   `yaml:"update_ssh_agent"`
 
 	// cert related
 	CertLifetime Duration `yaml:"cert_lifetime,inline"`
