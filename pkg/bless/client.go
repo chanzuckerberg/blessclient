@@ -137,7 +137,12 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error writing cert to disk")
 	}
-	return c.updateSSHAgent(ctx)
+	err = c.updateSSHAgent(ctx)
+	if err != nil {
+		// Not a fatal error so just printing a warning
+		log.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
+	}
+	return nil
 }
 
 func (c *Client) updateSSHAgent(ctx context.Context) error {
@@ -147,7 +152,7 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	}
 	authSock := os.Getenv("SSH_AUTH_SOCK")
 	if authSock == "" {
-		return errors.New("SSH_AUTH_SOCK environment variable empty, is your ssh-agent running?")
+		return errors.New("SSH_AUTH_SOCK environment variable empty")
 	}
 	agentSock, err := net.Dial("unix", authSock)
 	if err != nil {
