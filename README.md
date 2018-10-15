@@ -53,6 +53,15 @@ A few options here:
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter#supported-protocols-and-detectors) supports.
 
+### ssh-agent
+
+You can optionally instruct blessclient to update your ssh-agent with your certificate. To do so, add `update_ssh_agent: true` to your blessclient config.
+
+```yml
+client_config:
+  update_ssh_agent: true
+...
+```
 ### .ssh/config
 
 This is the nice part about blessclient - in general, you can write an ssh config to transparently use blessclient. scp, rsync, etc should all be compatible!
