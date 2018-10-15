@@ -169,9 +169,7 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	}
 
 	// calculate how many seconds before cert expiry
-	// leave a buffer of 10s
-	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).
-		Sub(time.Now().Add(10*time.Second)) / time.Second)
+	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).Sub(time.Now()) / time.Second)
 	log.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
 
 	a := agent.NewClient(agentSock)
