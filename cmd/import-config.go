@@ -3,9 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -138,6 +140,14 @@ func sshConfig(conf *config.Config) error {
 		return nil // nothing to do
 	}
 
+	sshDir := path.Dir(conf.ClientConfig.SSHPrivateKey)
+	sshConfPath := path.Join(sshDir, "config")
+	err := backupFile(sshConfPath, fmt.Sprintf("%s.%d.bak", sshConfPath, time.Now().UTC().Unix()))
+	if err != nil {
+		// Unsure if we want to error out here
+		log.Warnf("Error backing up %s: %s", sshConfPath, err.Error())
+	}
+
 	// Populate the inferred key
 	for i := range conf.SSHConfig.Bastions {
 		conf.SSHConfig.Bastions[i].IdentityFile = conf.ClientConfig.SSHPrivateKey
@@ -161,8 +171,6 @@ func sshConfig(conf *config.Config) error {
 		return nil // nothing to do
 	}
 
-	sshDir := path.Dir(conf.ClientConfig.SSHPrivateKey)
-	sshConfPath := path.Join(sshDir, "config")
 	f, err := os.OpenFile(sshConfPath, openFileFlag, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "Could not open ssh conf at %s", sshConfPath)
@@ -174,5 +182,34 @@ func sshConfig(conf *config.Config) error {
 		return errors.Wrapf(err, "Could not write ssh conf to %s", sshConfPath)
 	}
 	log.Infof("%s ssh config to %s", options[i], sshConfPath)
+	return nil
+}
+
+func backupFile(src string, dst string) error {
+	if !prompt.Confirm("Backup %s to %s (y/n)", src, dst) {
+		return nil
+	}
+
+	infile, err := os.Open(src)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Infof("%s does not exist, no need to back up!", src)
+			return nil
+		}
+		return errors.Wrapf(err, "Could not open %s", src)
+	}
+	defer infile.Close()
+
+	outfile, err := os.Create(dst)
+	if err != nil {
+		return errors.Wrapf(err, "Error opening destination %s", dst)
+	}
+	defer outfile.Close()
+
+	_, err = io.Copy(outfile, infile)
+	if err != nil {
+		return errors.Wrap(err, "Could not copy file")
+	}
+	log.Infof("%s backed up to %s", src, dst)
 	return nil
 }
