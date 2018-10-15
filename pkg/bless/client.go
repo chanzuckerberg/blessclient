@@ -3,6 +3,8 @@ package bless
 import (
 	"context"
 	"encoding/json"
+	"net"
+	"os"
 	"strings"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
@@ -15,6 +17,7 @@ import (
 	"github.com/honeycombio/beeline-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 // Client is a bless client
@@ -129,7 +132,49 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		span.AddField(telemetry.FieldError, err.Error())
 		return err
 	}
-	return s.WriteCert([]byte(*lambdaResponse.Certificate))
+	err = s.WriteCert([]byte(*lambdaResponse.Certificate))
+	if err != nil {
+		return errors.Wrap(err, "Error writing cert to disk")
+	}
+	return c.updateSSHAgent(ctx)
+}
+
+func (c *Client) updateSSHAgent(ctx context.Context) error {
+	if !c.conf.ClientConfig.UpdateSSHAgent {
+		return nil
+	}
+	authSock := os.Getenv("SSH_AUTH_SOCK")
+	if authSock == "" {
+		return errors.New("SSH_AUTH_SOCK environment variable empty, is your ssh-agent running?")
+	}
+	agentSock, err := net.Dial("unix", authSock)
+	if err != nil {
+		return errors.Wrap(err, "Could not dial SSH_AUTH_SOCK")
+	}
+
+	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	if err != nil {
+		return err
+	}
+
+	privKey, err := s.ReadAndParsePrivateKey()
+	if err != nil {
+		return err
+	}
+	cert, err := s.ReadAndParseCert()
+	if err != nil {
+		return err
+	}
+
+	a := agent.NewClient(agentSock)
+	key := agent.AddedKey{
+		PrivateKey:  privKey,
+		Certificate: cert,
+		Comment:     "Added by blessclient",
+	}
+
+	err = a.Add(key)
+	return errors.Wrap(err, "Could not add key to SSH_AGENT_SOCK")
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
