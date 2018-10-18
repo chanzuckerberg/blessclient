@@ -1,9 +1,6 @@
 package ssh
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -62,16 +59,12 @@ func (s *SSH) ReadPublicKey() ([]byte, error) {
 }
 
 // ReadAndParsePublicKey reads and unmarshals a public key
-func (s *SSH) ReadAndParsePublicKey() (*rsa.PublicKey, error) {
+func (s *SSH) ReadAndParsePublicKey() (ssh.PublicKey, error) {
 	bytes, err := s.ReadPublicKey()
 	if err != nil {
 		return nil, err
 	}
-	block, _ := pem.Decode(bytes)
-	if block == nil {
-		return nil, errors.New("Nil public key PEM block decoded")
-	}
-	key, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	key, err := ssh.ParsePublicKey(bytes)
 	return key, errors.Wrap(err, "Could not parse public key")
 }
 
@@ -83,16 +76,12 @@ func (s *SSH) ReadPrivateKey() ([]byte, error) {
 }
 
 // ReadAndParsePrivateKey reads and unmarshals a private key
-func (s *SSH) ReadAndParsePrivateKey() (*rsa.PrivateKey, error) {
+func (s *SSH) ReadAndParsePrivateKey() (interface{}, error) {
 	bytes, err := s.ReadPrivateKey()
 	if err != nil {
 		return nil, err
 	}
-	block, _ := pem.Decode(bytes)
-	if block == nil {
-		return nil, errors.New("Nil private key PEM block decoded")
-	}
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := ssh.ParseRawPrivateKey(bytes)
 	return key, errors.Wrap(err, "Could not parse private key")
 }
 
