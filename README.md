@@ -98,3 +98,8 @@ There are a couple of outstanding bugs related to openSSH client 7.8
 - https://bugs.launchpad.net/ubuntu/+source/openssh/+bug/1790963
 - https://bugzilla.redhat.com/show_bug.cgi?id=1623929
 - https://bugs.archlinux.org/task/59838
+
+You can check your version with
+```
+ssh -V
+```
