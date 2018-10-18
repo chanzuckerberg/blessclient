@@ -92,3 +92,14 @@ There currently is some basic trace instrumentation using [honeycomb](https://ww
 
 ### Unsafe RSA public key
 Bless lambda is rejecting your key because because it is not cryptographically sound. You can generate a new key `ssh-keygen -t rsa -b 4096` and use that instead.
+
+### SSH client 7.8 can't connect with certificates
+There are a couple of outstanding bugs related to openSSH client 7.8
+- https://bugs.launchpad.net/ubuntu/+source/openssh/+bug/1790963
+- https://bugzilla.redhat.com/show_bug.cgi?id=1623929
+- https://bugs.archlinux.org/task/59838
+
+You can check your version with
+```
+ssh -V
+```
