@@ -18,13 +18,14 @@ import (
 	getter "github.com/hashicorp/go-getter"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
-	"github.com/segmentio/go-prompt"
+	prompt "github.com/segmentio/go-prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
+	importConfigCmd.Flags().StringP("key-file", "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -42,14 +43,7 @@ var importConfigCmd = &cobra.Command{
 		}
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
-			return errors.Wrapf(err, "Could not exapnd %s", configFile)
-		}
-
-		// for importing a config
-		// we assume user has a standard setup
-		sshDirExpanded, err := homedir.Expand("~/.ssh")
-		if err != nil {
-			return errors.Wrapf(err, "Could not exapnd %s", "~/.ssh")
+			return errors.Wrapf(err, "Could not expand %s", configFile)
 		}
 
 		src := args[0]
@@ -73,8 +67,17 @@ var importConfigCmd = &cobra.Command{
 		}
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
+		sshPrivateKey, err := cmd.Flags().GetString("key-file")
+		if err != nil {
+			return errors.Wrapf(err, "Could not get ssh directory")
+		}
+
 		// Try to use the default id_rsa key
-		conf.ClientConfig.SSHPrivateKey = path.Join(sshDirExpanded, "id_rsa")
+		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKey)
+		if err != nil {
+			return errors.Wrapf(err, "Could not expand ssh private key %s", sshPrivateKey)
+		}
+		conf.ClientConfig.SSHPrivateKey = sshPrivateKeyExpanded
 		_, err = os.Stat(conf.ClientConfig.SSHPrivateKey)
 		if err != nil {
 			if os.IsNotExist(err) {
