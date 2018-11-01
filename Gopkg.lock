@@ -210,7 +210,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:51c43964bc99ca75d7680d40da72b590b228720aca21cb5884e15bb29feb9528"
+  digest = "1:a7652e1bf17bd428bf8f16ac5d727ffb78455ab4e9a41d6d6fff93608bc76cad"
   name = "github.com/honeycombio/beeline-go"
   packages = [
     ".",
@@ -220,8 +220,8 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "63a6c77ef26f9c9571dbf9f62eba02e1852a2b37"
-  version = "v0.2.3"
+  revision = "2151972c9367cf59b5788e6f4912a87c50da66bd"
+  version = "0.3.0"
 
 [[projects]]
   digest = "1:b2e8b019ee4b494d974974ea4eb7c4e7c6617b145fef7f6e1117f4a400dc87af"
