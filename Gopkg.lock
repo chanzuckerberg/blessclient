@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:60c3d092e83de3c398aa5dde61d2b74965ce291e2c1787ad706ba875580bbc0c"
+  digest = "1:af1ffaf61cb448661e623b0763e4f7e759c1e817b4777b3852f6ceee7321c6a8"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -54,6 +54,8 @@
     "service/secretsmanager/secretsmanageriface",
     "service/sts",
     "service/sts/stsiface",
+    "service/support",
+    "service/support/supportiface",
   ]
   pruneopts = "UT"
   revision = "dd947f47decb37a7c3bee72501bfc790701ab5ad"
@@ -85,11 +87,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89778389889b26adf5bf4b7f2504f9bc0b7bf517b843ac967bcbe4aea694c69f"
+  digest = "1:f1ae451117e6945be784f15d42b4133179ceaeedd858afcaae5425574ffa5793"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "c38efc265f76651db119dc92c280b25886474f42"
+  revision = "1eb6be3081136576a9e6868c4583ef654a5ad575"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
