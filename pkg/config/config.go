@@ -140,6 +140,9 @@ func DefaultConfig() (*Config, error) {
 // FromFile reads the config from file
 func FromFile(file string) (*Config, error) {
 	conf, err := DefaultConfig()
+	if err != nil {
+		return nil, err
+	}
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
