@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:85b647ddb15bb18f5d4bb49867f72be206d3bd42f701a3524b693ddf366ae9de"
+  digest = "1:f313137ad5301b5aa88072500568be06b9c09c1575239f22976aefed664c3a19"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,8 +59,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "870fa4307c5f57c14153c695df7b87af1acdcbf1"
-  version = "v1.15.66"
+  revision = "3264db248fe8d241f6949ed35e33b11c0aec3c93"
+  version = "v1.15.68"
 
 [[projects]]
   branch = "master"
@@ -205,26 +205,20 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:51c43964bc99ca75d7680d40da72b590b228720aca21cb5884e15bb29feb9528"
-  name = "github.com/honeycombio/beeline-go"
-  packages = [
-    ".",
-    "propagation",
-    "sample",
-    "timer",
-    "trace",
-  ]
-  pruneopts = "UT"
-  revision = "63a6c77ef26f9c9571dbf9f62eba02e1852a2b37"
-  version = "v0.2.3"
-
-[[projects]]
   digest = "1:b2e8b019ee4b494d974974ea4eb7c4e7c6617b145fef7f6e1117f4a400dc87af"
   name = "github.com/honeycombio/libhoney-go"
   packages = ["."]
   pruneopts = "UT"
   revision = "86ceb69a9b89f381631caac96f24df15b88bedad"
   version = "v1.8.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:c4fdcf63831c4b539a28a2ac9c300f5821b39922e8f1058aa77159a52f8a3488"
+  name = "github.com/honeycombio/opencensus-exporter"
+  packages = ["honeycomb"]
+  pruneopts = "UT"
+  revision = "9be2bb327b5afc52ace6be62899c2461a65fd173"
 
 [[projects]]
   branch = "master"
@@ -356,6 +350,21 @@
   version = "v0.5.5"
 
 [[projects]]
+  digest = "1:bc4aaa0db4ea6107fd151d7c56ab48cae34d65a0f409ede7484dfd3c6f793e7e"
+  name = "go.opencensus.io"
+  packages = [
+    ".",
+    "exemplar",
+    "internal",
+    "trace",
+    "trace/internal",
+    "trace/tracestate",
+  ]
+  pruneopts = "UT"
+  revision = "b7bf3cdb64150a8c8c53b769fdeb2ba581bd4d4b"
+  version = "v0.18.0"
+
+[[projects]]
   branch = "master"
   digest = "1:8270a467be0f9e27dd19247f028674f90f42a772d669699990f497a04d8fb5d2"
   name = "golang.org/x/crypto"
@@ -426,7 +435,7 @@
     "github.com/google/uuid",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
-    "github.com/honeycombio/beeline-go",
+    "github.com/honeycombio/opencensus-exporter/honeycomb",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",
@@ -435,6 +444,7 @@
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
     "github.com/stretchr/testify/suite",
+    "go.opencensus.io/trace",
     "golang.org/x/crypto/ssh",
     "golang.org/x/crypto/ssh/agent",
     "gopkg.in/yaml.v2",
