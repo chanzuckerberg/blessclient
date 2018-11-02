@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:aed9b2b3b97eec8c09b6a9a0d2e91d993fd8289f1a608f7a80c6b35974b3d20b"
+  digest = "1:f313137ad5301b5aa88072500568be06b9c09c1575239f22976aefed664c3a19"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,8 +59,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "97a47d14fbb0744966b484d5b089cdc9814b493b"
-  version = "v1.15.67"
+  revision = "3264db248fe8d241f6949ed35e33b11c0aec3c93"
+  version = "v1.15.68"
 
 [[projects]]
   branch = "master"
