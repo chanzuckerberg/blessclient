@@ -3,7 +3,6 @@ go:
 - '1.11'
 install:
   - npm install -g snyk
-  - go get golang.org/x/tools/cover
 jobs:
   include:
     - stage: check
