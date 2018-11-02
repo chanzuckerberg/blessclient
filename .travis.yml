@@ -6,7 +6,7 @@ install:
 jobs:
   include:
     - stage: check
-      script: make enforce-cover
+      script: make test
     - stage: check
       script:
         - snyk monitor --org=czi
