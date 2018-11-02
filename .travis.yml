@@ -6,8 +6,8 @@ install:
 jobs:
   include:
     - stage: check
-      script: make test
-      after_success:
+      script:
+        - make test
         - bash <(curl -s https://codecov.io/bash)
     - stage: check
       script:
