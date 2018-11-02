@@ -2,6 +2,13 @@ language: go
 go:
 - '1.11'
 install:
+  - npm install -g snyk
   - go get golang.org/x/tools/cover
-script:
-- make enforce-cover
+jobs:
+  include:
+    - stage: check
+      script: make enforce-cover
+    - stage: check
+      script:
+        - snyk monitor --org=czi
+        - snyk test
