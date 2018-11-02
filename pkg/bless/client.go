@@ -15,9 +15,9 @@ import (
 	"github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/honeycombio/beeline-go"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"go.opencensus.io/trace"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -74,8 +74,8 @@ type LambdaResponse struct {
 
 // RequestKMSAuthToken requests a new kmsauth token
 func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedToken, error) {
-	ctx, span := beeline.StartSpan(ctx, "request_kmsauth")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "request_kmsauth")
+	defer span.End()
 	token, err := c.tg.GetEncryptedToken(ctx)
 	return token, errors.Wrap(err, "Error requesting kmsauth token")
 }
@@ -83,8 +83,8 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 // RequestCert requests a cert
 func (c *Client) RequestCert(ctx context.Context) error {
 	log.Debugf("Requesting certificate")
-	ctx, span := beeline.StartSpan(ctx, "request_cert")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "request_cert")
+	defer span.End()
 
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
@@ -103,7 +103,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	span.AddField(telemetry.FieldFreshCert, isFresh)
+	span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
 	if isFresh {
 		log.Debug("Cert is already fresh - using it")
 		return nil
@@ -130,7 +130,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	log.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
 	lambdaResponse, err := c.getCert(ctx, payload)
 	if err != nil {
-		span.AddField(telemetry.FieldError, err.Error())
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 	err = s.WriteCert([]byte(*lambdaResponse.Certificate))
@@ -189,8 +189,8 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
-	ctx, span := beeline.StartSpan(ctx, "bless_lambda")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "bless_lambda")
+	defer span.End()
 
 	payloadB, err := json.Marshal(payload)
 	if err != nil {

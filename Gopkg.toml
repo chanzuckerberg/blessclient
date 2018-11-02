@@ -31,10 +31,6 @@
   version = "1.0.0"
 
 [[constraint]]
-  name = "github.com/honeycombio/beeline-go"
-  version = "0.2.3"
-
-[[constraint]]
   name = "github.com/mitchellh/go-homedir"
   version = "1.0.0"
 
