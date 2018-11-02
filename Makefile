@@ -4,20 +4,14 @@ DIRTY=$(shell if `git diff-index --quiet HEAD --`; then echo false; else echo tr
 LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha=${SHA} -X github.com/chanzuckerberg/blessclient/pkg/util.Version=${VERSION} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=${DIRTY}"
 
 test:
-	go test -cover ./...
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 release:
-	./release
+	./_bin/release
 	git push
 	goreleaser release --rm-dist
 
 install:
 	go install  ${LDFLAGS} .
-
-update-cover:
-	@go run _bin/coverage/main.go -update -exclude ./
-
-enforce-cover:
-	@go run _bin/coverage/main.go -enforce -exclude ./
 
 .PHONY: test release install

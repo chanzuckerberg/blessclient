@@ -3,12 +3,14 @@ go:
 - '1.11'
 install:
   - npm install -g snyk
-  - go get golang.org/x/tools/cover
 jobs:
   include:
     - stage: check
-      script: make enforce-cover
+      script:
+        - make test
+        - bash <(curl -s https://codecov.io/bash)
     - stage: check
       script:
         - snyk monitor --org=czi
         - snyk test
+
