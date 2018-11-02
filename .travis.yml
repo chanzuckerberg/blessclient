@@ -12,3 +12,6 @@ jobs:
       script:
         - snyk monitor --org=czi
         - snyk test
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
