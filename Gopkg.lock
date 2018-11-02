@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:60c3d092e83de3c398aa5dde61d2b74965ce291e2c1787ad706ba875580bbc0c"
+  digest = "1:85b647ddb15bb18f5d4bb49867f72be206d3bd42f701a3524b693ddf366ae9de"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -23,6 +23,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
@@ -54,10 +55,12 @@
     "service/secretsmanager/secretsmanageriface",
     "service/sts",
     "service/sts/stsiface",
+    "service/support",
+    "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "dd947f47decb37a7c3bee72501bfc790701ab5ad"
-  version = "v1.15.50"
+  revision = "870fa4307c5f57c14153c695df7b87af1acdcbf1"
+  version = "v1.15.66"
 
 [[projects]]
   branch = "master"
@@ -85,11 +88,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89778389889b26adf5bf4b7f2504f9bc0b7bf517b843ac967bcbe4aea694c69f"
+  digest = "1:f1ae451117e6945be784f15d42b4133179ceaeedd858afcaae5425574ffa5793"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "c38efc265f76651db119dc92c280b25886474f42"
+  revision = "1eb6be3081136576a9e6868c4583ef654a5ad575"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -122,14 +125,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"
-
-[[projects]]
-  digest = "1:b98e7574fc27ec166fb31195ec72c3bd0bffd73926d3612eb4c929bc5236f75b"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "7b294651033cd7d9e7f0d9ffa1b75ed1e198e737"
-  version = "v1.38.3"
 
 [[projects]]
   digest = "1:e1ff887e232b2d8f4f7c7db15a5fac7be418025afc4dda53c59c765dbb5aa6b4"
@@ -303,12 +298,12 @@
   revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
 
 [[projects]]
-  digest = "1:3f53e9e4dfbb664cd62940c9c4b65a2171c66acd0b7621a1a6b8e78513525a52"
+  digest = "1:69b1cc331fca23d702bd72f860c6a647afd0aa9fcbc1d0659b1365e26546dd70"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ad15b42461921f1fb3529b058c6786c6a45d5162"
-  version = "v1.1.1"
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -348,7 +343,7 @@
   version = "v1.2.2"
 
 [[projects]]
-  digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
+  digest = "1:db345c377984d0907323c09a9b17f11d995a59649fd38f909727df358b5f9020"
   name = "github.com/ulikunitz/xz"
   packages = [
     ".",
@@ -357,12 +352,12 @@
     "lzma",
   ]
   pruneopts = "UT"
-  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
-  version = "v0.5.4"
+  revision = "590df8077fbcb06ad62d7714da06c00e5dd2316d"
+  version = "v0.5.5"
 
 [[projects]]
   branch = "master"
-  digest = "1:967a731dd27fec4dbd18c48b6ff7802be75ad37c35228c3f1d5d10049ed1c753"
+  digest = "1:8270a467be0f9e27dd19247f028674f90f42a772d669699990f497a04d8fb5d2"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -376,18 +371,18 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06"
 
 [[projects]]
   branch = "master"
-  digest = "1:850d28ab022512e2cd3cf511a77f363c29e22689b4031f2050871f5de47ae4a0"
+  digest = "1:417d27a82efb8473554234a282be33d23b0d6adc121e636b55950f913ac071d6"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "9b800f95dbbc54abff0acf7ee32d88ba4e328c89"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -398,12 +393,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
+  digest = "1:e8f2c13faf20d6bd2edce6956422f11eb251e766e0884c95645fbb5fd7b6b831"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e69e9a28bb62b977fdc58d051f1bb477b7cbe486"
-  version = "v9.21.0"
+  revision = "3be31424000e9263ddc36f27b1de4c18f657f02e"
+  version = "v9.22.0"
 
 [[projects]]
   digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
