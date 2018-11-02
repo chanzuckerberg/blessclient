@@ -7,10 +7,10 @@ jobs:
   include:
     - stage: check
       script: make test
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
     - stage: check
       script:
         - snyk monitor --org=czi
         - snyk test
 
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
