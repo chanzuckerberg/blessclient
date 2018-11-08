@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -29,6 +28,10 @@ type SSH struct {
 
 // NewSSH returns a new SSH object
 func NewSSH(privateKey string) (*SSH, error) {
+	if privateKey == "" {
+		return nil, errors.New("Must provide a non-empty path to the ssh private key")
+	}
+
 	expandedPrivateKey, err := homedir.Expand(privateKey)
 	if err != nil {
 		return nil, errors.Errorf("Could not expand path %s", privateKey)
@@ -39,7 +42,7 @@ func NewSSH(privateKey string) (*SSH, error) {
 	_, err = os.Stat(expandedPrivateKey)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, errs.ErrSSHKeyNotFound
+			return nil, fmt.Errorf("Key %s not found", expandedPrivateKey)
 		}
 		return nil, errors.Wrapf(err, "Could not stat key at %s", expandedPrivateKey)
 	}
