@@ -72,12 +72,11 @@ var importConfigCmd = &cobra.Command{
 		}
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
+		// Try to use the specified key
 		sshPrivateKeyPath, err := determineSSHKeyPath(cmd, conf)
 		if err != nil {
 			return errors.Wrap(err, "Could not determine ssh key")
 		}
-
-		// Try to use the specified key
 		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKeyPath)
 		if err != nil {
 			return errors.Wrapf(err, "Could not expand ssh private key path %s", sshPrivateKeyPath)
@@ -90,6 +89,7 @@ var importConfigCmd = &cobra.Command{
 			}
 			return errors.Wrapf(err, "Error reading %s", conf.ClientConfig.SSHPrivateKey)
 		}
+
 		// Now try doing something about the ssh config
 		err = sshConfig(conf)
 		if err != nil {
