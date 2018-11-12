@@ -73,6 +73,17 @@ func (ts *TestSuite) TestEmptySSHPathError() {
 	a.Nil(s)
 }
 
+func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
+	t := ts.T()
+	a := assert.New(t)
+
+	s, err := czissh.NewSSH(ed25519PrivateKeyPath)
+	a.Nil(err)
+	a.NotNil(s)
+
+	s.CheckKeyTypeAndClientVersion()
+}
+
 func (ts *TestSuite) TestSSHVersion() {
 	t := ts.T()
 	a := assert.New(t)
