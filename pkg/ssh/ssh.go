@@ -169,12 +169,14 @@ func (s *SSH) CheckKeyTypeAndClientVersion() {
 		log.WithError(err).Warn("Private key not found")
 		return
 	}
+	version, err := GetSSHVersion()
+	if err != nil {
+		log.WithError(err).Warn("Could not deduce ssh client version")
+		return
+	}
+
 	switch key.(type) {
 	case *rsa.PrivateKey:
-		version, err := GetSSHVersion()
-		if err != nil {
-			log.WithError(err).Warn("Could not deduce ssh client version")
-		}
 		if strings.Contains(version, "OpenSSH_7.8") {
 			log.Warn(`
 Looks like you are attempting to use an RSA key with OpenSSH_7.8.
