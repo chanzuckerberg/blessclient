@@ -176,9 +176,10 @@ func (s *SSH) CheckKeyTypeAndClientVersion() {
 			log.WithError(err).Warn("Could not deduce ssh client version")
 		}
 		if strings.Contains(version, "OpenSSH_7.8") {
-			log.Warn(
-				`Looks like you are attempting to use an RSA key with OpenSSH_7.8.
-This might be an unsupported opperation.`)
+			log.Warn(`
+Looks like you are attempting to use an RSA key with OpenSSH_7.8.
+This might be an unsupported opperation.
+See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
 		}
 	}
 }
