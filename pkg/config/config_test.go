@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type TestSuite struct {
@@ -46,29 +45,6 @@ func (ts *TestSuite) SetupTest() {
 	_, ts.mockIAM = ts.awsClient.WithMockIAM()
 }
 
-func (ts *TestSuite) TestFromFile() {
-	t := ts.T()
-	a := assert.New(t)
-
-	tmpFile, err := ioutil.TempFile("", "tmpConfig")
-	a.Nil(err)
-	defer tmpFile.Close()
-	defer os.Remove(tmpFile.Name())
-
-	c1, err := config.DefaultConfig()
-	a.Nil(err)
-
-	bytes, err := yaml.Marshal(c1)
-	a.Nil(err)
-	_, err = tmpFile.Write(bytes)
-	a.Nil(err)
-
-	c2, err := config.FromFile(tmpFile.Name())
-	a.Nil(err)
-
-	a.Equal(c1, c2)
-}
-
 func (ts *TestSuite) TestPersist() {
 	t := ts.T()
 	a := assert.New(t)
@@ -83,10 +59,6 @@ func (ts *TestSuite) TestPersist() {
 	c1.ClientConfig.ConfigFile = tmpFile.Name()
 	err = c1.Persist()
 	a.Nil(err)
-
-	c2, err := config.FromFile(tmpFile.Name())
-	a.Nil(err)
-	a.Equal(c1, c2)
 }
 
 func (ts *TestSuite) TestUpdateAWSUsername() {

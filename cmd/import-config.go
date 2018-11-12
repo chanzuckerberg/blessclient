@@ -21,11 +21,15 @@ import (
 	prompt "github.com/segmentio/go-prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
+	viper.SetConfigType("yaml")
+
 	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	importConfigCmd.Flags().StringP("key-file", "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
+
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -60,11 +64,22 @@ var importConfigCmd = &cobra.Command{
 			return errors.Wrapf(err, "Could not fetch %s", src)
 		}
 
-		// Need to add some specific conf for user environment
-		conf, err := config.FromFile(f.Name())
+		err = viper.ReadConfig(f)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Could not read config")
 		}
+
+		// Need to add some specific conf for user environment
+		conf, err := config.DefaultConfig()
+		if err != nil {
+			return nil
+		}
+
+		err = viper.Unmarshal(conf)
+		if err != nil {
+			return errors.Wrap(err, "Could not unmarshal config")
+		}
+
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
 		sshPrivateKey, err := cmd.Flags().GetString("key-file")

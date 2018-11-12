@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -135,30 +134,6 @@ func DefaultConfig() (*Config, error) {
 		LambdaConfig: LambdaConfig{},
 	}
 	return c, nil
-}
-
-// FromFile reads the config from file
-func FromFile(file string) (*Config, error) {
-	conf, err := DefaultConfig()
-	if err != nil {
-		return nil, err
-	}
-	b, err := ioutil.ReadFile(file)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.Wrapf(
-				errs.ErrMissingConfig,
-				"Missing config at %s, please run blessclient init to generate one",
-				file)
-		}
-		return nil, errors.Wrapf(err, "Could not read config %s, you can generate one with bless init", file)
-	}
-
-	err = yaml.Unmarshal(b, conf)
-	if err != nil {
-		return nil, errors.WithMessage(err, "Invalid config, make sure it is valid yaml")
-	}
-	return conf, nil
 }
 
 // Persist persists a config to disk
