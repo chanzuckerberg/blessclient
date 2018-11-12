@@ -42,7 +42,7 @@ var importConfigCmd = &cobra.Command{
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		configFile, err := cmd.Flags().GetString("config")
+		configFile, err := cmd.Flags().GetString(flagConfig)
 		if err != nil {
 			return errs.ErrMissingConfig
 		}
