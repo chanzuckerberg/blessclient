@@ -1,9 +1,11 @@
 package ssh
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"strings"
@@ -59,16 +61,6 @@ func (s *SSH) ReadPublicKey() ([]byte, error) {
 	pubKey := path.Join(s.sshDirectory, fmt.Sprintf("%s.pub", s.keyName))
 	bytes, err := ioutil.ReadFile(pubKey)
 	return bytes, errors.Wrap(err, "Could not read public key")
-}
-
-// ReadAndParsePublicKey reads and unmarshals a public key
-func (s *SSH) ReadAndParsePublicKey() (ssh.PublicKey, error) {
-	bytes, err := s.ReadPublicKey()
-	if err != nil {
-		return nil, err
-	}
-	key, err := ssh.ParsePublicKey(bytes)
-	return key, errors.Wrap(err, "Could not parse public key")
 }
 
 // ReadPrivateKey reads the private key
@@ -153,4 +145,40 @@ func (s *SSH) WriteCert(b []byte) error {
 	log.Debugf("Writing cert to %s", certPath)
 	err := ioutil.WriteFile(certPath, b, 0644)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
+}
+
+// GetSSHVersion gets the version of the ssh client
+func GetSSHVersion() (string, error) {
+	cmd := exec.Command("ssh", "-V")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", errors.Wrap(err, "Error executing ssh -V")
+	}
+
+	log.WithField("version", string(output)).Debug("ssh client version")
+	return string(output), nil
+}
+
+// CheckKeyTypeAndClientVersion checks to see if the key type selected is
+// compatible with the ssh client version
+// Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
+func (s *SSH) CheckKeyTypeAndClientVersion() {
+	// We check the ssh client version and ssh key type
+	key, err := s.ReadAndParsePrivateKey()
+	if err != nil {
+		log.WithError(err).Warn("Private key not found")
+		return
+	}
+	switch key.(type) {
+	case *rsa.PrivateKey:
+		version, err := GetSSHVersion()
+		if err != nil {
+			log.WithError(err).Warn("Could not deduce ssh client version")
+		}
+		if strings.Contains(version, "OpenSSH_7.8") {
+			log.Warn(
+				`Looks like you are attempting to use an RSA key with OpenSSH_7.8.
+This might be an unsupported opperation.`)
+		}
+	}
 }

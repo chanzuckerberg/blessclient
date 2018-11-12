@@ -99,6 +99,9 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		return err
 	}
 
+	// Check to see if ssh client version is compatible with the key type
+	s.CheckKeyTypeAndClientVersion()
+
 	isFresh, err := s.IsCertFresh(c.conf)
 	if err != nil {
 		return err
