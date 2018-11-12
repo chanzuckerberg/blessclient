@@ -27,7 +27,7 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 At a high level:
 1. [Install](#install) blessclient
 1. If you don't have an SSH key, generate one with `ssh-keygen -t rsa -b 4096`
-1. [Import](#import-config) or [generate](#init) a blessclient config
+1. [Import](#import-config) or generate a blessclient config
 1. Run `blessclient run` and make sure there are no errors
 1. Modify your [ssh config](#sshconfig) to be bless compatible
 1. ssh, scp, rsync as you normally would
@@ -38,10 +38,6 @@ By default, `blessclient` looks for configs in `~/.blessclient/config.yml`. You 
 Some more information on the config can be found [here](pkg/config/config.go).
 
 There are two built-in methods to facilitate the generation of blessclient configs:
-
-#### Init
-
-`blessclient init` will ask you some questions in order to assemble some basic configuration.
 
 #### Import-config
 Alternatively, you can also use pre-generated config files.
