@@ -77,7 +77,7 @@ func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
 	t := ts.T()
 	a := assert.New(t)
 
-	s, err := czissh.NewSSH(ed25519PrivateKeyPath)
+	s, err := czissh.NewSSH(rsaPrivateKeyPath)
 	a.Nil(err)
 	a.NotNil(s)
 
