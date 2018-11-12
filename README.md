@@ -40,7 +40,7 @@ Some more information on the config can be found [here](pkg/config/config.go).
 There are two built-in methods to facilitate the generation of blessclient configs:
 
 #### Import-config
-Alternatively, you can also use pre-generated config files.
+You can also use pre-generated config files.
 
 A few options here:
 - `blessclient import-config git@github.com:/..../teamA/blessconfig.yml`
