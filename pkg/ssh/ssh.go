@@ -14,7 +14,7 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -27,6 +27,9 @@ type SSH struct {
 	keyName      string
 	sshDirectory string
 }
+
+// HACK: we keep this around to test
+var sshVersionCmd = exec.Command("ssh", "-V")
 
 // NewSSH returns a new SSH object
 func NewSSH(privateKey string) (*SSH, error) {
@@ -142,20 +145,19 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 // WriteCert writes a cert to disk
 func (s *SSH) WriteCert(b []byte) error {
 	certPath := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
-	log.Debugf("Writing cert to %s", certPath)
+	logrus.Debugf("Writing cert to %s", certPath)
 	err := ioutil.WriteFile(certPath, b, 0644)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
 }
 
 // GetSSHVersion gets the version of the ssh client
 func GetSSHVersion() (string, error) {
-	cmd := exec.Command("ssh", "-V")
-	output, err := cmd.CombinedOutput()
+	output, err := sshVersionCmd.CombinedOutput()
 	if err != nil {
 		return "", errors.Wrap(err, "Error executing ssh -V")
 	}
 
-	log.WithField("version", string(output)).Debug("ssh client version")
+	logrus.WithField("version", string(output)).Debug("ssh client version")
 	return string(output), nil
 }
 
@@ -166,19 +168,22 @@ func (s *SSH) CheckKeyTypeAndClientVersion() {
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()
 	if err != nil {
-		log.WithError(err).Warn("Private key not found")
+		logrus.WithError(err).Warn("Could not parse private key")
 		return
 	}
 	version, err := GetSSHVersion()
 	if err != nil {
-		log.WithError(err).Warn("Could not deduce ssh client version")
+		logrus.WithError(err).Warn("Could not deduce ssh client version")
 		return
 	}
 
-	switch key.(type) {
+	switch k := key.(type) {
 	case *rsa.PrivateKey:
+		if k == nil {
+			break
+		}
 		if strings.Contains(version, "OpenSSH_7.8") {
-			log.Warn(`
+			logrus.Warn(`
 Looks like you are attempting to use an RSA key with OpenSSH_7.8.
 This might be an unsupported opperation.
 See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
