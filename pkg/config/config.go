@@ -29,7 +29,7 @@ const (
 	// defaultAWSSessionCache is the default aws session cache
 	defaultAWSSessionCache = "session"
 	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
-	DefaultSSHPrivateKey = "~/.ssh/id_rsa"
+	DefaultSSHPrivateKey = "~/.ssh/id_ed25519"
 )
 
 // Config is a blessclient config
