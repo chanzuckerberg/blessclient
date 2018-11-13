@@ -148,10 +148,10 @@ func FromFile(file string) (*Config, error) {
 		if os.IsNotExist(err) {
 			return nil, errors.Wrapf(
 				errs.ErrMissingConfig,
-				"Missing config at %s, please run blessclient init to generate one",
+				"Missing config at %s, please create or import one with import-config",
 				file)
 		}
-		return nil, errors.Wrapf(err, "Could not read config %s, you can generate one with bless init", file)
+		return nil, errors.Wrapf(err, "Could not read config %s, you can import one with blessclient import-config", file)
 	}
 
 	err = yaml.Unmarshal(b, conf)
