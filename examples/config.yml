@@ -25,7 +25,7 @@ lambda_config:
   role_arn: arn:aws:iam::123456789123:role/blessclient
   # the name of the bless lambda function
   function_name: bless_lambda_function_name
-  # For multi-region availability or colocation.
+  # For multi-region availability or geographic colocation.
   # Regions will be attempted in the order specified.
   regions:
   - aws_region: us-west-2
