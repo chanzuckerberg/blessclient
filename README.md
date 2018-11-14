@@ -50,7 +50,7 @@ A few options here:
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter#supported-protocols-and-detectors) supports.
 
-You can see an example with dummy values [here](examples/config.yml). Download the example, modify the values, and `blessclient import-config <path>` it to get started.
+You can see an example config with dummy values [here](examples/config.yml). Download the example, modify the values, and `blessclient import-config <path>` it to get started.
 
 ### ssh-agent
 
