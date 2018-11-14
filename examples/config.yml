@@ -8,6 +8,7 @@ client_config:
   # The lifetime for your certificate
   cert_lifetime: 30m
   # A default ssh key. We prefer ed25519 keys but you can also use RSA keys.
+  # (see https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates)
   # You can generate an ed25519 key with ssh-keygen -t ed25519
   ssh_private_key: ~/.ssh/id_ed25519
   # Do you want blessclient to attempt to update your ssh agent
