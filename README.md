@@ -73,10 +73,10 @@ Match OriginalHost bastion.foo.com exec "blessclient run"
 
 Host 10.0.*
   ProxyJump bastion.foo.com
-  User czi-admin
+  User admin
 
 Host bastion.foo.com
-  User czi-admin
+  User admin
 ```
 
 This ssh config does a couple of interesting things -
