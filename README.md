@@ -50,6 +50,8 @@ A few options here:
 
 This command uses [go-getter](https://github.com/hashicorp/go-getter) to fetch a config and thus supports any source that [go-getter](https://github.com/hashicorp/go-getter#supported-protocols-and-detectors) supports.
 
+You can see an example config with dummy values [here](examples/config.yml). Download the example, modify the values, and `blessclient import-config <path>` it to get started.
+
 ### ssh-agent
 
 You can optionally instruct blessclient to update your ssh-agent with your certificate. To do so, add `update_ssh_agent: true` to your blessclient config.
@@ -71,10 +73,10 @@ Match OriginalHost bastion.foo.com exec "blessclient run"
 
 Host 10.0.*
   ProxyJump bastion.foo.com
-  User czi-admin
+  User admin
 
 Host bastion.foo.com
-  User czi-admin
+  User admin
 ```
 
 This ssh config does a couple of interesting things -

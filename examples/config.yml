@@ -1,0 +1,57 @@
+# An example blessclient config
+# importing it: `blessclient import-config <url|local_path>`
+# blessclient install instructions https://github.com/chanzuckerberg/blessclient#install
+version: 0 # blessclient config version
+client_config:
+  # The aws user (not role) profile to use. "" means "default"
+  aws_user_profile: ""
+  # The lifetime for your certificate
+  cert_lifetime: 30m
+  # A default ssh key. We prefer ed25519 keys but you can also use RSA keys.
+  # (see https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates)
+  # You can generate an ed25519 key with ssh-keygen -t ed25519
+  ssh_private_key: ~/.ssh/id_ed25519
+  # Do you want blessclient to attempt to update your ssh agent
+  update_ssh_agent: true
+  # Remote users that bless will mint into your certificate
+  remote_users:
+    - foo_user
+    - bar_user
+  bastion_ips:
+    - 0.0.0.0/0
+# configuration for the bless lambda
+lambda_config:
+  # the role authorized to invoke bless lambda
+  role_arn: arn:aws:iam::123456789123:role/blessclient
+  # the name of the bless lambda function
+  function_name: bless_lambda_function_name
+  # For multi-region availability or geographic colocation.
+  # Regions will be attempted in the order specified.
+  regions:
+  - aws_region: us-west-2
+    # The kmsauth key_id (not arn) of the key to use for authentication for this region
+    kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+  - aws_region: us-east-2
+    kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+# This will help you generate a ~/.ssh/config compatible with blessclient
+ssh_config:
+  # If you have a bastion and other servers behind it then
+  bastions:
+      # The address of the bastion
+    - pattern: bastion.foo.bar.com
+      # User you want to use to ssh into these machines
+      user: foo_user
+      # Patterns for servers behind this bastion
+      hosts:
+        - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
+        - pattern: "!bastion.foo.bar.com *.foo.bar.com" # Also anything *.foo.bar.com
+# If you with to enable telemetry, add this block, otherwise exclude
+telemetry:
+  # Honeycomb telemetry
+  honeycomb:
+    # A secret manager arn to fetch a honeycomb write key.
+    # Note that the user you specified in client_config.aws_user_profile
+    # must be able to read this secret
+    secret_manager_arn: arn:aws:secretsmanager:us-west-2:123456789123:secret:blessclient/blessclient-honeycomb
+    # Honeycomb dataset to write data to
+    dataset: blessclient
