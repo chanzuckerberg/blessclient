@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
@@ -46,7 +45,7 @@ var runCmd = &cobra.Command{
 		ctx := context.Background()
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
-			return errs.ErrMissingConfig
+			return errors.New("Missing config")
 		}
 		expandedConfigFile, err := homedir.Expand(configFile)
 		if err != nil {

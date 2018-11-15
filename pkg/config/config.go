@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -145,12 +144,6 @@ func FromFile(file string) (*Config, error) {
 	}
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.Wrapf(
-				errs.ErrMissingConfig,
-				"Missing config at %s, please create or import one with import-config",
-				file)
-		}
 		return nil, errors.Wrapf(err, "Could not read config %s, you can import one with blessclient import-config", file)
 	}
 
