@@ -16,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/stretchr/testify/assert"
@@ -242,7 +241,6 @@ func (ts *TestSuite) TestNoCertificateInResponse() {
 
 	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)
-	a.Equal(err, errs.ErrNoCertificateInResponse)
 }
 func TestBlessClientSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))

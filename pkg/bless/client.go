@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -124,7 +123,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		return err
 	}
 	if token == nil {
-		return errs.ErrMissingKMSAuthToken
+		return errors.New("Missing KMSAuth Token")
 	}
 	log.Debugf("With KMSAuthToken %s", token.String())
 
@@ -219,7 +218,7 @@ func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaRe
 	}
 
 	if lambdaReponse.Certificate == nil {
-		return nil, errs.ErrNoCertificateInResponse
+		return nil, errors.New("No certificate in response")
 	}
 	return lambdaReponse, nil
 }
