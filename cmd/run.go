@@ -133,7 +133,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		Region: aws.String(region.AWSRegion),
 	}
 
-	var lambdaConf *aws.Config
+	var lambdaConf := userConf
 	if conf.LambdaConfig.RoleARN != nil {
 		// for things meant to be run as an assumed role
 		lambdaConf = &aws.Config{
@@ -145,8 +145,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 				},
 			),
 		}
-	} else {
-		lambdaConf = userConf
 	}
 	awsClient := cziAWS.New(sess).
 		WithIAM(userConf).
