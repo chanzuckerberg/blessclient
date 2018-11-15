@@ -26,8 +26,7 @@ func (l *Lambda) Execute(ctx context.Context, functionName string, payload []byt
 	input.
 		SetPayload(payload).
 		SetFunctionName(functionName).
-		SetInvocationType(lambda.InvocationTypeRequestResponse).
-		SetLogType(lambda.LogTypeTail)
+		SetInvocationType(lambda.InvocationTypeRequestResponse)
 
 	output, err := l.Svc.InvokeWithContext(ctx, input)
 	if err != nil {

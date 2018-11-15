@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:0e7d3d5493c98a8a41c5c73ebc899ceaefedc254450a2ae910c31549e5112e27"
+  digest = "1:61b82372d4dcec1f0e7a9b1e21bbc0d7a7e24b7061d1f59a802eecca97d33d47"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,8 +59,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "cf00ea20983ce38df17ab0a0814463ab8838459f"
-  version = "v1.15.73"
+  revision = "5021928b560f2919fa37e159720a45ea13b18d8f"
+  version = "v1.15.76"
 
 [[projects]]
   branch = "master"
@@ -79,20 +79,20 @@
   version = "v3.5.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6105bbd7d3160cec835e80348bb2c1bc98fb6dc493767fb51c67789d01a0f696"
+  branch = "edu/lambda-log-option"
+  digest = "1:489cf832f64eb3a0e45966a63e86f15f6431926bb081b2d9aadb4264bb36fbff"
   name = "github.com/chanzuckerberg/go-kmsauth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e3137094b7051367282cc65d3987e6030535f66f"
+  revision = "fb026925fa43a4ddf3b4de513d41cd65f598fd79"
 
 [[projects]]
-  branch = "master"
-  digest = "1:f1ae451117e6945be784f15d42b4133179ceaeedd858afcaae5425574ffa5793"
+  branch = "edu/lambda-log-option"
+  digest = "1:5bb30e66ba4e9b976aa6463beaab37a90379d1c769e71c150b9e9c5bd3f71b18"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "c5f9c3a4e80fb125a97ce1a6247a9c792baf9575"
+  revision = "15cc522fb5820c34af148c7c6721616e55d5ded1"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -171,14 +171,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f3dabe4617e484e26e66484ad65e0a01babc54806a9e0fac1a10f726eed8c08b"
+  digest = "1:766789501ba86c47c5fe81d7d50f4fb432ed588e790dc46fa3bbab2675ca0a61"
   name = "github.com/hashicorp/go-getter"
   packages = [
     ".",
     "helper/url",
   ]
   pruneopts = "UT"
-  revision = "b6e1d7a3a7873d94fe3e42a0817345427ed17f1b"
+  revision = "7ee49f69de937ddc17eb72bc669c020b33c364d4"
 
 [[projects]]
   digest = "1:f668349b83f7d779567c880550534addeca7ebadfdcf44b0b9c39be61864b4b7"
@@ -383,7 +383,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
+  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
   branch = "master"

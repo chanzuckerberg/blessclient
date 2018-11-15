@@ -1,6 +1,6 @@
 [[constraint]]
-  branch = "master"
   name = "github.com/chanzuckerberg/go-misc"
+  branch = "edu/lambda-log-option"
 
 [[constraint]]
   name = "github.com/pkg/errors"
