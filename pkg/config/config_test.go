@@ -2,10 +2,12 @@ package config_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
@@ -108,6 +110,70 @@ func (ts *TestSuite) TestUpdateAWSUsername() {
 	a.Nil(err)
 	// Should read the username from the config
 	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
+}
+
+func (ts *TestSuite) TestUpdateAWSUsernameError() {
+	t := ts.T()
+	a := assert.New(t)
+	e := fmt.Errorf("SOME ERROR")
+	output := &iam.GetUserOutput{
+		User: &iam.User{UserName: aws.String("testo")},
+	}
+	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, e)
+	c, err := config.DefaultConfig()
+	a.Nil(err)
+	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	a.NotNil(err)
+	a.Contains(err.Error(), e.Error())
+}
+
+func (ts *TestSuite) TestUpdateAWSUsernameEmptyResponse() {
+	t := ts.T()
+	a := assert.New(t)
+	output := &iam.GetUserOutput{
+		User: &iam.User{UserName: nil},
+	}
+	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, nil)
+	c, err := config.DefaultConfig()
+	a.Nil(err)
+	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	a.NotNil(err)
+	a.Contains(err.Error(), "AWS returned nil user")
+
+	output.User = nil
+	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	a.NotNil(err)
+	a.Contains(err.Error(), "AWS returned nil user")
+}
+func TestDuration(t *testing.T) {
+	t.Parallel()
+	a := assert.New(t)
+
+	dur := config.Duration{Duration: time.Second}
+	a.Equal(time.Second, dur.AsDuration())
+}
+
+func TestFromFileMissing(t *testing.T) {
+	t.Parallel()
+	a := assert.New(t)
+	c, err := config.FromFile("notfoundnotfoundnotfound")
+	a.NotNil(err)
+	a.Contains(err.Error(), "Could not read config")
+	a.Nil(c)
+}
+
+func TestGetCacheDir(t *testing.T) {
+	t.Parallel()
+	a := assert.New(t)
+
+	c := &config.Config{
+		ClientConfig: config.ClientConfig{
+			ConfigFile: "/a/b/c.config",
+		},
+	}
+
+	cachePath := c.GetKMSAuthCachePath("test-region")
+	a.Equal("/a/b/cache/kmsauth/test-region.json", cachePath)
 }
 
 func TestConfigSuite(t *testing.T) {
