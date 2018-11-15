@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/support/supportiface"
 )
 
+// Support is a support interface
 type Support struct {
 	Svc supportiface.SupportAPI
 }

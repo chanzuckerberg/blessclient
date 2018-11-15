@@ -82,7 +82,7 @@ func (tg *TokenGenerator) getCachedToken() (*Token, error) {
 	}
 	cacheBytes, err := ioutil.ReadFile(*tg.TokenCacheFile)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Could not open token cache file %s", *tg.TokenCacheFile))
+		return nil, errors.New(fmt.Sprintf("Could not open token cache file %s", *tg.TokenCacheFile)) // nolint: golint
 	}
 
 	tokenCache := &TokenCache{}
