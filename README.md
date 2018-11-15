@@ -19,7 +19,7 @@ brew tap chanzuckerberg/tap
 brew install blessclient
 ```
 
-### Linux, Windows, etc...
+### Linux
 Binaries are available on the [releases](https://github.com/chanzuckerberg/blessclient/releases) page. Download one for your architecture, put it in your path and make it executable.
 
 ## Usage
