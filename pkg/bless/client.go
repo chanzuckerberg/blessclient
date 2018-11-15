@@ -198,15 +198,7 @@ func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaRe
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not serialize lambda payload")
 	}
-	var responseBytes []byte
-	if c.conf.LambdaConfig.FunctionVersion != nil {
-		responseBytes, err = c.Aws.Lambda.ExecuteWithQualifier(ctx, c.conf.LambdaConfig.FunctionName, *c.conf.LambdaConfig.FunctionVersion, payloadB)
-	} else {
-		responseBytes, err = c.Aws.Lambda.Execute(ctx, c.conf.LambdaConfig.FunctionName, payloadB)
-	}
-	if err != nil {
-		return nil, err
-	}
+	responseBytes, err = c.Aws.Lambda.ExecuteWithQualifier(ctx, c.conf.LambdaConfig.FunctionName, c.conf.LambdaConfig.FunctionVersion, payloadB)
 	log.Debugf("Raw lambda response %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
 	err = json.Unmarshal(responseBytes, lambdaReponse)
