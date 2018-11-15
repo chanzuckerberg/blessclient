@@ -132,7 +132,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		Region: aws.String(region.AWSRegion),
 	}
 
-	var lambdaConf := userConf
+	lambdaConf := userConf
 	if conf.LambdaConfig.RoleARN != nil {
 		// for things meant to be run as an assumed role
 		lambdaConf = &aws.Config{
