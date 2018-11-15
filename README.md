@@ -37,10 +37,9 @@ At a high level:
 By default, `blessclient` looks for configs in `~/.blessclient/config.yml`. You can always override this `blessclient run -c /my/new/config.yml`
 Some more information on the config can be found [here](pkg/config/config.go).
 
-There are two built-in methods to facilitate the generation of blessclient configs:
+There is a built-in method to facilitate the generation of blessclient configs:
 
 #### Import-config
-You can also use pre-generated config files.
 
 A few options here:
 - `blessclient import-config git@github.com:/..../teamA/blessconfig.yml`
