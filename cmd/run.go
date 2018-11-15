@@ -131,21 +131,25 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
 	}
-	// for things meant to be run as an assumed role
-	roleConf := &aws.Config{
-		Region: aws.String(region.AWSRegion),
-		Credentials: stscreds.NewCredentials(
-			sess,
-			conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-				p.TokenProvider = stscreds.StdinTokenProvider
-			},
-		),
+
+	var lambdaConf := userConf
+	if conf.LambdaConfig.RoleARN != nil {
+		// for things meant to be run as an assumed role
+		lambdaConf = &aws.Config{
+			Region: aws.String(region.AWSRegion),
+			Credentials: stscreds.NewCredentials(
+				sess,
+				*conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+					p.TokenProvider = stscreds.StdinTokenProvider
+				},
+			),
+		}
 	}
 	awsClient := cziAWS.New(sess).
 		WithIAM(userConf).
 		WithKMS(userConf).
 		WithSTS(userConf).
-		WithLambda(roleConf)
+		WithLambda(lambdaConf)
 	return awsClient
 }
 
