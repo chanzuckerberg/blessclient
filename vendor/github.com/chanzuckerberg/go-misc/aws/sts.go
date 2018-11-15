@@ -121,7 +121,7 @@ func (p *UserTokenProvider) toCache(creds *sts.Credentials) error {
 	p.m.Lock()
 	defer p.m.Unlock()
 	cacheDir := path.Dir(p.cacheFile)
-	err := os.MkdirAll(cacheDir, 0755)
+	err := os.MkdirAll(cacheDir, 0755) // #nosec
 	if err != nil {
 		return errors.Wrapf(err, "error creating cache dir %s", cacheDir)
 	}

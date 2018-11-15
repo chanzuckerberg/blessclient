@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
-  version = "1.15.68"
+  version = "1.15.76"
 
 [[constraint]]
   name = "github.com/blang/semver"
@@ -40,7 +40,7 @@
 
 [[constraint]]
   name = "github.com/segmentio/go-prompt"
-  branch = "master"
+  version = "1.2.0"
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
