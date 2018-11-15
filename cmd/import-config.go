@@ -23,9 +23,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	flagKeyFile = "key-file"
+	flagConfig  = "config"
+)
+
 func init() {
-	importConfigCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
-	importConfigCmd.Flags().StringP("key-file", "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
+	importConfigCmd.Flags().StringP(flagConfig, "c", config.DefaultConfigFile, "Use this to override the bless config file.")
+	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -37,7 +42,7 @@ var importConfigCmd = &cobra.Command{
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		configFile, err := cmd.Flags().GetString("config")
+		configFile, err := cmd.Flags().GetString(flagConfig)
 		if err != nil {
 			return errs.ErrMissingConfig
 		}
@@ -67,15 +72,14 @@ var importConfigCmd = &cobra.Command{
 		}
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
-		sshPrivateKey, err := cmd.Flags().GetString("key-file")
+		// Try to use the specified key
+		sshPrivateKeyPath, err := determineSSHKeyPath(cmd, conf)
 		if err != nil {
-			return errors.Wrapf(err, "Could not get ssh directory")
+			return errors.Wrap(err, "Could not determine ssh key")
 		}
-
-		// Try to use the default id_rsa key
-		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKey)
+		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKeyPath)
 		if err != nil {
-			return errors.Wrapf(err, "Could not expand ssh private key %s", sshPrivateKey)
+			return errors.Wrapf(err, "Could not expand ssh private key path %s", sshPrivateKeyPath)
 		}
 		conf.ClientConfig.SSHPrivateKey = sshPrivateKeyExpanded
 		_, err = os.Stat(conf.ClientConfig.SSHPrivateKey)
@@ -85,6 +89,7 @@ var importConfigCmd = &cobra.Command{
 			}
 			return errors.Wrapf(err, "Error reading %s", conf.ClientConfig.SSHPrivateKey)
 		}
+
 		// Now try doing something about the ssh config
 		err = sshConfig(conf)
 		if err != nil {
@@ -111,6 +116,20 @@ var importConfigCmd = &cobra.Command{
 		}
 		return conf.Persist()
 	},
+}
+
+// value precendence:
+// 1. cli override
+// 2. config file override
+// 3. default value
+func determineSSHKeyPath(cmd *cobra.Command, conf *config.Config) (string, error) {
+	if cmd.Flags().Changed(flagKeyFile) {
+		return cmd.Flags().GetString(flagKeyFile)
+	}
+	if conf != nil && conf.ClientConfig.SSHPrivateKey != "" {
+		return conf.ClientConfig.SSHPrivateKey, nil
+	}
+	return cmd.Flags().GetString(flagKeyFile)
 }
 
 func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {

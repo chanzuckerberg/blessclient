@@ -1,19 +1,20 @@
 package ssh
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"strings"
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -27,8 +28,15 @@ type SSH struct {
 	sshDirectory string
 }
 
+// HACK: we keep this around to test
+var sshVersionCmd = exec.Command("ssh", "-V")
+
 // NewSSH returns a new SSH object
 func NewSSH(privateKey string) (*SSH, error) {
+	if privateKey == "" {
+		return nil, errors.New("Must provide a non-empty path to the ssh private key")
+	}
+
 	expandedPrivateKey, err := homedir.Expand(privateKey)
 	if err != nil {
 		return nil, errors.Errorf("Could not expand path %s", privateKey)
@@ -39,7 +47,7 @@ func NewSSH(privateKey string) (*SSH, error) {
 	_, err = os.Stat(expandedPrivateKey)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, errs.ErrSSHKeyNotFound
+			return nil, fmt.Errorf("Key %s not found", expandedPrivateKey)
 		}
 		return nil, errors.Wrapf(err, "Could not stat key at %s", expandedPrivateKey)
 	}
@@ -56,16 +64,6 @@ func (s *SSH) ReadPublicKey() ([]byte, error) {
 	pubKey := path.Join(s.sshDirectory, fmt.Sprintf("%s.pub", s.keyName))
 	bytes, err := ioutil.ReadFile(pubKey)
 	return bytes, errors.Wrap(err, "Could not read public key")
-}
-
-// ReadAndParsePublicKey reads and unmarshals a public key
-func (s *SSH) ReadAndParsePublicKey() (ssh.PublicKey, error) {
-	bytes, err := s.ReadPublicKey()
-	if err != nil {
-		return nil, err
-	}
-	key, err := ssh.ParsePublicKey(bytes)
-	return key, errors.Wrap(err, "Could not parse public key")
 }
 
 // ReadPrivateKey reads the private key
@@ -147,7 +145,48 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 // WriteCert writes a cert to disk
 func (s *SSH) WriteCert(b []byte) error {
 	certPath := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
-	log.Debugf("Writing cert to %s", certPath)
+	logrus.Debugf("Writing cert to %s", certPath)
 	err := ioutil.WriteFile(certPath, b, 0644)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
+}
+
+// GetSSHVersion gets the version of the ssh client
+func GetSSHVersion() (string, error) {
+	output, err := sshVersionCmd.CombinedOutput()
+	if err != nil {
+		return "", errors.Wrap(err, "Error executing ssh -V")
+	}
+
+	logrus.WithField("version", string(output)).Debug("ssh client version")
+	return string(output), nil
+}
+
+// CheckKeyTypeAndClientVersion checks to see if the key type selected is
+// compatible with the ssh client version
+// Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
+func (s *SSH) CheckKeyTypeAndClientVersion() {
+	// We check the ssh client version and ssh key type
+	key, err := s.ReadAndParsePrivateKey()
+	if err != nil {
+		logrus.WithError(err).Warn("Could not parse private key")
+		return
+	}
+	version, err := GetSSHVersion()
+	if err != nil {
+		logrus.WithError(err).Warn("Could not deduce ssh client version")
+		return
+	}
+
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		if k == nil {
+			break
+		}
+		if strings.Contains(version, "OpenSSH_7.8") {
+			logrus.Warn(`
+Looks like you are attempting to use an RSA key with OpenSSH_7.8.
+This might be an unsupported opperation.
+See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
+		}
+	}
 }

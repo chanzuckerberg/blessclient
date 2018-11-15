@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
-  version = "1.15.44"
+  version = "1.15.68"
 
 [[constraint]]
   name = "github.com/blang/semver"
@@ -31,8 +31,8 @@
   version = "1.0.0"
 
 [[constraint]]
-  name = "github.com/honeycombio/beeline-go"
-  version = "0.2.3"
+  branch = "master"
+  name = "github.com/honeycombio/opencensus-exporter"
 
 [[constraint]]
   name = "github.com/mitchellh/go-homedir"
@@ -48,7 +48,7 @@
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
-  version = "1.1.0"
+  version = "1.2.0"
 
 [[constraint]]
   name = "github.com/spf13/cobra"
@@ -57,6 +57,10 @@
 [[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.2.2"
+
+[[constraint]]
+  name = "go.opencensus.io"
+  version = "0.18.0"
 
 [[constraint]]
   branch = "master"

@@ -16,11 +16,12 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
-	beeline "github.com/honeycombio/beeline-go"
+	"github.com/honeycombio/opencensus-exporter/honeycomb"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.opencensus.io/trace"
 )
 
 func init() {
@@ -59,28 +60,26 @@ var runCmd = &cobra.Command{
 		}
 		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
-		// By default we turn off honeycomb and discard all output
-		beelineConfig := beeline.Config{
-			Mute: true,
-		}
+		// tracing
+		traceSampling := float64(1)
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.ProbabilitySampler(traceSampling)})
 		if conf.Telemetry.Honeycomb != nil {
-			beelineConfig = beeline.Config{
-				WriteKey:    conf.Telemetry.Honeycomb.WriteKey,
-				Dataset:     conf.Telemetry.Honeycomb.Dataset,
-				ServiceName: "blessclient",
-				Mute:        false,
-			}
+			honeycombExporter := honeycomb.NewExporter(conf.Telemetry.Honeycomb.WriteKey, conf.Telemetry.Honeycomb.Dataset)
+			defer honeycombExporter.Close()
+			honeycombExporter.ServiceName = "blessclient"
+			honeycombExporter.SampleFraction = traceSampling
+			trace.RegisterExporter(honeycombExporter)
 		}
-		beeline.Init(beelineConfig)
-		defer beeline.Flush(ctx)
 
-		ctx, span := beeline.StartSpan(ctx, cmd.Use)
-		span.AddTraceField(telemetry.FieldID, id.String())
-		span.AddTraceField(telemetry.FieldBlessclientVersion, util.VersionCacheKey())
-		span.AddTraceField(telemetry.FieldBlessclientGitSha, util.GitSha)
-		span.AddTraceField(telemetry.FieldBlessclientRelease, util.Release)
-		span.AddTraceField(telemetry.FieldBlessclientDirty, util.Dirty)
-		defer span.Send()
+		ctx, span := trace.StartSpan(ctx, cmd.Use)
+		span.AddAttributes(
+			trace.StringAttribute(telemetry.FieldID, id.String()),
+			trace.StringAttribute(telemetry.FieldBlessclientVersion, util.VersionCacheKey()),
+			trace.StringAttribute(telemetry.FieldBlessclientGitSha, util.GitSha),
+			trace.StringAttribute(telemetry.FieldBlessclientRelease, util.Release),
+			trace.StringAttribute(telemetry.FieldBlessclientDirty, util.Dirty),
+		)
+		defer span.End()
 
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
@@ -90,7 +89,7 @@ var runCmd = &cobra.Command{
 			},
 		)
 		if err != nil {
-			span.AddField(telemetry.FieldError, err.Error())
+			span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
@@ -110,24 +109,25 @@ var runCmd = &cobra.Command{
 }
 
 func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) error {
-	ctx, span := beeline.StartSpan(ctx, "process_region")
-	defer span.Send()
-	span.AddField(telemetry.FieldRegion, region.AWSRegion)
+	ctx, span := trace.StartSpan(ctx, "process_region")
+	defer span.End()
+	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
 
 	awsClient := getAWSClient(ctx, conf, sess, region)
 	username, err := conf.GetAWSUsername(ctx, awsClient)
 	if err != nil {
-		span.AddField(telemetry.FieldError, err.Error())
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
-	beeline.AddFieldToTrace(ctx, telemetry.FieldUser, username)
+
+	span.AddAttributes(trace.StringAttribute(telemetry.FieldUser, username))
 	return getCert(ctx, conf, awsClient, username, region)
 }
 
 // getAWSClient configures an aws client
 func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) *cziAWS.Client {
-	ctx, span := beeline.StartSpan(ctx, "get_aws_client")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "get_aws_client")
+	defer span.End()
 	// for things meant to be run as a user
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
@@ -158,8 +158,8 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 
 // getCert requests a cert and persists it to disk
 func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region) error {
-	ctx, span := beeline.StartSpan(ctx, "get_cert")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "get_cert")
+	defer span.End()
 	kmsauthContext := &kmsauth.AuthContextV2{
 		From:     username,
 		To:       conf.LambdaConfig.FunctionName,
@@ -176,7 +176,7 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
 	err := client.RequestCert(ctx)
 	if err != nil {
-		span.AddField(telemetry.FieldError, err.Error())
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 	return nil

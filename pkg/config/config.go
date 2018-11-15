@@ -12,10 +12,10 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
-	beeline "github.com/honeycombio/beeline-go"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"go.opencensus.io/trace"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -29,7 +29,7 @@ const (
 	// defaultAWSSessionCache is the default aws session cache
 	defaultAWSSessionCache = "session"
 	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
-	DefaultSSHPrivateKey = "~/.ssh/id_rsa"
+	DefaultSSHPrivateKey = "~/.ssh/id_ed25519"
 )
 
 // Config is a blessclient config
@@ -140,15 +140,18 @@ func DefaultConfig() (*Config, error) {
 // FromFile reads the config from file
 func FromFile(file string) (*Config, error) {
 	conf, err := DefaultConfig()
+	if err != nil {
+		return nil, err
+	}
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errors.Wrapf(
 				errs.ErrMissingConfig,
-				"Missing config at %s, please run blessclient init to generate one",
+				"Missing config at %s, please create or import one with import-config",
 				file)
 		}
-		return nil, errors.Wrapf(err, "Could not read config %s, you can generate one with bless init", file)
+		return nil, errors.Wrapf(err, "Could not read config %s, you can import one with blessclient import-config", file)
 	}
 
 	err = yaml.Unmarshal(b, conf)
@@ -193,22 +196,22 @@ func (c *Config) GetKMSAuthCachePath(region string) string {
 
 // GetAWSUsername gets the caller's aws username for kmsauth
 func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
-	ctx, span := beeline.StartSpan(ctx, "get_aws_username")
-	defer span.Send()
+	ctx, span := trace.StartSpan(ctx, "get_aws_username")
+	defer span.End()
 	log.Debugf("Getting current aws iam user")
 	if c.ClientConfig.AWSUserName != nil {
 		log.Debugf("Using username %s from config", *c.ClientConfig.AWSUserName)
-		span.AddField(telemetry.FieldIsCached, true)
+		span.AddAttributes(trace.BoolAttribute(telemetry.FieldIsCached, true))
 		return *c.ClientConfig.AWSUserName, nil
 	}
 	user, err := awsClient.IAM.GetCurrentUser(ctx)
 	if err != nil {
-		span.AddField(telemetry.FieldError, err.Error())
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	if user == nil || user.UserName == nil {
 		err = errors.New("AWS returned nil user")
-		span.AddField(telemetry.FieldError, err.Error())
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	return *user.UserName, nil

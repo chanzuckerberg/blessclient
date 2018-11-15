@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:60c3d092e83de3c398aa5dde61d2b74965ce291e2c1787ad706ba875580bbc0c"
+  digest = "1:0e7d3d5493c98a8a41c5c73ebc899ceaefedc254450a2ae910c31549e5112e27"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -23,6 +23,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
@@ -54,10 +55,12 @@
     "service/secretsmanager/secretsmanageriface",
     "service/sts",
     "service/sts/stsiface",
+    "service/support",
+    "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "dd947f47decb37a7c3bee72501bfc790701ab5ad"
-  version = "v1.15.50"
+  revision = "cf00ea20983ce38df17ab0a0814463ab8838459f"
+  version = "v1.15.73"
 
 [[projects]]
   branch = "master"
@@ -85,11 +88,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:89778389889b26adf5bf4b7f2504f9bc0b7bf517b843ac967bcbe4aea694c69f"
+  digest = "1:f1ae451117e6945be784f15d42b4133179ceaeedd858afcaae5425574ffa5793"
   name = "github.com/chanzuckerberg/go-misc"
   packages = ["aws"]
   pruneopts = "UT"
-  revision = "c38efc265f76651db119dc92c280b25886474f42"
+  revision = "c5f9c3a4e80fb125a97ce1a6247a9c792baf9575"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -122,14 +125,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"
-
-[[projects]]
-  digest = "1:b98e7574fc27ec166fb31195ec72c3bd0bffd73926d3612eb4c929bc5236f75b"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "7b294651033cd7d9e7f0d9ffa1b75ed1e198e737"
-  version = "v1.38.3"
 
 [[projects]]
   digest = "1:e1ff887e232b2d8f4f7c7db15a5fac7be418025afc4dda53c59c765dbb5aa6b4"
@@ -176,14 +171,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:724d270a4cac0945dedb8de6357625a9d976cb640d381d3dab3144cec295db26"
+  digest = "1:f3dabe4617e484e26e66484ad65e0a01babc54806a9e0fac1a10f726eed8c08b"
   name = "github.com/hashicorp/go-getter"
   packages = [
     ".",
     "helper/url",
   ]
   pruneopts = "UT"
-  revision = "4bda8fa99001c61db3cad96b421d4c12a81f256d"
+  revision = "b6e1d7a3a7873d94fe3e42a0817345427ed17f1b"
 
 [[projects]]
   digest = "1:f668349b83f7d779567c880550534addeca7ebadfdcf44b0b9c39be61864b4b7"
@@ -210,26 +205,20 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:51c43964bc99ca75d7680d40da72b590b228720aca21cb5884e15bb29feb9528"
-  name = "github.com/honeycombio/beeline-go"
-  packages = [
-    ".",
-    "propagation",
-    "sample",
-    "timer",
-    "trace",
-  ]
-  pruneopts = "UT"
-  revision = "63a6c77ef26f9c9571dbf9f62eba02e1852a2b37"
-  version = "v0.2.3"
-
-[[projects]]
   digest = "1:b2e8b019ee4b494d974974ea4eb7c4e7c6617b145fef7f6e1117f4a400dc87af"
   name = "github.com/honeycombio/libhoney-go"
   packages = ["."]
   pruneopts = "UT"
   revision = "86ceb69a9b89f381631caac96f24df15b88bedad"
   version = "v1.8.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:c4fdcf63831c4b539a28a2ac9c300f5821b39922e8f1058aa77159a52f8a3488"
+  name = "github.com/honeycombio/opencensus-exporter"
+  packages = ["honeycomb"]
+  pruneopts = "UT"
+  revision = "9be2bb327b5afc52ace6be62899c2461a65fd173"
 
 [[projects]]
   branch = "master"
@@ -303,12 +292,15 @@
   revision = "f0d19b6901ade831d5a3204edc0d6a7d6457fbb2"
 
 [[projects]]
-  digest = "1:3f53e9e4dfbb664cd62940c9c4b65a2171c66acd0b7621a1a6b8e78513525a52"
+  digest = "1:05aaa4aafcc339843489e731d3b223efc537bbf2eddbb57ded586064baaee260"
   name = "github.com/sirupsen/logrus"
-  packages = ["."]
+  packages = [
+    ".",
+    "hooks/test",
+  ]
   pruneopts = "UT"
-  revision = "ad15b42461921f1fb3529b058c6786c6a45d5162"
-  version = "v1.1.1"
+  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -348,7 +340,7 @@
   version = "v1.2.2"
 
 [[projects]]
-  digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
+  digest = "1:db345c377984d0907323c09a9b17f11d995a59649fd38f909727df358b5f9020"
   name = "github.com/ulikunitz/xz"
   packages = [
     ".",
@@ -357,12 +349,27 @@
     "lzma",
   ]
   pruneopts = "UT"
-  revision = "0c6b41e72360850ca4f98dc341fd999726ea007f"
-  version = "v0.5.4"
+  revision = "590df8077fbcb06ad62d7714da06c00e5dd2316d"
+  version = "v0.5.5"
+
+[[projects]]
+  digest = "1:bc4aaa0db4ea6107fd151d7c56ab48cae34d65a0f409ede7484dfd3c6f793e7e"
+  name = "go.opencensus.io"
+  packages = [
+    ".",
+    "exemplar",
+    "internal",
+    "trace",
+    "trace/internal",
+    "trace/tracestate",
+  ]
+  pruneopts = "UT"
+  revision = "b7bf3cdb64150a8c8c53b769fdeb2ba581bd4d4b"
+  version = "v0.18.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:967a731dd27fec4dbd18c48b6ff7802be75ad37c35228c3f1d5d10049ed1c753"
+  digest = "1:29bbd24a92d33c22d209247c0d0e42caeb90ff17802d9c64faaa79299213cf0a"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -376,18 +383,18 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
 
 [[projects]]
   branch = "master"
-  digest = "1:850d28ab022512e2cd3cf511a77f363c29e22689b4031f2050871f5de47ae4a0"
+  digest = "1:6a875550c3b582f6c2d7e2ce44aba792511f00016d7c46b0a4fb26f730ef3058"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -398,12 +405,12 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
+  digest = "1:2c6a8f26c364b006a27b8090a9583fcc4b7865583fcf93f99a20fce339e87192"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e69e9a28bb62b977fdc58d051f1bb477b7cbe486"
-  version = "v9.21.0"
+  revision = "1fa3c8d6336562f0a3f95c73593ee2b57ff4da11"
+  version = "v9.23.0"
 
 [[projects]]
   digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
@@ -431,15 +438,17 @@
     "github.com/google/uuid",
     "github.com/hashicorp/go-getter",
     "github.com/hashicorp/go-multierror",
-    "github.com/honeycombio/beeline-go",
+    "github.com/honeycombio/opencensus-exporter/honeycomb",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",
     "github.com/sirupsen/logrus",
+    "github.com/sirupsen/logrus/hooks/test",
     "github.com/spf13/cobra",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
     "github.com/stretchr/testify/suite",
+    "go.opencensus.io/trace",
     "golang.org/x/crypto/ssh",
     "golang.org/x/crypto/ssh/agent",
     "gopkg.in/yaml.v2",
