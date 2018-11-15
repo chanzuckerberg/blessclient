@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"os/exec"
 	"testing"
 
@@ -85,7 +86,7 @@ func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
 	a.Nil(err)
 	a.NotNil(s)
 
-	s.CheckKeyTypeAndClientVersion()
+	s.CheckKeyTypeAndClientVersion(context.Background())
 }
 
 func (ts *TestSuite) TestSSHVersion() {
@@ -114,7 +115,7 @@ func (ts *TestSuite) TestCheckVersionErrorLogError() {
 	a.Nil(err)
 	a.NotNil(s)
 	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
-	s.CheckKeyTypeAndClientVersion()
+	s.CheckKeyTypeAndClientVersion(context.Background())
 }
 
 func TestSSHSuite(t *testing.T) {
