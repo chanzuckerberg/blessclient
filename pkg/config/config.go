@@ -84,7 +84,7 @@ type LambdaConfig struct {
 	RoleARN string `yaml:"role_arn"`
 	// Bless lambda function name
 	FunctionName string `yaml:"function_name"`
-	// Bless lambda function version
+	// Bless lambda function version (lambda alias or version qualifier)
 	FunctionVersion *string `yaml:"function_version,omitempty"`
 	// bless lambda regions
 	Regions []Region `yaml:"regions,omitempty"`
