@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"context"
 	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.opencensus.io/trace"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -29,7 +31,7 @@ type SSH struct {
 }
 
 // HACK: we keep this around to test
-var sshVersionCmd = exec.Command("ssh", "-V")
+var sshVersionCmd = exec.Command("ssh", "-V") // #nosec
 
 // NewSSH returns a new SSH object
 func NewSSH(privateKey string) (*SSH, error) {
@@ -62,14 +64,14 @@ func NewSSH(privateKey string) (*SSH, error) {
 // ReadPublicKey reads the SSH public key
 func (s *SSH) ReadPublicKey() ([]byte, error) {
 	pubKey := path.Join(s.sshDirectory, fmt.Sprintf("%s.pub", s.keyName))
-	bytes, err := ioutil.ReadFile(pubKey)
+	bytes, err := ioutil.ReadFile(pubKey) // #nosec
 	return bytes, errors.Wrap(err, "Could not read public key")
 }
 
 // ReadPrivateKey reads the private key
 func (s *SSH) ReadPrivateKey() ([]byte, error) {
 	privKey := path.Join(s.sshDirectory, s.keyName)
-	bytes, err := ioutil.ReadFile(privKey)
+	bytes, err := ioutil.ReadFile(privKey) // #nosec
 	return bytes, errors.Wrapf(err, "Could not read private key %s", privKey)
 }
 
@@ -86,7 +88,7 @@ func (s *SSH) ReadAndParsePrivateKey() (interface{}, error) {
 // ReadCert reads the ssh cert
 func (s *SSH) ReadCert() ([]byte, error) {
 	cert := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
-	bytes, err := ioutil.ReadFile(cert)
+	bytes, err := ioutil.ReadFile(cert) // #nosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil // no cert
@@ -164,7 +166,9 @@ func GetSSHVersion() (string, error) {
 // CheckKeyTypeAndClientVersion checks to see if the key type selected is
 // compatible with the ssh client version
 // Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
-func (s *SSH) CheckKeyTypeAndClientVersion() {
+func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "check_ssh_client")
+	defer span.End()
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()
 	if err != nil {
@@ -176,17 +180,21 @@ func (s *SSH) CheckKeyTypeAndClientVersion() {
 		logrus.WithError(err).Warn("Could not deduce ssh client version")
 		return
 	}
+	span.AddAttributes(trace.StringAttribute("ssh_client_version", version))
 
 	switch k := key.(type) {
 	case *rsa.PrivateKey:
 		if k == nil {
 			break
 		}
+		span.AddAttributes(trace.StringAttribute("ssh_key_type", "rsa"), trace.Int64Attribute("ssh_key_size", int64(k.Size())))
 		if strings.Contains(version, "OpenSSH_7.8") {
 			logrus.Warn(`
 Looks like you are attempting to use an RSA key with OpenSSH_7.8.
 This might be an unsupported opperation.
 See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
 		}
+	default:
+		span.AddAttributes(trace.StringAttribute("ssh_key_type", "other"))
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	kmsauth "github.com/chanzuckerberg/go-kmsauth"
@@ -46,7 +45,7 @@ var runCmd = &cobra.Command{
 		ctx := context.Background()
 		configFile, err := cmd.Flags().GetString("config")
 		if err != nil {
-			return errs.ErrMissingConfig
+			return errors.New("Missing config")
 		}
 		expandedConfigFile, err := homedir.Expand(configFile)
 		if err != nil {
@@ -163,16 +162,22 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 		To:       conf.LambdaConfig.FunctionName,
 		UserType: "user",
 	}
+	kmsAuthCachePath, err := conf.GetKMSAuthCachePath(region.AWSRegion)
+	if err != nil {
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
+		return err
+	}
+
 	tg := kmsauth.NewTokenGenerator(
 		region.KMSAuthKeyID,
 		kmsauth.TokenVersion2,
 		conf.ClientConfig.CertLifetime.AsDuration(),
-		aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
+		aws.String(kmsAuthCachePath),
 		kmsauthContext,
 		awsClient,
 	)
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
-	err := client.RequestCert(ctx)
+	err = client.RequestCert(ctx)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err

@@ -3,6 +3,7 @@ go:
 - '1.11'
 install:
   - npm install -g snyk
+  - make setup
 jobs:
   include:
     - stage: check
@@ -13,4 +14,7 @@ jobs:
       script:
         - snyk monitor --org=czi
         - snyk test
+    - stage: check
+      script:
+        - make lint
 

@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	getter "github.com/hashicorp/go-getter"
 	homedir "github.com/mitchellh/go-homedir"
@@ -44,7 +43,7 @@ var importConfigCmd = &cobra.Command{
 		ctx := context.Background()
 		configFile, err := cmd.Flags().GetString(flagConfig)
 		if err != nil {
-			return errs.ErrMissingConfig
+			return errors.New("Missing config")
 		}
 		configFileExpanded, err := homedir.Expand(configFile)
 		if err != nil {
@@ -193,7 +192,7 @@ func sshConfig(conf *config.Config) error {
 		return nil // nothing to do
 	}
 
-	f, err := os.OpenFile(sshConfPath, openFileFlag, 0644)
+	f, err := os.OpenFile(sshConfPath, openFileFlag, 0644) // #nosec
 	if err != nil {
 		return errors.Wrapf(err, "Could not open ssh conf at %s", sshConfPath)
 	}
@@ -212,7 +211,7 @@ func backupFile(src string, dst string) error {
 		return nil
 	}
 
-	infile, err := os.Open(src)
+	infile, err := os.Open(src) // #nosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Infof("%s does not exist, no need to back up!", src)

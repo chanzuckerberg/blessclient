@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/errs"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -143,14 +142,8 @@ func FromFile(file string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err := ioutil.ReadFile(file)
+	b, err := ioutil.ReadFile(file) // #nosec
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.Wrapf(
-				errs.ErrMissingConfig,
-				"Missing config at %s, please create or import one with import-config",
-				file)
-		}
 		return nil, errors.Wrapf(err, "Could not read config %s, you can import one with blessclient import-config", file)
 	}
 
@@ -163,9 +156,13 @@ func FromFile(file string) (*Config, error) {
 
 // Persist persists a config to disk
 func (c *Config) Persist() error {
-	err := os.MkdirAll(c.getBlessclientDir(), 0755)
+	blessclientDir, err := c.getBlessclientDir()
 	if err != nil {
-		return errors.Wrapf(err, "Could not create client config dir %s", c.getBlessclientDir())
+		return err
+	}
+	err = os.MkdirAll(blessclientDir, 0755) // #nosec
+	if err != nil {
+		return errors.Wrapf(err, "Could not create client config dir %s", blessclientDir)
 	}
 
 	b, err := yaml.Marshal(c)
@@ -181,17 +178,25 @@ func (c *Config) Persist() error {
 	return nil
 }
 
-func (c *Config) getBlessclientDir() string {
-	return path.Dir(c.ClientConfig.ConfigFile)
+func (c *Config) getBlessclientDir() (string, error) {
+	return homedir.Expand(path.Dir(c.ClientConfig.ConfigFile))
 }
-func (c *Config) getCacheDir() string {
-	return path.Join(c.getBlessclientDir(), defaultCacheDir, util.VersionCacheKey())
+func (c *Config) getCacheDir() (string, error) {
+	blessclientDir, err := c.getBlessclientDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(blessclientDir, defaultCacheDir, util.VersionCacheKey()), nil
 }
 
 // GetKMSAuthCachePath gets a path to kmsauth cache file
 // kmsauth is regional
-func (c *Config) GetKMSAuthCachePath(region string) string {
-	return path.Join(c.getCacheDir(), defaultKMSAuthCache, fmt.Sprintf("%s.json", region))
+func (c *Config) GetKMSAuthCachePath(region string) (string, error) {
+	cacheDir, err := c.getCacheDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(cacheDir, defaultKMSAuthCache, fmt.Sprintf("%s.json", region)), nil
 }
 
 // GetAWSUsername gets the caller's aws username for kmsauth
