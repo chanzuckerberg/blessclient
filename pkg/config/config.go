@@ -81,7 +81,7 @@ type ClientConfig struct {
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
 	// RoleARN used to assume and invoke bless lambda
-	RoleARN string `yaml:"role_arn"`
+	RoleARN *string `yaml:"role_arn,omitempty"`
 	// Bless lambda function name
 	FunctionName string `yaml:"function_name"`
 	// Bless lambda function version (lambda alias or version qualifier)

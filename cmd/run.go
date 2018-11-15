@@ -10,8 +10,8 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
-	kmsauth "github.com/chanzuckerberg/go-kmsauth"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
+	kmsauth "github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
@@ -131,21 +131,25 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
 	}
-	// for things meant to be run as an assumed role
-	roleConf := &aws.Config{
-		Region: aws.String(region.AWSRegion),
-		Credentials: stscreds.NewCredentials(
-			sess,
-			conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
-				p.TokenProvider = stscreds.StdinTokenProvider
-			},
-		),
+
+	lambdaConf := userConf
+	if conf.LambdaConfig.RoleARN != nil {
+		// for things meant to be run as an assumed role
+		lambdaConf = &aws.Config{
+			Region: aws.String(region.AWSRegion),
+			Credentials: stscreds.NewCredentials(
+				sess,
+				*conf.LambdaConfig.RoleARN, func(p *stscreds.AssumeRoleProvider) {
+					p.TokenProvider = stscreds.StdinTokenProvider
+				},
+			),
+		}
 	}
 	awsClient := cziAWS.New(sess).
 		WithIAM(userConf).
 		WithKMS(userConf).
 		WithSTS(userConf).
-		WithLambda(roleConf)
+		WithLambda(lambdaConf)
 	return awsClient
 }
 
