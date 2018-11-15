@@ -172,7 +172,8 @@ func TestGetCacheDir(t *testing.T) {
 		},
 	}
 
-	cachePath := c.GetKMSAuthCachePath("test-region")
+	cachePath, err := c.GetKMSAuthCachePath("test-region")
+	a.Nil(err)
 	a.Equal("/a/b/cache/kmsauth/test-region.json", cachePath)
 }
 
