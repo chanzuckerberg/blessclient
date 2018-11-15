@@ -18,6 +18,6 @@ install:
 	go install  ${LDFLAGS} .
 
 lint: ## run the fast go linters
-	gometalinter --vendor --fast --disable=ineffassign ./...
+	gometalinter --vendor --fast --deadline=5m --disable=ineffassign ./...
 
 .PHONY: test release install lint
