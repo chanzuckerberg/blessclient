@@ -4,7 +4,7 @@ DIRTY=$(shell if `git diff-index --quiet HEAD --`; then echo false; else echo tr
 LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha=${SHA} -X github.com/chanzuckerberg/blessclient/pkg/util.Version=${VERSION} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=${DIRTY}"
 
 setup:
-	go get -u golang.org/x/lint/golint
+	curl -L https://git.io/vp6lP | BINDIR=~/.local/bin sh # gometalinter
 
 test:
 	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
@@ -17,7 +17,7 @@ release:
 install:
 	go install  ${LDFLAGS} .
 
-lint: ## run the go linters
-	@golint -set_exit_status $(shell go list ./... | grep -v /vendor/)
+lint: ## run the fast go linters
+	gometalinter --vendor --fast --disable=ineffassign ./...
 
 .PHONY: test release install lint

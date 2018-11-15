@@ -193,7 +193,7 @@ func sshConfig(conf *config.Config) error {
 		return nil // nothing to do
 	}
 
-	f, err := os.OpenFile(sshConfPath, openFileFlag, 0644)
+	f, err := os.OpenFile(sshConfPath, openFileFlag, 0644) // #nosec
 	if err != nil {
 		return errors.Wrapf(err, "Could not open ssh conf at %s", sshConfPath)
 	}
@@ -212,7 +212,7 @@ func backupFile(src string, dst string) error {
 		return nil
 	}
 
-	infile, err := os.Open(src)
+	infile, err := os.Open(src) // #nosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Infof("%s does not exist, no need to back up!", src)

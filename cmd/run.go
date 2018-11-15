@@ -159,16 +159,22 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 		To:       conf.LambdaConfig.FunctionName,
 		UserType: "user",
 	}
+	kmsAuthCachePath, err := conf.GetKMSAuthCachePath(region.AWSRegion)
+	if err != nil {
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
+		return err
+	}
+
 	tg := kmsauth.NewTokenGenerator(
 		region.KMSAuthKeyID,
 		kmsauth.TokenVersion2,
 		conf.ClientConfig.CertLifetime.AsDuration(),
-		aws.String(conf.GetKMSAuthCachePath(region.AWSRegion)),
+		aws.String(kmsAuthCachePath),
 		kmsauthContext,
 		awsClient,
 	)
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
-	err := client.RequestCert(ctx)
+	err = client.RequestCert(ctx)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
