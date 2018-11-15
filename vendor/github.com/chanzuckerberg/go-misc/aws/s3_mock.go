@@ -41,7 +41,7 @@ func (s *MockS3Svc) GetBucketTaggingWithContext(ctx aws.Context, in *s3.GetBucke
 }
 
 // GetBucketAclWithContext gets
-func (s *MockS3Svc) GetBucketAclWithContext(ctx aws.Context, in *s3.GetBucketAclInput, ro ...request.Option) (*s3.GetBucketAclOutput, error) {
+func (s *MockS3Svc) GetBucketAclWithContext(ctx aws.Context, in *s3.GetBucketAclInput, ro ...request.Option) (*s3.GetBucketAclOutput, error) { // nolint: golint
 	args := s.Called(in)
 	out := args.Get(0).(*s3.GetBucketAclOutput)
 	return out, args.Error(1)
