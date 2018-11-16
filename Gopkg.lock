@@ -80,14 +80,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7b8c12c2c6d72bd1a7afb7496877648179e58a6bc989ca33fa2c5be4ebfdb0c6"
+  digest = "1:c84b313bef4359da9718422099f25ee65ae5f9274d366a62122f8e6744893d47"
   name = "github.com/chanzuckerberg/go-misc"
   packages = [
     "aws",
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "8ef3ea7b9c2f5773f079850e9731fb9e282f2187"
+  revision = "12be4983e892d674cc72ef6969145ab13d01498b"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
