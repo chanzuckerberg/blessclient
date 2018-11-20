@@ -23,7 +23,6 @@ import (
 )
 
 func init() {
-	runCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(runCmd)
 }
 
