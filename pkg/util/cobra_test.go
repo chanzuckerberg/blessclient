@@ -18,9 +18,7 @@ type TestSuite struct {
 func (ts *TestSuite) SetupTest() {
 	ts.cmd = &cobra.Command{}
 }
-
 func (ts *TestSuite) TearDownTest() {
-
 }
 
 func (ts *TestSuite) TestGetConfigPathMissing() {

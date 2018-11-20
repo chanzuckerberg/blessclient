@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-
 	"github.com/cenkalti/backoff"
 	"github.com/nightlyone/lockfile"
 	"github.com/pkg/errors"
@@ -42,12 +41,13 @@ func NewLock(configPath string) (*Lock, error) {
 		return nil, errors.Wrapf(err, "Could not calculate lockfile path from %s", configPath)
 	}
 
-	err = os.MkdirAll(path.Dir(lockPath), 0755)
+	// Create the lock directory if needed
+	err = os.MkdirAll(path.Dir(lockPath), 0755) // #nosec
 	if err != nil {
 		return nil, errors.Wrapf(err, "Could not create %s", path.Dir(lockPath))
 	}
 
-	logrus.WithField("lock_path", lockPath).Info("Creating pid lock")
+	logrus.WithField("lock_path", lockPath).Debug("Creating pid lock")
 	lock, err := lockfile.New(lockPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Could not get lock from path %s", lockPath)
@@ -59,21 +59,17 @@ func NewLock(configPath string) (*Lock, error) {
 	}, nil
 }
 
-// Lock will lock
-func (l *Lock) Lock() error {
-	lockFun := func() error {
-		err := l.lock.TryLock()
-		if err != nil {
-			logrus.WithError(err).Warn("Error acquiring lock")
-			return err
-		}
-		return nil
+// Lock will lock with retries.
+func (l *Lock) Lock(optBackoff ...backoff.BackOff) error {
+	b := l.backoff
+	if len(optBackoff) == 1 {
+		b = optBackoff[0]
 	}
-	return backoff.Retry(lockFun, l.backoff)
+
+	return errors.Wrap(backoff.Retry(l.lock.TryLock, b), "Error acquiring lock")
 }
 
 // Unlock will unlock the pid lockfile
 func (l *Lock) Unlock() error {
-	return nil
-	// return l.lock.Unlock()
+	return errors.Wrap(l.lock.Unlock(), "Error releasing lock")
 }
