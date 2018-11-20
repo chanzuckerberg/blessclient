@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:61b82372d4dcec1f0e7a9b1e21bbc0d7a7e24b7061d1f59a802eecca97d33d47"
+  digest = "1:bf5f7a84faa5a1199afe49bcba62cd4c1a82bff87d54994cf0ef613e7819417a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,8 +59,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "5021928b560f2919fa37e159720a45ea13b18d8f"
-  version = "v1.15.76"
+  revision = "f557567ff83b93530a0498d4bdb0eb616af70bb3"
+  version = "v1.15.79"
 
 [[projects]]
   branch = "master"
@@ -77,6 +77,14 @@
   pruneopts = "UT"
   revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
   version = "v3.5.1"
+
+[[projects]]
+  digest = "1:2209584c0f7c9b68c23374e659357ab546e1b70eec2761f03280f69a8fd23d77"
+  name = "github.com/cenkalti/backoff"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2ea60e5f094469f9e65adb9cd103795b73ae743e"
+  version = "v2.0.0"
 
 [[projects]]
   branch = "master"
@@ -166,14 +174,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:766789501ba86c47c5fe81d7d50f4fb432ed588e790dc46fa3bbab2675ca0a61"
+  digest = "1:ff91f36d00e6942621659bdceafa78b3708f1d15cf54d8f72c1ed5e0a73227f1"
   name = "github.com/hashicorp/go-getter"
   packages = [
     ".",
     "helper/url",
   ]
   pruneopts = "UT"
-  revision = "7ee49f69de937ddc17eb72bc669c020b33c364d4"
+  revision = "bd1edc22f8ea9d71b87fbdc0c07f0afb77ae39b6"
 
 [[projects]]
   digest = "1:f668349b83f7d779567c880550534addeca7ebadfdcf44b0b9c39be61864b4b7"
@@ -261,6 +269,14 @@
   pruneopts = "UT"
   revision = "6d0b8010fcc857872e42fc6c931227569016843c"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:6491080aa184f88c2bb8e2f6056e5e0e9a578b2d8666efbd6e97bc37a0c41e72"
+  name = "github.com/nightlyone/lockfile"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0ad87eef1443f64d3d8c50da647e2b1552851124"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
@@ -382,14 +398,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6a875550c3b582f6c2d7e2ce44aba792511f00016d7c46b0a4fb26f730ef3058"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  pruneopts = "UT"
+  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+
+[[projects]]
+  branch = "master"
+  digest = "1:48b757e61d662021f49a6a0afc67dacae27ee0c3a8f858d927126bcdf49222d3"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
+  revision = "ec83556a53fe16b65c452a104ea9d1e86a671852"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -427,6 +451,7 @@
     "github.com/aws/aws-sdk-go/service/kms",
     "github.com/aws/aws-sdk-go/service/lambda",
     "github.com/blang/semver",
+    "github.com/cenkalti/backoff",
     "github.com/chanzuckerberg/go-misc/aws",
     "github.com/chanzuckerberg/go-misc/kmsauth",
     "github.com/davecgh/go-spew/spew",
@@ -435,6 +460,7 @@
     "github.com/hashicorp/go-multierror",
     "github.com/honeycombio/opencensus-exporter/honeycomb",
     "github.com/mitchellh/go-homedir",
+    "github.com/nightlyone/lockfile",
     "github.com/pkg/errors",
     "github.com/segmentio/go-prompt",
     "github.com/sirupsen/logrus",
