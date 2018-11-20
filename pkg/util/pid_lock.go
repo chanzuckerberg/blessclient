@@ -1,6 +1,7 @@
 package util
 
 import (
+	"os"
 	"path"
 	"time"
 
@@ -39,6 +40,11 @@ func NewLock(configPath string) (*Lock, error) {
 	lockPath, err := lockPath(configPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Could not calculate lockfile path from %s", configPath)
+	}
+
+	err = os.MkdirAll(path.Dir(lockPath), 0755)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not create %s", path.Dir(lockPath))
 	}
 
 	logrus.WithField("lock_path", lockPath).Info("Creating pid lock")
