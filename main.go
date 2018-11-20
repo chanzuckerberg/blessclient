@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-
 	"github.com/chanzuckerberg/blessclient/cmd"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
