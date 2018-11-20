@@ -5,10 +5,10 @@ import (
 	"path"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/cenkalti/backoff"
 	"github.com/nightlyone/lockfile"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // lockPath returns the lock path given a path to the configPath
