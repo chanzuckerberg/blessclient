@@ -16,7 +16,6 @@ import (
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/honeycombio/opencensus-exporter/honeycomb"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,7 +23,6 @@ import (
 )
 
 func init() {
-	runCmd.Flags().StringP("config", "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.AddCommand(runCmd)
 }
 
@@ -38,18 +36,12 @@ var runCmd = &cobra.Command{
 			// Just for telemetry so ignore errors
 			log.Debugf("Failed to generate UUID with error %s", err.Error())
 		}
-
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
 		log.Debugf("RunID: %s", id.String())
-
 		ctx := context.Background()
-		configFile, err := cmd.Flags().GetString("config")
+		expandedConfigFile, err := util.GetConfigPath(cmd)
 		if err != nil {
-			return errors.New("Missing config")
-		}
-		expandedConfigFile, err := homedir.Expand(configFile)
-		if err != nil {
-			return errors.Wrapf(err, "Could not expand %s", configFile)
+			return err
 		}
 		log.Debugf("Reading config from %s", expandedConfigFile)
 

@@ -24,11 +24,9 @@ import (
 
 const (
 	flagKeyFile = "key-file"
-	flagConfig  = "config"
 )
 
 func init() {
-	importConfigCmd.Flags().StringP(flagConfig, "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
 	rootCmd.AddCommand(importConfigCmd)
 }
