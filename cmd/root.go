@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Use:   "blessclient",
 	Short: "",
 	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		return pidLock.Unlock()
+		return errors.Wrap(pidLock.Unlock(), "Error releasing lock")
 	},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		verbose, err := cmd.Flags().GetBool("verbose")
@@ -36,7 +36,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return pidLock.Lock()
+		return errors.Wrap(pidLock.Lock(), "Error acquiring lock")
 	},
 }
 
