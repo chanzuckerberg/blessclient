@@ -160,6 +160,7 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Could not dial SSH_AUTH_SOCK")
 	}
+	defer agentSock.Close()
 
 	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
