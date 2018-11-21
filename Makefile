@@ -7,7 +7,7 @@ setup:
 	curl -L https://git.io/vp6lP | BINDIR=~/.local/bin sh # gometalinter
 
 test:
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+	go test -coverprofile=coverage.txt -covermode=set ./...
 
 release:
 	./_bin/release

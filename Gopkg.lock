@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:bf5f7a84faa5a1199afe49bcba62cd4c1a82bff87d54994cf0ef613e7819417a"
+  digest = "1:3fde5f0c3d1a25b4224f6a60a11c0a4e90a4bc761b4e9c2e4ac04427da7e6542"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -59,8 +59,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "f557567ff83b93530a0498d4bdb0eb616af70bb3"
-  version = "v1.15.79"
+  revision = "57d992f58b7e092da10921050426717f7944bd42"
+  version = "v1.15.80"
 
 [[projects]]
   branch = "master"
@@ -88,14 +88,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c84b313bef4359da9718422099f25ee65ae5f9274d366a62122f8e6744893d47"
+  digest = "1:c97b179a3d4dd1d2aff2360ab936f673f732ab48c7ad207d1e69521faa082ebd"
   name = "github.com/chanzuckerberg/go-misc"
   packages = [
     "aws",
+    "github",
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "12be4983e892d674cc72ef6969145ab13d01498b"
+  revision = "80891fcdcf65ad524c84bdbb798bffed85ed1037"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -147,6 +148,22 @@
   pruneopts = "UT"
   revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
   version = "v0.16.0"
+
+[[projects]]
+  digest = "1:f4f203acd8b11b8747bdcd91696a01dbc95ccb9e2ca2db6abf81c3a4f5e950ce"
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  pruneopts = "UT"
+  revision = "f55b50f38167644bb7e4be03d9a2bde71d435239"
+  version = "v18.2.0"
+
+[[projects]]
+  digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  pruneopts = "UT"
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:236d7e1bdb50d8f68559af37dbcf9d142d56b431c9b2176d41e2a009b664cda8"
@@ -406,14 +423,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:48b757e61d662021f49a6a0afc67dacae27ee0c3a8f858d927126bcdf49222d3"
+  digest = "1:f343f077a5b0bc3a3788b3a04e24dd417e3e25b2acb529c413e212d2c42416ef"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ec83556a53fe16b65c452a104ea9d1e86a671852"
+  revision = "0cf1ed9e522b7dbb416f080a5c8003de9b702bf4"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -453,6 +470,7 @@
     "github.com/blang/semver",
     "github.com/cenkalti/backoff",
     "github.com/chanzuckerberg/go-misc/aws",
+    "github.com/chanzuckerberg/go-misc/github",
     "github.com/chanzuckerberg/go-misc/kmsauth",
     "github.com/davecgh/go-spew/spew",
     "github.com/google/uuid",

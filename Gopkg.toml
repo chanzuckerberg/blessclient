@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
-  version = "1.15.79"
+  version = "1.15.80"
 
 [[constraint]]
   name = "github.com/blang/semver"
