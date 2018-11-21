@@ -23,7 +23,6 @@ func checkLatestVersion(ctx context.Context, owner string, repo string) error {
 	if err != nil {
 		return err
 	}
-	logrus.Warn(currentVersion)
 	githubClient := github.NewClient(nil)
 	versions, err := githubClient.CheckLatestVersion(ctx, owner, repo, currentVersion)
 	if err != nil {
