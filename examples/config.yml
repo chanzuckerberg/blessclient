@@ -17,6 +17,9 @@ client_config:
   remote_users:
     - foo_user
     - bar_user
+  # These IPs and/or netmasks will be added as valid source IPs to every
+  # certificate issued. If your users proxy / agent-forward through a bastion host, then
+  # the internal IP of each should be listed here.
   bastion_ips:
     - 0.0.0.0/0
 # configuration for the bless lambda

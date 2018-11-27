@@ -1,5 +1,5 @@
 # blessclient
-[![codecov](https://codecov.io/gh/chanzuckerberg/blessclient/branch/master/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/blessclient)
+[![codecov](https://codecov.io/gh/chanzuckerberg/blessclient/branch/master/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/blessclient) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/chanzuckerberg/blessclient)
 
 **Please note**: If you believe you have found a security issue, _please responsibly disclose_ by contacting us at [security@chanzuckerberg.com](mailto:security@chanzuckerberg.com).
 
@@ -27,7 +27,7 @@ Binaries are available on the [releases](https://github.com/chanzuckerberg/bless
 At a high level:
 1. [Install](#install) blessclient
 1. If you don't have an SSH key, generate one with `ssh-keygen -t rsa -b 4096`
-1. [Import](#import-config) or generate a blessclient config
+1. [Import](#import-config) or generate a blessclient config. You can find an example config [here](examples/config.yml).
 1. Run `blessclient run` and make sure there are no errors
 1. Modify your [ssh config](#sshconfig) to be bless compatible
 1. ssh, scp, rsync as you normally would
