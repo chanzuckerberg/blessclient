@@ -1,5 +1,5 @@
 # blessclient
-[![codecov](https://codecov.io/gh/chanzuckerberg/blessclient/branch/master/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/blessclient)
+[![codecov](https://codecov.io/gh/chanzuckerberg/blessclient/branch/master/graph/badge.svg)](https://codecov.io/gh/chanzuckerberg/blessclient) [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/chanzuckerberg/blessclient)
 
 **Please note**: If you believe you have found a security issue, _please responsibly disclose_ by contacting us at [security@chanzuckerberg.com](mailto:security@chanzuckerberg.com).
 
