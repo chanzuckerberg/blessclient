@@ -232,6 +232,7 @@ func (c *Config) GetRemoteUsers(ctx context.Context, username string) []string {
 	log.Debugf("Getting remote usernames")
 	remoteUsers := c.ClientConfig.RemoteUsers
 	if len(remoteUsers) == 0 {
+		log.Debugf("Defaulting to setting provided username as remote username")
 		remoteUsers = []string{username}
 	}
 	return remoteUsers
