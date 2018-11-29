@@ -5,5 +5,6 @@ if [ -z "$SNYK_TOKEN" ]; then
   exit 0
 fi
 
+echo "SNYK_TOKEN set, running"
 snyk monitor --org=czi
 snyk test
