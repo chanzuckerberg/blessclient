@@ -12,8 +12,7 @@ jobs:
         - bash <(curl -s https://codecov.io/bash)
     - stage: check
       script:
-        - snyk monitor --org=czi
-        - snyk test
+        - bash _bin/snyk.sh
     - stage: check
       script:
         - make lint
