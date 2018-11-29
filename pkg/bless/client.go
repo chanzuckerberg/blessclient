@@ -87,7 +87,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
-		RemoteUsernames: strings.Join(c.conf.ClientConfig.RemoteUsers, ","),
+		RemoteUsernames: strings.Join(c.conf.GetRemoteUsers(ctx, c.username), ","),
 		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
 		BastionUserIP:   "0.0.0.0/0",
 		Command:         "*",
