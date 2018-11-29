@@ -224,6 +224,20 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 	return *user.UserName, nil
 }
 
+// GetRemoteUsers gets the list of remote usernames, defaulting to the provided username if
+// the list of configured remote users is empty.
+func (c *Config) GetRemoteUsers(ctx context.Context, username string) []string {
+	ctx, span := trace.StartSpan(ctx, "get_remote_users")
+	defer span.End()
+	log.Debugf("Getting remote usernames")
+	remoteUsers := c.ClientConfig.RemoteUsers
+	if len(remoteUsers) == 0 {
+		log.Debugf("Defaulting to setting provided username as remote username")
+		remoteUsers = []string{username}
+	}
+	return remoteUsers
+}
+
 // SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing
 func (c *Config) SetAWSUsernameIfMissing(ctx context.Context, awsClient *cziAWS.Client) error {
 	username, err := c.GetAWSUsername(ctx, awsClient)
