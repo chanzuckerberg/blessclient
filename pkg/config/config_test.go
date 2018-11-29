@@ -154,7 +154,7 @@ func (ts *TestSuite) TestGetRemoteUsers() {
 	a.Nil(err)
 
 	remoteUsers := c.GetRemoteUsers(ts.ctx, "testusername")
-	a.EqualSlice([]string{"testusername"}, remoteUsrs)
+	a.EqualSlice([]string{"testusername"}, remoteUsers)
 }
 
 func TestDuration(t *testing.T) {
