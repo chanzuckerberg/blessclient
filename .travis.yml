@@ -1,9 +1,11 @@
 language: go
 go:
 - '1.11'
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y libusb-dev libusb-1.0.0-dev
 install:
   - npm install -g snyk
-  - apt install -yq libusb-dev libusb-1.0.0-dev
   - make setup
 jobs:
   include:
