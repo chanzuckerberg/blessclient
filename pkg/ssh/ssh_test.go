@@ -2,11 +2,13 @@ package ssh
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strings"
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -27,7 +29,8 @@ const (
 	ed25519PrivateKeyPath = "testdata/id_ed25519"
 	// expired ed25519PrivateKeyPath
 	// ssh-keygen -s ca -I testID -n testUser -V +1s -z 1 expired_id_ed25519.pub
-	expiredED25519PrivateKeyPath = "testdata/expired_id_ed25519"
+	expiredED25519PrivateKeyPath   = "testdata/expired_id_ed25519"
+	encryptedED25519PrivateKeyPath = "testdata/encrypted_id_ed25519"
 )
 
 // HACK we're mocking out the ssh command
@@ -43,6 +46,9 @@ func (ts *TestSuite) TearDownTest() {
 
 // setup
 func (ts *TestSuite) SetupTest() {
+	fmt.Println("Setting up test")
+	resetSSHCommand()
+	ts.loggerHook.Reset()
 }
 
 // tests
@@ -130,6 +136,7 @@ func (ts *TestSuite) TestCheckVersionErrorLogError() {
 	a.NotNil(s)
 	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
 	defer resetSSHCommand()
+
 	s.CheckKeyTypeAndClientVersion(context.Background())
 }
 
@@ -144,8 +151,7 @@ func (ts *TestSuite) TestCheckVersionRSA78() {
 	s.CheckKeyTypeAndClientVersion(context.Background())
 
 	found := false
-	for _, entry := range ts.loggerHook.Entries {
-
+	for _, entry := range ts.loggerHook.AllEntries() {
 		found = found || strings.Contains(entry.Message, "RSA key with OpenSSH_7.8")
 	}
 	a.True(found)
@@ -228,6 +234,27 @@ func (ts *TestSuite) TestKeyNotFound() {
 	a.NotNil(err)
 	a.Nil(s)
 	a.Contains(err.Error(), "Key somekeythatdoesnotexist not found")
+}
+
+func TestEncryptedPrivateKey(t *testing.T) {
+	// TODO: why are these not working on the test suite?
+	resetSSHCommand()
+	hook := test.NewGlobal()
+	a := assert.New(t)
+	ctx := context.Background()
+
+	s, err := NewSSH(encryptedED25519PrivateKeyPath)
+	a.Nil(err)
+	a.NotNil(s)
+
+	s.CheckKeyTypeAndClientVersion(ctx)
+	found := false
+	fmt.Printf("Entires %d\n", len(logrus.StandardLogger().Hooks[logrus.DebugLevel]))
+	for _, entry := range hook.AllEntries() {
+		fmt.Println(entry.Message)
+		found = found || strings.Contains(entry.Message, "ssh: cannot decode encrypted private keys") && entry.Level == logrus.DebugLevel
+	}
+	a.True(found)
 }
 
 func TestSSHSuite(t *testing.T) {

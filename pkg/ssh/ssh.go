@@ -172,7 +172,15 @@ func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()
 	if err != nil {
+		if strings.Contains(err.Error(), "ssh: cannot decode encrypted private keys") {
+			logrus.WithError(err).Debug("Could not parse private key")
+			return
+		}
 		logrus.WithError(err).Warn("Could not parse private key")
+		return
+	}
+	if key == nil {
+		logrus.Debug("Nil private key")
 		return
 	}
 	version, err := GetSSHVersion()
