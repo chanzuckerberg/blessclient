@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -127,10 +126,10 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
 	}
-	if conf.ClientConfig.OktaProfile != nil {
+	if conf.OktaConfig != nil {
 		// override user credentials with Okta credentials
 		log.Debugf("Getting Okta AWS SSO credentials")
-		creds, err := getAWSOktaCredentials(*conf.ClientConfig.OktaProfile)
+		creds, err := getAWSOktaCredentials(conf)
 		if err != nil {
 			log.Errorf("Error in retrieving AWS Okta session credentials: %s.", err.Error())
 			return nil
@@ -167,48 +166,47 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	return awsClient
 }
 
-func getAWSOktaCredentials(profile string) (*credentials.Value, error) {
+func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 
-	config, err := awsokta.NewConfigFromEnv()
+	awsOktaConfig, err := awsokta.NewConfigFromEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	profiles, err := config.Parse()
+	profiles, err := awsOktaConfig.Parse()
 	if err != nil {
 		return nil, err
 	}
 
+	profile := conf.OktaConfig.Profile
 	if _, ok := profiles[profile]; !ok {
-		return nil, fmt.Errorf("Profile '%s' not found in your aws config", profile)
+		return nil, errors.Errorf("Profile '%s' not found in your aws config", profile)
 	}
 
-	sessionTTL := time.Hour
-	assumeRoleTTL := time.Hour
+	mfaDevice := "phone1"
+	if conf.OktaConfig.MFADevice != nil {
+		mfaDevice = *conf.OktaConfig.MFADevice
+	}
 	opts := awsokta.ProviderOptions{
-		// TODO: make MFADevice configurable by config
-		MFADevice:          "phone1",
+		MFADevice:          mfaDevice,
 		Profiles:           profiles,
-		SessionDuration:    sessionTTL,
-		AssumeRoleDuration: assumeRoleTTL,
+		SessionDuration:    time.Hour,
+		AssumeRoleDuration: time.Hour,
 	}
 
 	kr, err := awsokta.OpenKeyring(nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error opening keyring for credential storage")
 	}
 
 	p, err := awsokta.NewProvider(kr, profile, opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error initializing aws-okta provider")
 	}
 
 	creds, err := p.Retrieve()
-	if err != nil {
-		return nil, err
-	}
 
-	return &creds, nil
+	return &creds, errors.Wrap(err, "Error retrieving STS credentials using aws-okta")
 }
 
 // getCert requests a cert and persists it to disk
