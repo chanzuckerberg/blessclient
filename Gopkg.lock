@@ -2,7 +2,23 @@
 
 
 [[projects]]
-  digest = "1:3fde5f0c3d1a25b4224f6a60a11c0a4e90a4bc761b4e9c2e4ac04427da7e6542"
+  branch = "master"
+  digest = "1:3cabbc710321c38791c277a984c9f8709469b1bbff1abf600e76f8960bfabd9c"
+  name = "github.com/99designs/keyring"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ff690aee77e9b2c9631d43885d805f9b22817b82"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d73d422b7f34d8e930d6d9c3ae6ce5c8f4a2c77e1ea43f7f127a5cd084e32ccb"
+  name = "github.com/aulanov/go.dbus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "25c3068a42a0b50b877953fb249dbcffc6bd1bca"
+
+[[projects]]
+  digest = "1:d18468c6a1b3e0b5432aa84e49cc5e5643fb78e49ecad6cb6573e80c746abdee"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -15,6 +31,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -59,8 +76,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "57d992f58b7e092da10921050426717f7944bd42"
-  version = "v1.15.80"
+  revision = "818fa5c274d4dee665096411e2bad037f47c31f7"
+  version = "v1.16.3"
 
 [[projects]]
   branch = "master"
@@ -79,12 +96,12 @@
   version = "v3.5.1"
 
 [[projects]]
-  digest = "1:2209584c0f7c9b68c23374e659357ab546e1b70eec2761f03280f69a8fd23d77"
+  digest = "1:553f73a4171c265045ae4f5d3122429ecf2c9c0c232c91f336127fe45480104a"
   name = "github.com/cenkalti/backoff"
   packages = ["."]
   pruneopts = "UT"
-  revision = "2ea60e5f094469f9e65adb9cd103795b73ae743e"
-  version = "v2.0.0"
+  revision = "62661b46c4093e2c1f38d943e663db1a29873e80"
+  version = "v2.1.0"
 
 [[projects]]
   branch = "master"
@@ -99,12 +116,37 @@
   revision = "80891fcdcf65ad524c84bdbb798bffed85ed1037"
 
 [[projects]]
+  digest = "1:586992e81213a853bfe5c102709c0c92020d21b386907ceae783f13bbe899ad7"
+  name = "github.com/danieljoos/wincred"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "412b574fb496839b312a75fba146bd32a89001cf"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:92dfb1cad60fdfecac5def0f398e05b2b92d2422ac6ad2d7d8e4bdb6057a3d83"
+  name = "github.com/dvsekhvalnov/jose2go"
+  packages = [
+    ".",
+    "aes",
+    "arrays",
+    "base64url",
+    "compact",
+    "kdf",
+    "keys/ecc",
+    "padding",
+  ]
+  pruneopts = "UT"
+  revision = "f21a8cedbbae609f623613ec8f81125c243212e6"
+  version = "v1.3"
 
 [[projects]]
   branch = "master"
@@ -150,12 +192,20 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:f4f203acd8b11b8747bdcd91696a01dbc95ccb9e2ca2db6abf81c3a4f5e950ce"
+  digest = "1:b3d20bcdedab2050e6bc58e52f4fdc46f710b4c74e1a1ecee262ebec1aee7b6e"
+  name = "github.com/godbus/dbus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
+  version = "v5.0.1"
+
+[[projects]]
+  digest = "1:34bd52916ea0a9e4d95d34dab5bc4f125a7ee7b1e11b1a531d2ea43f41b4f4e8"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "UT"
-  revision = "f55b50f38167644bb7e4be03d9a2bde71d435239"
-  version = "v18.2.0"
+  revision = "35781f7f4db7b3d7fc3359527472838da65023c6"
+  version = "v19.1.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -172,6 +222,14 @@
   pruneopts = "UT"
   revision = "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:36f5bd9b89fcd728488eee3a0cf8787448579ac381fded60edd6e3ac01fe1a38"
+  name = "github.com/gsterjov/go-libsecret"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a6f4afe4910cad8688db3e0e9b9ac92ad22d54e1"
 
 [[projects]]
   digest = "1:0ade334594e69404d80d9d323445d2297ff8161637f9b2d347cc6973d2d6f05b"
@@ -257,11 +315,19 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
+
+[[projects]]
+  branch = "master"
+  digest = "1:00e5d2ab594acd9a96265e8e6a46bbf07f0cfcbe20f0e8e415eb80536b1b7ccf"
+  name = "github.com/keybase/go-keychain"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f1daa725cce4049b1715f1e97d6a51880e401e70"
 
 [[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
@@ -270,6 +336,34 @@
   pruneopts = "UT"
   revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
   version = "v1.0.1"
+
+[[projects]]
+  digest = "1:6782ffc812e8e700e6952ede1e60487ff1fd9da489eff762985be662a7cfc431"
+  name = "github.com/leodido/go-urn"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "70078a794e8ea4b497ba7c19a78cd60f90ccf0f4"
+  version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:ce65d9bb6dd46942e2b815a6009ca23499c4d61be7abab11366d2dd128bf0231"
+  name = "github.com/marshallbrekka/go-u2fhost"
+  packages = [
+    ".",
+    "bytes",
+    "hid",
+  ]
+  pruneopts = "UT"
+  revision = "72b0e7a3f583583996b3b382d2dfaa81fdc4b82c"
+
+[[projects]]
+  branch = "master"
+  digest = "1:13ded4febab3d1b69f80c5d91cc7d8c4be6bf6e979c57431e3e66239782aa2c3"
+  name = "github.com/marshallbrekka/go.hid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2c1c4616a9e71d08897a583653abca4b4ac55028"
 
 [[projects]]
   digest = "1:78bbb1ba5b7c3f2ed0ea1eab57bdd3859aec7e177811563edc41198a760b06af"
@@ -310,6 +404,17 @@
   pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5ac7b11ff55554d981f4c7a934d05020e395dc27cf5ba705b44c0e621b3b9657"
+  name = "github.com/segmentio/aws-okta"
+  packages = [
+    "lib",
+    "lib/saml",
+  ]
+  pruneopts = "UT"
+  revision = "8a61d94774587e0babe3d571c857b9dbd71cda8d"
 
 [[projects]]
   branch = "master"
@@ -381,6 +486,22 @@
   version = "v0.5.5"
 
 [[projects]]
+  branch = "master"
+  digest = "1:8f70510b21fd07eba5bd4e0f84d49d932ea74c8b0ea20a5807e9492cc819928c"
+  name = "github.com/vaughan0/go-ini"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:74a0382dfade875842563c677b899e87eb14fae3e7639f858ae52c1bbc11bc93"
+  name = "github.com/vitaminwater/cgo.wchar"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5dd6f4be3f2a8c064325fe63439975cf37a8aa1d"
+
+[[projects]]
   digest = "1:bc4aaa0db4ea6107fd151d7c56ab48cae34d65a0f409ede7484dfd3c6f793e7e"
   name = "go.opencensus.io"
   packages = [
@@ -397,7 +518,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:29bbd24a92d33c22d209247c0d0e42caeb90ff17802d9c64faaa79299213cf0a"
+  digest = "1:30e9f5bea4df0d1a573ed89a85cc680ab05dfc078f6a21e627db236f29650a11"
   name = "golang.org/x/crypto"
   packages = [
     "curve25519",
@@ -411,26 +532,54 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
-  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
+  digest = "1:c054f06f4d9c70e11b956a72a1172caeca3167bd37a6301547bc6d1c63479a84"
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "html",
+    "html/atom",
+    "idna",
+    "publicsuffix",
+  ]
   pruneopts = "UT"
-  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
+  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
 
 [[projects]]
   branch = "master"
-  digest = "1:f343f077a5b0bc3a3788b3a04e24dd417e3e25b2acb529c413e212d2c42416ef"
+  digest = "1:206c5fc6c77857fea5eebcf4ceb2db7272f269428456160589910e50d14244db"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "0cf1ed9e522b7dbb416f080a5c8003de9b702bf4"
+  revision = "b05ddf57801d2239d6ab0ee35f9d981e0420f4ac"
+
+[[projects]]
+  digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable",
+  ]
+  pruneopts = "UT"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   digest = "1:38b469493eb173db9c03321d64adcad4c7991ea0a19b5edc5bdc094f0e8c7384"
@@ -441,27 +590,29 @@
   version = "v2.0.0"
 
 [[projects]]
-  digest = "1:2c6a8f26c364b006a27b8090a9583fcc4b7865583fcf93f99a20fce339e87192"
+  digest = "1:8abc978192c2fca4d6a74260c3a8f4aa34d25bd3c548c938745b91b8b20cda1d"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1fa3c8d6336562f0a3f95c73593ee2b57ff4da11"
-  version = "v9.23.0"
+  revision = "0277b12d53df79c9dbf7311cb07fa9c81ed621bb"
+  version = "v9.24.0"
 
 [[projects]]
-  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/99designs/keyring",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/arn",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/iam",
@@ -480,6 +631,7 @@
     "github.com/mitchellh/go-homedir",
     "github.com/nightlyone/lockfile",
     "github.com/pkg/errors",
+    "github.com/segmentio/aws-okta/lib",
     "github.com/segmentio/go-prompt",
     "github.com/sirupsen/logrus",
     "github.com/sirupsen/logrus/hooks/test",

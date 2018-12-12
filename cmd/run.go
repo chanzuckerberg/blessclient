@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/99designs/keyring"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
@@ -17,6 +21,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/honeycombio/opencensus-exporter/honeycomb"
 	"github.com/pkg/errors"
+	awsokta "github.com/segmentio/aws-okta/lib"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
@@ -123,6 +128,24 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
 	}
+	if conf.ClientConfig.OktaProfile != nil {
+		// override user credentials with Okta credentials
+		log.Debugf("Getting Okta AWS SSO credentials")
+		creds, err := getAWSOktaCredentials(*conf.ClientConfig.OktaProfile)
+		if err != nil {
+			log.Errorf("Error in retrieving AWS Okta session credentials: %s.", err.Error())
+			return nil
+		}
+
+		userConf = &aws.Config{
+			Region: aws.String(region.AWSRegion),
+			Credentials: credentials.NewStaticCredentials(
+				creds.AccessKeyID,
+				creds.SecretAccessKey,
+				creds.SessionToken,
+			),
+		}
+	}
 
 	lambdaConf := userConf
 	if conf.LambdaConfig.RoleARN != nil {
@@ -143,6 +166,50 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		WithSTS(userConf).
 		WithLambda(lambdaConf)
 	return awsClient
+}
+
+func getAWSOktaCredentials(profile string) (*credentials.Value, error) {
+
+	config, err := awsokta.NewConfigFromEnv()
+	if err != nil {
+		return nil, err
+	}
+
+	profiles, err := config.Parse()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, ok := profiles[profile]; !ok {
+		return nil, fmt.Errorf("Profile '%s' not found in your aws config", profile)
+	}
+
+	sessionTTL := time.Hour
+	assumeRoleTTL := time.Hour
+	opts := awsokta.ProviderOptions{
+		Profiles:           profiles,
+		SessionDuration:    sessionTTL,
+		AssumeRoleDuration: assumeRoleTTL,
+	}
+
+	var allowedBackends []keyring.BackendType
+
+	kr, err := awsokta.OpenKeyring(allowedBackends)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := awsokta.NewProvider(kr, profile, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	creds, err := p.Retrieve()
+	if err != nil {
+		return nil, err
+	}
+
+	return &creds, nil
 }
 
 // getCert requests a cert and persists it to disk

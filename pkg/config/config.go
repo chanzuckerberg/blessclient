@@ -65,6 +65,8 @@ type ClientConfig struct {
 	AWSUserProfile string ` yaml:"aws_user_profile"`
 	// AWSUserName is your AWS username
 	AWSUserName *string ` yaml:"aws_username,omitempty"`
+	// OktaProfile is the profile with which to invoke BLESS
+	OktaProfile *string ` yaml:"okta_profile,omitempty"`
 
 	// Path to your ssh private key
 	SSHPrivateKey  string `yaml:"ssh_private_key"`
