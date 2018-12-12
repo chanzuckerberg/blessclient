@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/99designs/keyring"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -192,9 +191,7 @@ func getAWSOktaCredentials(profile string) (*credentials.Value, error) {
 		AssumeRoleDuration: assumeRoleTTL,
 	}
 
-	var allowedBackends []keyring.BackendType
-
-	kr, err := awsokta.OpenKeyring(allowedBackends)
+	kr, err := awsokta.OpenKeyring(nil)
 	if err != nil {
 		return nil, err
 	}
