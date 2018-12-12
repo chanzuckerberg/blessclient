@@ -186,6 +186,8 @@ func getAWSOktaCredentials(profile string) (*credentials.Value, error) {
 	sessionTTL := time.Hour
 	assumeRoleTTL := time.Hour
 	opts := awsokta.ProviderOptions{
+		// TODO: make MFADevice configurable by config
+		MFADevice:          "phone1",
 		Profiles:           profiles,
 		SessionDuration:    sessionTTL,
 		AssumeRoleDuration: assumeRoleTTL,
