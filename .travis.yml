@@ -3,6 +3,7 @@ go:
 - '1.11'
 install:
   - npm install -g snyk
+  - apt install -yq libusb-dev libusb-1.0.0-dev
   - make setup
 jobs:
   include:
