@@ -27,3 +27,10 @@ func (s *MockSTSSvc) GetSessionTokenWithContext(ctx aws.Context, in *sts.GetSess
 	out := args.Get(0).(*sts.GetSessionTokenOutput)
 	return out, args.Error(1)
 }
+
+// GetCallerIdentity mocks GetCallerIdentity
+func (s *MockSTSSvc) GetCallerIdentity(in *sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error) {
+	args := s.Called(in)
+	out := args.Get(0).(*sts.GetCallerIdentityOutput)
+	return out, args.Error(1)
+}
