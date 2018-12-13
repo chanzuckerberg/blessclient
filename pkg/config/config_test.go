@@ -102,13 +102,15 @@ func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
 	output.SetUserId("role_id:test_user")
 	ts.mockSTS.On("GetCallerIdentity", mock.Anything).Return(output, nil)
 	c, err := config.DefaultConfig()
+	profile := "testprofile"
+	mfaDevice := "phone1"
 	c.OktaConfig = &config.OktaConfig{
-		Profile:   "testprofile",
-		MFADevice: "phone1",
+		Profile:   &profile,
+		MFADevice: &mfaDevice,
 	}
 	a.Nil(err)
 
-	username, err = c.GetAWSUsername(ts.ctx, ts.awsClient)
+	username, err := c.GetAWSUsername(ts.ctx, ts.awsClient)
 	a.Nil(err)
 	a.Equal(username, "test_user")
 }
