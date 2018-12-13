@@ -18,7 +18,7 @@
   revision = "25c3068a42a0b50b877953fb249dbcffc6bd1bca"
 
 [[projects]]
-  digest = "1:d18468c6a1b3e0b5432aa84e49cc5e5643fb78e49ecad6cb6573e80c746abdee"
+  digest = "1:51c28157575737bdb37874aacfdfed53c3c59f94e90c00c5d6789065a948c9f2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,8 +76,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "818fa5c274d4dee665096411e2bad037f47c31f7"
-  version = "v1.16.3"
+  revision = "a00e7512a2533cd96e525fe50607f9fe98badec3"
+  version = "v1.16.4"
 
 [[projects]]
   branch = "master"
@@ -105,7 +105,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c97b179a3d4dd1d2aff2360ab936f673f732ab48c7ad207d1e69521faa082ebd"
+  digest = "1:321e1e0e015edfb31e1d47bc6d703813f2490d67efd78f6ffe35ca8a745a3c74"
   name = "github.com/chanzuckerberg/go-misc"
   packages = [
     "aws",
@@ -113,7 +113,7 @@
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "80891fcdcf65ad524c84bdbb798bffed85ed1037"
+  revision = "2b38877e927be2e05e9a2ad10d7be2a9216ef96b"
 
 [[projects]]
   digest = "1:586992e81213a853bfe5c102709c0c92020d21b386907ceae783f13bbe899ad7"
@@ -200,12 +200,12 @@
   version = "v5.0.1"
 
 [[projects]]
-  digest = "1:34bd52916ea0a9e4d95d34dab5bc4f125a7ee7b1e11b1a531d2ea43f41b4f4e8"
+  digest = "1:721cb5ee72b22a190ed1fb41bcc184d24d8f9ffef21d8755042fcefaebf40144"
   name = "github.com/google/go-github"
   packages = ["github"]
   pruneopts = "UT"
-  revision = "35781f7f4db7b3d7fc3359527472838da65023c6"
-  version = "v19.1.0"
+  revision = "7c7d51f489bc54d96dfa34c497601b4a05d760c7"
+  version = "v20.0.0"
 
 [[projects]]
   digest = "1:a63cff6b5d8b95638bfe300385d93b2a6d9d687734b863da8e09dc834510a690"
@@ -249,14 +249,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ff91f36d00e6942621659bdceafa78b3708f1d15cf54d8f72c1ed5e0a73227f1"
+  digest = "1:6ec15ac3fb01fe9fd3339c297bae016e8110c1ac438b83f6cffd4b84a0624e95"
   name = "github.com/hashicorp/go-getter"
   packages = [
     ".",
     "helper/url",
   ]
   pruneopts = "UT"
-  revision = "bd1edc22f8ea9d71b87fbdc0c07f0afb77ae39b6"
+  revision = "be39683deade1b3613258f751a2fad316d7b5e7c"
 
 [[projects]]
   digest = "1:f668349b83f7d779567c880550534addeca7ebadfdcf44b0b9c39be61864b4b7"
@@ -346,26 +346,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:ce65d9bb6dd46942e2b815a6009ca23499c4d61be7abab11366d2dd128bf0231"
-  name = "github.com/marshallbrekka/go-u2fhost"
-  packages = [
-    ".",
-    "bytes",
-    "hid",
-  ]
-  pruneopts = "UT"
-  revision = "72b0e7a3f583583996b3b382d2dfaa81fdc4b82c"
-
-[[projects]]
-  branch = "master"
-  digest = "1:13ded4febab3d1b69f80c5d91cc7d8c4be6bf6e979c57431e3e66239782aa2c3"
-  name = "github.com/marshallbrekka/go.hid"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2c1c4616a9e71d08897a583653abca4b4ac55028"
-
-[[projects]]
   digest = "1:78bbb1ba5b7c3f2ed0ea1eab57bdd3859aec7e177811563edc41198a760b06af"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -406,15 +386,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:5ac7b11ff55554d981f4c7a934d05020e395dc27cf5ba705b44c0e621b3b9657"
+  branch = "edu/remove-u2f"
+  digest = "1:d8040ac29eccde31cce968c703c5aa1e8b0af215cb549eaff3248be9dfcf204a"
   name = "github.com/segmentio/aws-okta"
   packages = [
     "lib",
     "lib/saml",
   ]
   pruneopts = "UT"
-  revision = "8a61d94774587e0babe3d571c857b9dbd71cda8d"
+  revision = "22762fbf040d51dc454d4a4ea22e44533dd19332"
+  source = "github.com/chanzuckerberg/aws-okta"
 
 [[projects]]
   branch = "master"
@@ -494,14 +475,6 @@
   revision = "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:74a0382dfade875842563c677b899e87eb14fae3e7639f858ae52c1bbc11bc93"
-  name = "github.com/vitaminwater/cgo.wchar"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5dd6f4be3f2a8c064325fe63439975cf37a8aa1d"
-
-[[projects]]
   digest = "1:bc4aaa0db4ea6107fd151d7c56ab48cae34d65a0f409ede7484dfd3c6f793e7e"
   name = "go.opencensus.io"
   packages = [
@@ -545,18 +518,18 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
+  revision = "891ebc4b82d6e74f468c533b06f983c7be918a96"
 
 [[projects]]
   branch = "master"
-  digest = "1:206c5fc6c77857fea5eebcf4ceb2db7272f269428456160589910e50d14244db"
+  digest = "1:ba8cbf57cfd92d5f8592b4aca1a35d92c162363d32aeabd5b12555f8896635e7"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "b05ddf57801d2239d6ab0ee35f9d981e0420f4ac"
+  revision = "4d1cda033e0619309c606fc686de3adcf599539e"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -609,7 +582,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/99designs/keyring",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/arn",
     "github.com/aws/aws-sdk-go/aws/credentials",
