@@ -18,7 +18,7 @@
   revision = "25c3068a42a0b50b877953fb249dbcffc6bd1bca"
 
 [[projects]]
-  digest = "1:d18468c6a1b3e0b5432aa84e49cc5e5643fb78e49ecad6cb6573e80c746abdee"
+  digest = "1:51c28157575737bdb37874aacfdfed53c3c59f94e90c00c5d6789065a948c9f2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,8 +76,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "818fa5c274d4dee665096411e2bad037f47c31f7"
-  version = "v1.16.3"
+  revision = "a00e7512a2533cd96e525fe50607f9fe98badec3"
+  version = "v1.16.4"
 
 [[projects]]
   branch = "master"
@@ -105,7 +105,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c97b179a3d4dd1d2aff2360ab936f673f732ab48c7ad207d1e69521faa082ebd"
+  digest = "1:321e1e0e015edfb31e1d47bc6d703813f2490d67efd78f6ffe35ca8a745a3c74"
   name = "github.com/chanzuckerberg/go-misc"
   packages = [
     "aws",
@@ -113,7 +113,7 @@
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "80891fcdcf65ad524c84bdbb798bffed85ed1037"
+  revision = "2b38877e927be2e05e9a2ad10d7be2a9216ef96b"
 
 [[projects]]
   digest = "1:586992e81213a853bfe5c102709c0c92020d21b386907ceae783f13bbe899ad7"
@@ -609,7 +609,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/99designs/keyring",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/arn",
     "github.com/aws/aws-sdk-go/aws/credentials",
@@ -618,6 +617,7 @@
     "github.com/aws/aws-sdk-go/service/iam",
     "github.com/aws/aws-sdk-go/service/kms",
     "github.com/aws/aws-sdk-go/service/lambda",
+    "github.com/aws/aws-sdk-go/service/sts",
     "github.com/blang/semver",
     "github.com/cenkalti/backoff",
     "github.com/chanzuckerberg/go-misc/aws",

@@ -46,6 +46,18 @@ const (
 	UserTokenProviderName = "UserTokenProvider"
 )
 
+// GetCallerIdentity gets the caller's identity
+func (s *STS) GetCallerIdentity(input *sts.GetCallerIdentityInput) (*sts.GetCallerIdentityOutput, error) {
+	output, err := s.Svc.GetCallerIdentity(input)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get sts caller identity")
+	}
+	if output == nil {
+		return nil, errors.New("Nil output from aws when calling sts get-caller-identity")
+	}
+	return output, nil
+}
+
 // UserTokenProviderCache caches mfa tokens
 // Need this to json serialize/deserialize
 type UserTokenProviderCache struct {
