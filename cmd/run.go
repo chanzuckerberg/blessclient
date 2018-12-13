@@ -170,12 +170,12 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 
 	awsOktaConfig, err := awsokta.NewConfigFromEnv()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error getting aws-okta config")
 	}
 
 	profiles, err := awsOktaConfig.Parse()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error parsing aws-okta config")
 	}
 
 	profile := conf.OktaConfig.Profile
