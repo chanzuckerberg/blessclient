@@ -18,7 +18,7 @@
   revision = "25c3068a42a0b50b877953fb249dbcffc6bd1bca"
 
 [[projects]]
-  digest = "1:51c28157575737bdb37874aacfdfed53c3c59f94e90c00c5d6789065a948c9f2"
+  digest = "1:eda99bd516b18300773e251e896c0060745b8e4908eb4be6a1b7c34bef704194"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,8 +76,8 @@
     "service/support/supportiface",
   ]
   pruneopts = "UT"
-  revision = "a00e7512a2533cd96e525fe50607f9fe98badec3"
-  version = "v1.16.4"
+  revision = "056aa960bc0fb3918d8b2101e2a9c92675327ea3"
+  version = "v1.16.5"
 
 [[projects]]
   branch = "master"
@@ -386,7 +386,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "edu/remove-u2f"
+  branch = "master"
   digest = "1:d8040ac29eccde31cce968c703c5aa1e8b0af215cb549eaff3248be9dfcf204a"
   name = "github.com/segmentio/aws-okta"
   packages = [
@@ -394,7 +394,7 @@
     "lib/saml",
   ]
   pruneopts = "UT"
-  revision = "22762fbf040d51dc454d4a4ea22e44533dd19332"
+  revision = "0728518da611644888b7889c8de02544061bc7d4"
   source = "github.com/chanzuckerberg/aws-okta"
 
 [[projects]]

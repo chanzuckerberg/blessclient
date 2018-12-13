@@ -48,7 +48,7 @@
 
 [[constraint]]
   name = "github.com/segmentio/aws-okta"
-  branch = "edu/remove-u2f"
+  branch = "master"
   source = "github.com/chanzuckerberg/aws-okta"
 
 [[constraint]]
