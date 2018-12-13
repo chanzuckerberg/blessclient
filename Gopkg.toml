@@ -51,6 +51,10 @@
   branch = "master"
 
 [[constraint]]
+  name = "github.com/segmentio/aws-okta"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "1.2.0"
 

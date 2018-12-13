@@ -40,6 +40,8 @@ type Config struct {
 	ClientConfig ClientConfig `yaml:"client_config"`
 	// LambdaConfig holds configuration around the bless lambda
 	LambdaConfig LambdaConfig `yaml:"lambda_config"`
+	// OktaConfig holds configuration around aws-okta settings
+	OktaConfig *OktaConfig `yaml:"okta_config,omitempty"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `yaml:"ssh_config,omitempty"`
 
@@ -76,6 +78,12 @@ type ClientConfig struct {
 	RemoteUsers []string `yaml:"remote_users"`
 	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
 	BastionIPS []string `yaml:"bastion_ips"`
+}
+
+// OktaConfig is the Okta config
+type OktaConfig struct {
+	Profile   string  `yaml:"profile"`
+	MFADevice *string `yaml:"mfa_device,omitempty"`
 }
 
 // LambdaConfig is the lambda config

@@ -583,7 +583,7 @@ E-mail String
 
 This validates that a string value contains a valid email
 This may not conform to all possibilities of any rfc standard, but neither
-does any email provider accept all posibilities.
+does any email provider accept all possibilities.
 
 	Usage: email
 
@@ -609,6 +609,13 @@ This validates that a string value contains a valid uri
 This will accept any uri the golang request uri accepts
 
 	Usage: uri
+
+Urn RFC 2141 String
+
+This validataes that a string value contains a valid URN
+according to the RFC 2141 spec.
+
+	Usage: urn_rfc2141
 
 Base64 String
 
