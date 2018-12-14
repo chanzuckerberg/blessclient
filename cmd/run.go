@@ -183,10 +183,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 		return nil, errors.Errorf("Profile '%s' not found in your aws config", profile)
 	}
 
-	mfaDevice := "phone1"
-	if conf.OktaConfig.MFADevice != nil {
-		mfaDevice = *conf.OktaConfig.MFADevice
-	}
+	mfaDevice := conf.GetOktaMFADevice()
 	opts := awsokta.ProviderOptions{
 		MFADevice:          mfaDevice,
 		Profiles:           profiles,

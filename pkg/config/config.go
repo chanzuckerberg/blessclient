@@ -88,6 +88,7 @@ type OktaConfig struct {
 	Organization string  `yaml:"organization"`
 	Profile      string  `yaml:"profile"`
 	MFADevice    *string `yaml:"mfa_device,omitempty"`
+	KeyringKeyId *string `yaml:"keyring_key_id,omitempty"`
 }
 
 // LambdaConfig is the lambda config
@@ -260,6 +261,14 @@ func (c *Config) GetRemoteUsers(ctx context.Context, username string) []string {
 		remoteUsers = []string{username}
 	}
 	return remoteUsers
+}
+
+func (c *Config) GetOktaMFADevice() string {
+	mfaDevice := "phone1"
+	if c.OktaConfig.MFADevice != nil {
+		mfaDevice = *c.OktaConfig.MFADevice
+	}
+	return mfaDevice
 }
 
 // SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing

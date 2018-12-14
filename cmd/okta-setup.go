@@ -63,21 +63,24 @@ var oktaSetupCmd = &cobra.Command{
 			Domain:       domain,
 		}
 
-		mfaDevice := "phone1"
-		if conf.OktaConfig.MFADevice != nil {
-			mfaDevice = *conf.OktaConfig.MFADevice
-		}
+		mfaDevice := conf.GetOktaMFADevice()
 		if err = creds.Validate(mfaDevice); err != nil {
 			return errors.Wrap(err, "Failed to verify Okta credentials")
 		}
 
 		encoded, err := json.Marshal(creds)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "Failed to encode credentials in JSON")
 		}
 
+		// The key corresponds to the same key id set via
+		// aws-okta.
+		oktaKeyringKeyId := "okta-creds"
+		if conf.OktaConfig.KeyringKeyId != nil {
+			oktaKeyringKeyId = *conf.OktaConfig.KeyringKeyId
+		}
 		item := keyring.Item{
-			Key:                         "okta-creds",
+			Key:                         oktaKeyringKeyId,
 			Data:                        encoded,
 			Label:                       "okta credentials",
 			KeychainNotTrustApplication: false,
