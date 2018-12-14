@@ -224,7 +224,7 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 	if c.OktaConfig != nil {
 		log.Debugf("Getting user from Okta SAML AWS UserId")
 		input := &sts.GetCallerIdentityInput{}
-		result, err := awsClient.STS.GetCallerIdentity(input)
+		result, err := awsClient.STS.GetCallerIdentity(ctx, input)
 		if err != nil {
 			return "", err
 		}
