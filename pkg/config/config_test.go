@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ type TestSuite struct {
 	// aws
 	awsClient *cziAws.Client
 	mockIAM   *cziAws.MockIAMSvc
+	mockSTS   *cziAws.MockSTSSvc
 
 	// cleanup
 	server *httptest.Server
@@ -46,6 +48,7 @@ func (ts *TestSuite) SetupTest() {
 
 	ts.awsClient = cziAws.New(sess)
 	_, ts.mockIAM = ts.awsClient.WithMockIAM()
+	_, ts.mockSTS = ts.awsClient.WithMockSTS()
 }
 
 func (ts *TestSuite) TestFromFile() {
@@ -89,6 +92,26 @@ func (ts *TestSuite) TestPersist() {
 	c2, err := config.FromFile(tmpFile.Name())
 	a.Nil(err)
 	a.Equal(c1, c2)
+}
+
+func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
+	t := ts.T()
+	a := assert.New(t)
+
+	output := &sts.GetCallerIdentityOutput{}
+	output.SetUserId("role_id:test_user")
+	ts.mockSTS.On("GetCallerIdentity", mock.Anything).Return(output, nil)
+	c, err := config.DefaultConfig()
+	mfaDevice := "phone1"
+	c.OktaConfig = &config.OktaConfig{
+		Profile:   "testprofile",
+		MFADevice: &mfaDevice,
+	}
+	a.Nil(err)
+
+	username, err := c.GetAWSUsername(ts.ctx, ts.awsClient)
+	a.Nil(err)
+	a.Equal(username, "test_user")
 }
 
 func (ts *TestSuite) TestUpdateAWSUsername() {

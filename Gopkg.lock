@@ -590,6 +590,7 @@
     "github.com/aws/aws-sdk-go/service/iam",
     "github.com/aws/aws-sdk-go/service/kms",
     "github.com/aws/aws-sdk-go/service/lambda",
+    "github.com/aws/aws-sdk-go/service/sts",
     "github.com/blang/semver",
     "github.com/cenkalti/backoff",
     "github.com/chanzuckerberg/go-misc/aws",

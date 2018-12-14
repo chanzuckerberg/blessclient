@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -218,6 +220,18 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 		log.Debugf("Using username %s from config", *c.ClientConfig.AWSUserName)
 		span.AddAttributes(trace.BoolAttribute(telemetry.FieldIsCached, true))
 		return *c.ClientConfig.AWSUserName, nil
+	}
+	if c.OktaConfig != nil {
+		log.Debugf("Getting user from Okta SAML AWS UserId")
+		input := &sts.GetCallerIdentityInput{}
+		result, err := awsClient.STS.GetCallerIdentity(input)
+		if err != nil {
+			return "", err
+		}
+		// UserId is in format role id:saml user name
+		// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
+		split := strings.Split(*result.UserId, ":")
+		return strings.ToLower(split[1]), nil
 	}
 	user, err := awsClient.IAM.GetCurrentUser(ctx)
 	if err != nil {
