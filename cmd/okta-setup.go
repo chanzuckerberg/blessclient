@@ -67,7 +67,7 @@ var oktaSetupCmd = &cobra.Command{
 		if conf.OktaConfig.MFADevice != nil {
 			mfaDevice = *conf.OktaConfig.MFADevice
 		}
-		if err := creds.Validate(mfaDevice); err != nil {
+		if err = creds.Validate(mfaDevice); err != nil {
 			return errors.Wrap(err, "Failed to verify Okta credentials")
 		}
 
