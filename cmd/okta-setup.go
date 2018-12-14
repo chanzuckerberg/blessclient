@@ -77,7 +77,7 @@ var oktaSetupCmd = &cobra.Command{
 		// aws-okta.
 		oktaKeyringKeyID := "okta-creds"
 		if conf.OktaConfig.KeyringKeyID != nil {
-			oktaKeyringKeyId = *conf.OktaConfig.KeyringKeyID
+			oktaKeyringKeyID = *conf.OktaConfig.KeyringKeyID
 		}
 		item := keyring.Item{
 			Key:                         oktaKeyringKeyID,
