@@ -105,7 +105,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:321e1e0e015edfb31e1d47bc6d703813f2490d67efd78f6ffe35ca8a745a3c74"
+  digest = "1:97d06e9731a797097756e655aa16ad061eed081a96f00331acc344a9106af1a1"
   name = "github.com/chanzuckerberg/go-misc"
   packages = [
     "aws",
@@ -113,7 +113,7 @@
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "2b38877e927be2e05e9a2ad10d7be2a9216ef96b"
+  revision = "820cfb22d0ef172dcc2b8d83594e773000c1dfc8"
 
 [[projects]]
   digest = "1:586992e81213a853bfe5c102709c0c92020d21b386907ceae783f13bbe899ad7"

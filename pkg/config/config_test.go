@@ -100,7 +100,7 @@ func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
 
 	output := &sts.GetCallerIdentityOutput{}
 	output.SetUserId("role_id:test_user")
-	ts.mockSTS.On("GetCallerIdentity", mock.Anything).Return(output, nil)
+	ts.mockSTS.On("GetCallerIdentityWithContext", mock.Anything).Return(output, nil)
 	c, err := config.DefaultConfig()
 	mfaDevice := "phone1"
 	c.OktaConfig = &config.OktaConfig{
