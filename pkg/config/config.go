@@ -84,8 +84,10 @@ type ClientConfig struct {
 
 // OktaConfig is the Okta config
 type OktaConfig struct {
-	Profile   string  `yaml:"profile"`
-	MFADevice *string `yaml:"mfa_device,omitempty"`
+	Domain       string  `yaml:"domain"`
+	Organization string  `yaml:"organization"`
+	Profile      string  `yaml:"profile"`
+	MFADevice    *string `yaml:"mfa_device,omitempty"`
 }
 
 // LambdaConfig is the lambda config
