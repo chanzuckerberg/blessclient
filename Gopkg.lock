@@ -113,7 +113,7 @@
     "kmsauth",
   ]
   pruneopts = "UT"
-  revision = "fdd72a0fecdfe784049859a1350288c65ab0c71b"
+  revision = "820cfb22d0ef172dcc2b8d83594e773000c1dfc8"
 
 [[projects]]
   digest = "1:586992e81213a853bfe5c102709c0c92020d21b386907ceae783f13bbe899ad7"
