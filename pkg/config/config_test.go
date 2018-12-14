@@ -186,6 +186,9 @@ func (ts *TestSuite) TestGetOktaMFADevice() {
 
 	c, err := config.DefaultConfig()
 	a.Nil(err)
+	c.OktaConfig = &config.OktaConfig{
+		Profile: "testprofile",
+	}
 	mfaDevice := c.GetOktaMFADevice()
 	a.Equal(mfaDevice, "phone1")
 
