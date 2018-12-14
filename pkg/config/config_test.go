@@ -180,6 +180,24 @@ func (ts *TestSuite) TestGetRemoteUsers() {
 	a.Equal([]string{"testusername"}, remoteUsers)
 }
 
+func (ts *TestSuite) TestGetOktaMFADevice() {
+	t := ts.T()
+	a := assert.New(t)
+
+	c, err := config.DefaultConfig()
+	a.Nil(err)
+	mfaDevice := c.GetOktaMFADevice()
+	a.Equal(mfaDevice, "phone1")
+
+	configMfaDevice := "u2f"
+	c.OktaConfig = &config.OktaConfig{
+		Profile:   "testprofile",
+		MFADevice: &configMfaDevice,
+	}
+	mfaDevice = c.GetOktaMFADevice()
+	a.Equal(mfaDevice, "u2f")
+}
+
 func TestDuration(t *testing.T) {
 	t.Parallel()
 	a := assert.New(t)
