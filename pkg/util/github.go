@@ -12,7 +12,7 @@ import (
 func CheckLatestVersion(ctx context.Context, owner string, repo string) error {
 	err := checkLatestVersion(ctx, owner, repo)
 	if err != nil {
-		logrus.WithError(err).WithField("repo", fmt.Sprintf("%s/%s", owner, repo)).Warn("Could not fetch latest release info")
+		logrus.WithError(err).WithField("repo", fmt.Sprintf("%s/%s", owner, repo)).Debug("Could not fetch latest release info")
 		return err
 	}
 	return nil
