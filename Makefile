@@ -5,12 +5,13 @@ LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha
 
 setup:
 	curl -L https://git.io/vp6lP | BINDIR=~/.local/bin sh # gometalinter
+	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | BINDIR=./_bin sh
 
 test:
 	go test -coverprofile=coverage.txt -covermode=set ./...
 
 release:
-	./_bin/release
+	./_bin/bff bump
 	git push
 	goreleaser release --rm-dist
 
