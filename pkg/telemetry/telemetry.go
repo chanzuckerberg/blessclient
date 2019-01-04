@@ -13,4 +13,5 @@ const (
 	FieldUser      = "user"
 	FieldFreshCert = "cert.is_fresh"
 	FieldIsCached  = "is_cached"
+	FieldURL       = "url"
 )

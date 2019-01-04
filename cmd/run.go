@@ -167,7 +167,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 }
 
 func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
-
 	awsOktaConfig, err := awsokta.NewConfigFromEnv()
 	if err != nil {
 		return nil, errors.Wrap(err, "Error getting aws-okta config")
@@ -202,7 +201,6 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 	}
 
 	creds, err := p.Retrieve()
-
 	return &creds, errors.Wrap(err, "Error retrieving STS credentials using aws-okta")
 }
 
