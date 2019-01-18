@@ -25,6 +25,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/hashicorp/go-getter"
+  source = "github.com/chanzuckerberg/go-getter"
 
 [[constraint]]
   name = "github.com/hashicorp/go-multierror"

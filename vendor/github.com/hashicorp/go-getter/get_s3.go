@@ -1,8 +1,8 @@
 package getter
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -10,15 +10,15 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 // S3Getter is a Getter implementation that will download a module from
 // a S3 bucket.
-type S3Getter struct{}
+type S3Getter struct {
+	getter
+}
 
 func (g *S3Getter) ClientMode(u *url.URL) (ClientMode, error) {
 	// Parse URL
@@ -60,6 +60,8 @@ func (g *S3Getter) ClientMode(u *url.URL) (ClientMode, error) {
 }
 
 func (g *S3Getter) Get(dst string, u *url.URL) error {
+	ctx := g.Context()
+
 	// Parse URL
 	region, bucket, path, _, creds, err := g.parseUrl(u)
 	if err != nil {
@@ -124,7 +126,7 @@ func (g *S3Getter) Get(dst string, u *url.URL) error {
 			}
 			objDst = filepath.Join(dst, objDst)
 
-			if err := g.getObject(client, objDst, bucket, objPath, ""); err != nil {
+			if err := g.getObject(ctx, client, objDst, bucket, objPath, ""); err != nil {
 				return err
 			}
 		}
@@ -134,6 +136,7 @@ func (g *S3Getter) Get(dst string, u *url.URL) error {
 }
 
 func (g *S3Getter) GetFile(dst string, u *url.URL) error {
+	ctx := g.Context()
 	region, bucket, path, version, creds, err := g.parseUrl(u)
 	if err != nil {
 		return err
@@ -142,10 +145,10 @@ func (g *S3Getter) GetFile(dst string, u *url.URL) error {
 	config := g.getAWSConfig(region, u, creds)
 	sess := session.New(config)
 	client := s3.New(sess)
-	return g.getObject(client, dst, bucket, path, version)
+	return g.getObject(ctx, client, dst, bucket, path, version)
 }
 
-func (g *S3Getter) getObject(client *s3.S3, dst, bucket, key, version string) error {
+func (g *S3Getter) getObject(ctx context.Context, client *s3.S3, dst, bucket, key, version string) error {
 	req := &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -170,30 +173,12 @@ func (g *S3Getter) getObject(client *s3.S3, dst, bucket, key, version string) er
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
+	_, err = Copy(ctx, f, resp.Body)
 	return err
 }
 
 func (g *S3Getter) getAWSConfig(region string, url *url.URL, creds *credentials.Credentials) *aws.Config {
 	conf := &aws.Config{}
-	if creds == nil {
-		// Grab the metadata URL
-		metadataURL := os.Getenv("AWS_METADATA_URL")
-		if metadataURL == "" {
-			metadataURL = "http://169.254.169.254:80/latest"
-		}
-
-		creds = credentials.NewChainCredentials(
-			[]credentials.Provider{
-				&credentials.EnvProvider{},
-				&credentials.SharedCredentialsProvider{Filename: "", Profile: ""},
-				&ec2rolecreds.EC2RoleProvider{
-					Client: ec2metadata.New(session.New(&aws.Config{
-						Endpoint: aws.String(metadataURL),
-					})),
-				},
-			})
-	}
 
 	if creds != nil {
 		conf.Endpoint = &url.Host
