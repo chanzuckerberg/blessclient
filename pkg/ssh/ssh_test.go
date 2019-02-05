@@ -144,7 +144,7 @@ func (ts *TestSuite) TestCheckVersionRSA78() {
 	s.CheckKeyTypeAndClientVersion(context.Background())
 
 	found := false
-	for _, entry := range ts.loggerHook.Entries {
+	for _, entry := range ts.loggerHook.AllEntries() {
 
 		found = found || strings.Contains(entry.Message, "RSA key with OpenSSH_7.8")
 	}
