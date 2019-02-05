@@ -96,7 +96,7 @@ func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
 	a.Nil(err)
 	a.NotNil(s)
 
-	s.CheckKeyTypeAndClientVersion(context.Background())
+	s.CheckKeyTypeAndClientVersion(context.Background(), false)
 }
 
 func (ts *TestSuite) TestSSHVersion() {
@@ -130,7 +130,7 @@ func (ts *TestSuite) TestCheckVersionErrorLogError() {
 	a.NotNil(s)
 	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
 	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
+	s.CheckKeyTypeAndClientVersion(context.Background(), false)
 }
 
 func (ts *TestSuite) TestCheckVersionRSA78() {
@@ -141,7 +141,7 @@ func (ts *TestSuite) TestCheckVersionRSA78() {
 	a.NotNil(s)
 	sshVersionCmd = exec.Command("echo", "OpenSSH_7.8")
 	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
+	s.CheckKeyTypeAndClientVersion(context.Background(), false)
 
 	found := false
 	for _, entry := range ts.loggerHook.Entries {

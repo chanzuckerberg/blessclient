@@ -80,6 +80,8 @@ type ClientConfig struct {
 	RemoteUsers []string `yaml:"remote_users"`
 	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
 	BastionIPS []string `yaml:"bastion_ips"`
+
+	DisableOpenSSHWarnings bool `yaml:"disable_openssh_warnings"`
 }
 
 // OktaConfig is the Okta config
