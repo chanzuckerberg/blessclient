@@ -11,7 +11,7 @@ test:
 	go test -coverprofile=coverage.txt -covermode=set ./...
 
 release:
-	./_bin/bff bump
+	bff bump
 	git push
 	goreleaser release --rm-dist
 

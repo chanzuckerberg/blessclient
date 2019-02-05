@@ -195,7 +195,7 @@ func (ts *TestSuite) TestIsCertFreshExpiredCert() {
 		},
 	}
 	// no error no cert
-	fresh, err := s.IsCertFresh(conf)
+	fresh, err := s.IsCertFresh(conf, "username")
 	a.Nil(err)
 	a.False(fresh)
 }
@@ -215,7 +215,7 @@ func (ts *TestSuite) TestIsCertFreshNoCert() {
 		},
 	}
 	// no error no cert
-	fresh, err := s.IsCertFresh(conf)
+	fresh, err := s.IsCertFresh(conf, "username")
 	a.Nil(err)
 	a.False(fresh)
 }

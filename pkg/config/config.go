@@ -253,9 +253,7 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 
 // GetRemoteUsers gets the list of remote usernames, defaulting to the provided username if
 // the list of configured remote users is empty.
-func (c *Config) GetRemoteUsers(ctx context.Context, username string) []string {
-	ctx, span := trace.StartSpan(ctx, "get_remote_users")
-	defer span.End()
+func (c *Config) GetRemoteUsers(username string) []string {
 	log.Debugf("Getting remote usernames")
 	remoteUsers := c.ClientConfig.RemoteUsers
 	if len(remoteUsers) == 0 {
