@@ -189,7 +189,7 @@ func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
 		}
 		span.AddAttributes(trace.StringAttribute("ssh_key_type", "rsa"), trace.Int64Attribute("ssh_key_size", int64(k.Size())))
 		if strings.Contains(version, "OpenSSH_7.8") {
-			logrus.Warn(`
+			logrus.Debug(`
 Looks like you are attempting to use an RSA key with OpenSSH_7.8.
 This might be an unsupported opperation.
 See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
