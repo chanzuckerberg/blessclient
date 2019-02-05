@@ -176,7 +176,7 @@ func (ts *TestSuite) TestGetRemoteUsers() {
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 
-	remoteUsers := c.GetRemoteUsers(ts.ctx, "testusername")
+	remoteUsers := c.GetRemoteUsers("testusername")
 	a.Equal([]string{"testusername"}, remoteUsers)
 }
 
