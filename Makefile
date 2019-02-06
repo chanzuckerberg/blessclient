@@ -8,7 +8,7 @@ setup:
 	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | BINDIR=./_bin sh
 
 test:
-	go test -coverprofile=coverage.txt -covermode=set ./...
+	go test -coverprofile=coverage.txt -covermode=atomic ./...
 
 release:
 	bff bump

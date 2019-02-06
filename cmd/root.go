@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	"github.com/pkg/errors"
@@ -28,12 +26,6 @@ var rootCmd = &cobra.Command{
 		return errors.Wrap(pidLock.Unlock(), "Error releasing lock")
 	},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		ctx := context.Background()
-		// Intentionally leaving this race here so that we don't introduce another
-		// round-trip on cached certificate invocations.
-		// Results of this call might or might not happen.
-		go util.CheckLatestVersion(ctx, "chanzuckerberg", "blessclient")
-
 		// Parse flags
 		verbose, err := cmd.Flags().GetBool(flagVerbose)
 		if err != nil {
