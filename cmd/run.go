@@ -203,7 +203,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 
 	creds, err := p.Retrieve()
 
-	return &creds, errors.Wrap(err, "Error retrieving STS credentials using aws-okta")
+	return &creds, errors.Wrap(err, "Error retrieving credentials using aws-okta. Run `blessclient okta-setup` and then try again.")
 }
 
 // getCert requests a cert and persists it to disk
