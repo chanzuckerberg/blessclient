@@ -83,6 +83,12 @@ This ssh config does a couple of interesting things -
 - It transparently requests an ssh certificate if needed
 - It transparently does a ProxyJump through a bastion host (assuming 10.0.* is an ipblock for machines behind the bastion)
 
+### Enable Okta SSO
+
+By default, blessclient uses your IAM user credentials. Blessclient is able to support Okta SAML auth if this is [enabled for your AWS account](https://saml-doc.okta.com/SAML_Docs/How-to-Configure-SAML-2.0-for-Amazon-Web-Service.html). The [example config](examples/config.yml) shows the configuration options available under `okta_config`. Blessclient uses the [aws-okta](https://github.com/segmentio/aws-okta) library for authentication, which supports multiple MFA options.
+
+You will need to setup a profile in your ~/.aws/config that can be accepted by aws-okta. Example configs are available [here](https://github.com/segmentio/aws-okta/tree/master#configuring-your-aws-config).
+
 ## Telemetry
 There currently is some basic trace instrumentation using [honeycomb](https://www.honeycomb.io/). We use this internally to track usage, gather performance statistics, and error reporting. Telemetry is disabled without a honeycomb write key - which you must provide through the [config](pkg/config/config.go).
 
