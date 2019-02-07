@@ -40,8 +40,15 @@ lambda_config:
 okta_config:
   # the name of the profile to be used for aws-okta (profiles are listed at ~/.aws/config)
   profile: bless_profile
-  # optional, the mfa device to be used for Okta MFA verification
-  mfa_device: phone1
+  # optional, the MFA provider to be used for Okta MFA verification (e.g. Okta, DUO)
+  # defaults to DUO
+  mfa_provider: DUO
+  # optional, the factor type to be used for Okta MFA verification (e.g. sms, token, web)
+  # DUO requires the "web" factor type
+  mfa_factor_type: web
+  # optional, the Duo device to be used for Duo MFA verification (e.g. phone1, phone2, u2f)
+  # duo_device should only be set if the provider is "DUO"
+  duo_device: phone1
 # This will help you generate a ~/.ssh/config compatible with blessclient
 ssh_config:
   # If you have a bastion and other servers behind it then
