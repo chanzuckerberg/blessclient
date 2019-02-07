@@ -31,6 +31,8 @@ const (
 
 	// deprecated; use OktaServerUs
 	OktaServer = OktaServerUs
+
+	Timeout = time.Duration(60 * time.Second)
 )
 
 type OktaClient struct {
@@ -40,7 +42,6 @@ type OktaClient struct {
 	Password        string
 	UserAuth        *OktaUserAuthn
 	DuoClient       *DuoClient
-	MFADevice       string
 	AccessKeyId     string
 	SecretAccessKey string
 	SessionToken    string
@@ -49,6 +50,13 @@ type OktaClient struct {
 	CookieJar       http.CookieJar
 	BaseURL         *url.URL
 	Domain          string
+	MFAConfig       MFAConfig
+}
+
+type MFAConfig struct {
+	Provider   string // Which MFA provider to use when presented with an MFA challenge
+	FactorType string // Which of the factor types of the MFA provider to use
+	DuoDevice  string // Which DUO device to use for DUO MFA
 }
 
 type SAMLAssertion struct {
@@ -64,9 +72,9 @@ type OktaCreds struct {
 	Domain       string
 }
 
-func (c *OktaCreds) Validate(mfaDevice string) error {
+func (c *OktaCreds) Validate(mfaConfig MFAConfig) error {
 	// OktaClient assumes we're doing some AWS SAML calls, but Validate doesn't
-	o, err := NewOktaClient(*c, "", "", mfaDevice)
+	o, err := NewOktaClient(*c, "", "", mfaConfig)
 	if err != nil {
 		return err
 	}
@@ -90,7 +98,7 @@ func getOktaDomain(region string) (string, error) {
 	return "", fmt.Errorf("invalid region %s", region)
 }
 
-func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string, mfaDevice string) (*OktaClient, error) {
+func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string, mfaConfig MFAConfig) (*OktaClient, error) {
 	var domain string
 
 	// maintain compatibility for deprecated creds.Organization
@@ -99,7 +107,7 @@ func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string,
 	} else if creds.Domain != "" {
 		domain = creds.Domain
 	} else {
-		return &OktaClient{}, errors.New("either creds.Organization (deprecated) or creds.Domain must be set, and not both")
+		return &OktaClient{}, errors.New("either creds.Organization (deprecated) or creds.Domain must be set, but not both. To remedy this, re-add your credentials with `aws-okta add`")
 	}
 
 	// url parse & set base
@@ -132,8 +140,8 @@ func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string,
 		OktaAwsSAMLUrl: oktaAwsSAMLUrl,
 		CookieJar:      jar,
 		BaseURL:        base,
-		MFADevice:      mfaDevice,
 		Domain:         domain,
+		MFAConfig:      mfaConfig,
 	}, nil
 }
 
@@ -230,25 +238,53 @@ func (o *OktaClient) AuthenticateProfile(profileARN string, duration time.Durati
 	return *samlResp.Credentials, sessionCookie, nil
 }
 
-func selectMFADevice(factors []OktaUserAuthnFactor) (*OktaUserAuthnFactor, error) {
-	if len(factors) > 1 {
-		log.Info("Select a MFA from the following list")
-		for i, f := range factors {
-			log.Infof("%d: %s (%s)", i, f.Provider, f.FactorType)
+func selectMFADeviceFromConfig(o *OktaClient) (*OktaUserAuthnFactor, error) {
+	log.Debugf("MFAConfig: %v\n", o.MFAConfig)
+	if o.MFAConfig.Provider == "" || o.MFAConfig.FactorType == "" {
+		return nil, nil
+	}
+
+	for _, f := range o.UserAuth.Embedded.Factors {
+		log.Debugf("%v\n", f)
+		if strings.EqualFold(f.Provider, o.MFAConfig.Provider) && strings.EqualFold(f.FactorType, o.MFAConfig.FactorType) {
+			log.Debugf("Using matching factor \"%v %v\" from config\n", f.Provider, f.FactorType)
+			return &f, nil
 		}
-		i, err := Prompt("Select MFA method", false)
-		if err != nil {
-			return nil, err
-		}
-		factor, err := strconv.Atoi(i)
-		if err != nil {
-			return nil, err
-		}
-		return &factors[factor], nil
+	}
+
+	return nil, fmt.Errorf("Failed to select MFA device with Provider = \"%s\", FactorType = \"%s\"", o.MFAConfig.Provider, o.MFAConfig.FactorType)
+}
+
+func (o *OktaClient) selectMFADevice() (*OktaUserAuthnFactor, error) {
+	factors := o.UserAuth.Embedded.Factors
+	if len(factors) == 0 {
+		return nil, errors.New("No available MFA Factors")
 	} else if len(factors) == 1 {
 		return &factors[0], nil
 	}
-	return nil, errors.New("Failed to select MFA device")
+
+	factor, err := selectMFADeviceFromConfig(o)
+	if err != nil {
+		return nil, err
+	}
+
+	if factor != nil {
+		return factor, nil
+	}
+
+	log.Info("Select a MFA from the following list")
+	for i, f := range factors {
+		log.Infof("%d: %s (%s)", i, f.Provider, f.FactorType)
+	}
+	i, err := Prompt("Select MFA method", false)
+	if err != nil {
+		return nil, err
+	}
+	factorIdx, err := strconv.Atoi(i)
+	if err != nil {
+		return nil, err
+	}
+	return &factors[factorIdx], nil
 }
 
 func (o *OktaClient) preChallenge(oktaFactorId, oktaFactorType string) ([]byte, error) {
@@ -305,7 +341,7 @@ func (o *OktaClient) postChallenge(payload []byte, oktaFactorProvider string, ok
 					Host:       f.Embedded.Verification.Host,
 					Signature:  f.Embedded.Verification.Signature,
 					Callback:   f.Embedded.Verification.Links.Complete.Href,
-					Device:     o.MFADevice,
+					Device:     o.MFAConfig.DuoDevice,
 					StateToken: o.UserAuth.StateToken,
 				}
 
@@ -353,7 +389,7 @@ func (o *OktaClient) challengeMFA() (err error) {
 	var oktaFactorType string
 
 	log.Debugf("%s", o.UserAuth.StateToken)
-	factor, err := selectMFADevice(o.UserAuth.Embedded.Factors)
+	factor, err := o.selectMFADevice()
 	if err != nil {
 		log.Debug("Failed to select MFA device")
 		return
@@ -436,8 +472,14 @@ func (o *OktaClient) Get(method string, path string, data []byte, recv interface
 		header = http.Header{}
 	}
 
+	transCfg := &http.Transport{
+		Proxy:               http.ProxyFromEnvironment,
+		TLSHandshakeTimeout: Timeout,
+	}
 	client = http.Client{
-		Jar: o.CookieJar,
+		Transport: transCfg,
+		Timeout:   Timeout,
+		Jar:       o.CookieJar,
 	}
 
 	req := &http.Request{
@@ -482,10 +524,10 @@ type OktaProvider struct {
 	ProfileARN      string
 	SessionDuration time.Duration
 	OktaAwsSAMLUrl  string
-	MFADevice       string
 	// OktaSessionCookieKey represents the name of the session cookie
 	// to be stored in the keyring.
 	OktaSessionCookieKey string
+	MFAConfig            MFAConfig
 }
 
 func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
@@ -508,7 +550,7 @@ func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
 		sessionCookie = string(cookieItem.Data)
 	}
 
-	oktaClient, err := NewOktaClient(oktaCreds, p.OktaAwsSAMLUrl, sessionCookie, p.MFADevice)
+	oktaClient, err := NewOktaClient(oktaCreds, p.OktaAwsSAMLUrl, sessionCookie, p.MFAConfig)
 	if err != nil {
 		return sts.Credentials{}, "", err
 	}
@@ -519,13 +561,49 @@ func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
 	}
 
 	newCookieItem := keyring.Item{
-		Key:                         p.OktaSessionCookieKey,
-		Data:                        []byte(newSessionCookie),
-		Label:                       "okta session cookie",
+		Key:   p.OktaSessionCookieKey,
+		Data:  []byte(newSessionCookie),
+		Label: "okta session cookie",
 		KeychainNotTrustApplication: false,
 	}
 
 	p.Keyring.Set(newCookieItem)
 
 	return creds, oktaCreds.Username, err
+}
+
+func (p *OktaProvider) GetSAMLLoginURL() (*url.URL, error) {
+	item, err := p.Keyring.Get("okta-creds")
+	if err != nil {
+		log.Debugf("couldnt get okta creds from keyring: %s", err)
+		return &url.URL{}, err
+	}
+
+	var oktaCreds OktaCreds
+	if err = json.Unmarshal(item.Data, &oktaCreds); err != nil {
+		return &url.URL{}, errors.New("Failed to get okta credentials from your keyring.  Please make sure you have added okta credentials with `aws-okta add`")
+	}
+
+	var samlURL string
+
+	// maintain compatibility for deprecated creds.Organization
+	if oktaCreds.Domain == "" && oktaCreds.Organization != "" {
+		samlURL = fmt.Sprintf("%s.%s", oktaCreds.Organization, OktaServerDefault)
+	} else if oktaCreds.Domain != "" {
+		samlURL = oktaCreds.Domain
+	} else {
+		return &url.URL{}, errors.New("either oktaCreds.Organization (deprecated) or oktaCreds.Domain must be set, but not both. To remedy this, re-add your credentials with `aws-okta add`")
+	}
+
+	fullSamlURL, err := url.Parse(fmt.Sprintf(
+		"https://%s/%s",
+		samlURL,
+		p.OktaAwsSAMLUrl,
+	))
+
+	if err != nil {
+		return &url.URL{}, err
+	}
+
+	return fullSamlURL, nil
 }

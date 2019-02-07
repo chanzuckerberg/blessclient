@@ -15,6 +15,7 @@ import (
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
+	awsokta "github.com/segmentio/aws-okta/lib"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
 	yaml "gopkg.in/yaml.v2"
@@ -84,11 +85,13 @@ type ClientConfig struct {
 
 // OktaConfig is the Okta config
 type OktaConfig struct {
-	Domain       string  `yaml:"domain"`
-	Organization string  `yaml:"organization"`
-	Profile      string  `yaml:"profile"`
-	MFADevice    *string `yaml:"mfa_device,omitempty"`
-	KeyringKeyID *string `yaml:"keyring_key_id,omitempty"`
+	Domain        string  `yaml:"domain"`
+	Organization  string  `yaml:"organization"`
+	Profile       string  `yaml:"profile"`
+	KeyringKeyID  *string `yaml:"keyring_key_id,omitempty"`
+	MFAProvider   *string `yaml:"mfa_provider,omitempty"`
+	MFAFactorType *string `yaml:"mfa_factor_type,omitempty"`
+	DuoDevice     *string `yaml:"duo_device,omitempty"`
 }
 
 // LambdaConfig is the lambda config
@@ -261,14 +264,26 @@ func (c *Config) GetRemoteUsers(username string) []string {
 	return remoteUsers
 }
 
-// GetOktaMFADevice gets the user's designated MFA device, defaulting to "phone1"
-// (phone-based MFA).
-func (c *Config) GetOktaMFADevice() string {
-	mfaDevice := "phone1"
-	if c.OktaConfig.MFADevice != nil {
-		mfaDevice = *c.OktaConfig.MFADevice
+// GetOktaMFAConfig gets the user's designated MFA device, defaulting to "phone1"
+// (phone-based MFA) via Duo.
+func (c *Config) GetOktaMFAConfig() awsokta.MFAConfig {
+	provider := "DUO"
+	factorType := "web"
+	duoDevice := "phone1"
+	if c.OktaConfig.MFAProvider != nil {
+		provider = *c.OktaConfig.MFAProvider
 	}
-	return mfaDevice
+	if c.OktaConfig.MFAFactorType != nil {
+		factorType = *c.OktaConfig.MFAFactorType
+	}
+	if c.OktaConfig.DuoDevice != nil {
+		duoDevice = *c.OktaConfig.DuoDevice
+	}
+	return awsokta.MFAConfig{
+		Provider:   provider,
+		FactorType: factorType,
+		DuoDevice:  duoDevice,
+	}
 }
 
 // SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing

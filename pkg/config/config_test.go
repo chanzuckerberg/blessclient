@@ -105,7 +105,7 @@ func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
 	mfaDevice := "phone1"
 	c.OktaConfig = &config.OktaConfig{
 		Profile:   "testprofile",
-		MFADevice: &mfaDevice,
+		DuoDevice: &mfaDevice,
 	}
 	a.Nil(err)
 
@@ -189,16 +189,16 @@ func (ts *TestSuite) TestGetOktaMFADevice() {
 	c.OktaConfig = &config.OktaConfig{
 		Profile: "testprofile",
 	}
-	mfaDevice := c.GetOktaMFADevice()
-	a.Equal(mfaDevice, "phone1")
+	conf := c.GetOktaMFAConfig()
+	a.Equal(conf.DuoDevice, "phone1")
 
-	configMfaDevice := "u2f"
+	configFactorType := "u2f"
 	c.OktaConfig = &config.OktaConfig{
-		Profile:   "testprofile",
-		MFADevice: &configMfaDevice,
+		Profile:       "testprofile",
+		MFAFactorType: &configFactorType,
 	}
-	mfaDevice = c.GetOktaMFADevice()
-	a.Equal(mfaDevice, "u2f")
+	conf = c.GetOktaMFAConfig()
+	a.Equal(conf.FactorType, "u2f")
 }
 
 func TestDuration(t *testing.T) {
