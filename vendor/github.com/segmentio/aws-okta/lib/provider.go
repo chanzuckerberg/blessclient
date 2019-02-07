@@ -3,6 +3,7 @@ package lib
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -25,11 +26,11 @@ const (
 )
 
 type ProviderOptions struct {
-	MFADevice          string
 	SessionDuration    time.Duration
 	AssumeRoleDuration time.Duration
 	ExpiryWindow       time.Duration
-	Profiles           profiles
+	Profiles           Profiles
+	MFAConfig          MFAConfig
 }
 
 func (o ProviderOptions) Validate() error {
@@ -65,7 +66,7 @@ type Provider struct {
 	expires                time.Time
 	keyring                keyring.Keyring
 	sessions               *KeyringSessions
-	profiles               profiles
+	profiles               Profiles
 	defaultRoleSessionName string
 }
 
@@ -134,37 +135,31 @@ func (p *Provider) Retrieve() (credentials.Value, error) {
 	return value, nil
 }
 
-func (p *Provider) getSamlURL(source string) (string, error) {
-	haystack := []string{p.profile, source, "okta"}
-	for _, profile := range haystack {
-		oktaAwsSAMLUrl, ok := p.profiles[profile]["aws_saml_url"]
-		if ok {
-			log.Debugf("Using aws_saml_url from profile: %s", profile)
-			return oktaAwsSAMLUrl, nil
-		}
+func (p *Provider) getSamlURL() (string, error) {
+	oktaAwsSAMLUrl, profile, err := p.profiles.GetValue(p.profile, "aws_saml_url")
+	if err != nil {
+		return "", errors.New("aws_saml_url missing from ~/.aws/config")
 	}
-	return "", errors.New("aws_saml_url missing from ~/.aws/config")
+	log.Debugf("Using aws_saml_url from profile: %s", profile)
+	return oktaAwsSAMLUrl, nil
 }
 
-func (p *Provider) getOktaSessionCookieKey(source string) string {
-	haystack := []string{p.profile, source, "okta"}
-	for _, profile := range haystack {
-		oktaSessionCookieKey, ok := p.profiles[profile]["okta_session_cookie_key"]
-		if ok {
-			log.Debugf("Using okta_session_cookie_key from profile: %s", profile)
-			return oktaSessionCookieKey
-		}
+func (p *Provider) getOktaSessionCookieKey() string {
+	oktaSessionCookieKey, profile, err := p.profiles.GetValue(p.profile, "okta_session_cookie_key")
+	if err != nil {
+		return "okta-session-cookie"
 	}
-	return "okta-session-cookie"
+	log.Debugf("Using okta_session_cookie_key from profile: %s", profile)
+	return oktaSessionCookieKey
 }
 
 func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 	source := sourceProfile(p.profile, p.profiles)
-	oktaAwsSAMLUrl, err := p.getSamlURL(source)
+	oktaAwsSAMLUrl, err := p.getSamlURL()
 	if err != nil {
 		return sts.Credentials{}, err
 	}
-	oktaSessionCookieKey := p.getOktaSessionCookieKey(source)
+	oktaSessionCookieKey := p.getOktaSessionCookieKey()
 
 	profileARN, ok := p.profiles[source]["role_arn"]
 	if !ok {
@@ -172,7 +167,7 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 	}
 
 	provider := OktaProvider{
-		MFADevice:            p.ProviderOptions.MFADevice,
+		MFAConfig:            p.ProviderOptions.MFAConfig,
 		Keyring:              p.keyring,
 		ProfileARN:           profileARN,
 		SessionDuration:      p.SessionDuration,
@@ -187,6 +182,35 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 	p.defaultRoleSessionName = oktaUsername
 
 	return creds, nil
+}
+
+func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
+	source := sourceProfile(p.profile, p.profiles)
+	oktaAwsSAMLUrl, err := p.getSamlURL()
+	if err != nil {
+		return &url.URL{}, err
+	}
+	oktaSessionCookieKey := p.getOktaSessionCookieKey()
+
+	profileARN, ok := p.profiles[source]["role_arn"]
+	if !ok {
+		return &url.URL{}, errors.New("Source profile must provide `role_arn`")
+	}
+
+	provider := OktaProvider{
+		MFAConfig:            p.ProviderOptions.MFAConfig,
+		Keyring:              p.keyring,
+		ProfileARN:           profileARN,
+		SessionDuration:      p.SessionDuration,
+		OktaAwsSAMLUrl:       oktaAwsSAMLUrl,
+		OktaSessionCookieKey: oktaSessionCookieKey,
+	}
+
+	loginURL, err := provider.GetSAMLLoginURL()
+	if err != nil {
+		return &url.URL{}, err
+	}
+	return loginURL, nil
 }
 
 // assumeRoleFromSession takes a session created with an okta SAML login and uses that to assume a role

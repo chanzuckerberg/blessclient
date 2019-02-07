@@ -29,6 +29,12 @@ import (
 	"github.com/facebookgo/muster"
 )
 
+const (
+	apiMaxBatchSize    int = 5000000 // 5MB
+	apiEventSizeMax    int = 100000  // 100KB
+	maxOverflowBatches int = 10
+)
+
 // Output is responsible for handling events after Send() is called.
 // Implementations of Add() must be safe for concurrent calls.
 type Output interface {
@@ -99,7 +105,9 @@ func (t *txDefaultClient) Add(ev *Event) {
 // eventually be one or more batches sent to the /1/batch/dataset endpoint.
 type batchAgg struct {
 	// map of batch key to a list of events destined for that batch
-	batches          map[string][]*Event
+	batches map[string][]*Event
+	// Used to reenque events when an initial batch is too large
+	overflowBatches  map[string][]*Event
 	httpClient       *http.Client
 	blockOnResponses bool
 	// numEncoded       int
@@ -133,6 +141,16 @@ func (b *batchAgg) enqueueResponse(resp Response) {
 	}
 }
 
+func (b *batchAgg) reenqueueEvents(events []*Event) {
+	if b.overflowBatches == nil {
+		b.overflowBatches = make(map[string][]*Event)
+	}
+	for _, e := range events {
+		key := fmt.Sprintf("%s_%s_%s", e.APIHost, e.WriteKey, e.Dataset)
+		b.overflowBatches[key] = append(b.overflowBatches[key], e)
+	}
+}
+
 func (b *batchAgg) Fire(notifier muster.Notifier) {
 	defer notifier.Done()
 
@@ -140,6 +158,38 @@ func (b *batchAgg) Fire(notifier muster.Notifier) {
 	// we don't need the batch key anymore; it's done its sorting job
 	for _, events := range b.batches {
 		b.fireBatch(events)
+	}
+	// The initial batches could have had payloads that were greater than 5MB.
+	// The remaining events will have overflowed into overflowBatches
+	// Process these until complete. Overflow batches can also overflow, so we
+	// have to prepare to process it multiple times
+	overflowCount := 0
+	if b.overflowBatches != nil {
+		for len(b.overflowBatches) > 0 {
+			// We really shouldn't get here but defensively avoid an endless
+			// loop of re-enqueued events
+			if overflowCount > maxOverflowBatches {
+				break
+			}
+			overflowCount++
+			// fetch the keys in this map - we can't range over the map
+			// because it's possible that fireBatch will reenqueue more overflow
+			// events
+			keys := make([]string, len(b.overflowBatches))
+			i := 0
+			for k := range b.overflowBatches {
+				keys[i] = k
+				i++
+			}
+
+			for _, k := range keys {
+				events := b.overflowBatches[k]
+				// fireBatch may append more overflow events
+				// so we want to clear this key before firing the batch
+				delete(b.overflowBatches, k)
+				b.fireBatch(events)
+			}
+		}
 	}
 }
 
@@ -281,10 +331,12 @@ func (b *batchAgg) encodeBatch(events []*Event) ([]byte, int) {
 	var numEncoded int
 	buf := bytes.Buffer{}
 	buf.WriteByte('[')
+	bytesTotal := 1
 	// ok, we've got our array, let's populate it with JSON events
 	for i, ev := range events {
 		if !first {
 			buf.WriteByte(',')
+			bytesTotal++
 		}
 		first = false
 		evByt, err := json.Marshal(ev)
@@ -297,6 +349,22 @@ func (b *batchAgg) encodeBatch(events []*Event) ([]byte, int) {
 			// responses if needed. don't delete to preserve slice length.
 			events[i] = nil
 			continue
+		}
+		// if the event is too large to ever send, add an error to the queue
+		if len(evByt) > apiEventSizeMax {
+			b.enqueueResponse(Response{
+				Err:      fmt.Errorf("event exceeds max event size of %d bytes, API will not accept this event", apiEventSizeMax),
+				Metadata: ev.Metadata,
+			})
+			events[i] = nil
+			continue
+		}
+		bytesTotal += len(evByt)
+
+		// count for the trailing ]
+		if bytesTotal+1 > apiMaxBatchSize {
+			b.reenqueueEvents(events[i:])
+			break
 		}
 		buf.Write(evByt)
 		numEncoded++
@@ -347,10 +415,33 @@ func (w *WriterOutput) Start() error { return nil }
 func (w *WriterOutput) Stop() error  { return nil }
 
 func (w *WriterOutput) Add(ev *Event) {
+	var m []byte
+	func() {
+		ev.lock.RLock()
+		defer ev.lock.RUnlock()
+
+		tPointer := &(ev.Timestamp)
+		if ev.Timestamp.IsZero() {
+			tPointer = nil
+		}
+
+		// don't include sample rate if it's 1; this is the default
+		sampleRate := ev.SampleRate
+		if sampleRate == 1 {
+			sampleRate = 0
+		}
+
+		m, _ = json.Marshal(struct {
+			Data       marshallableMap `json:"data"`
+			SampleRate uint            `json:"samplerate,omitempty"`
+			Timestamp  *time.Time      `json:"time,omitempty"`
+			Dataset    string          `json:"dataset,omitempty"`
+		}{ev.data, sampleRate, tPointer, ev.Dataset})
+		m = append(m, '\n')
+	}()
+
 	w.Lock()
 	defer w.Unlock()
-	m, _ := ev.MarshalJSON()
-	m = append(m, '\n')
 	if w.W == nil {
 		w.W = os.Stdout
 	}

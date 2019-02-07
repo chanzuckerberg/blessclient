@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	urn "github.com/leodido/go-urn"
 	"net"
 	"net/url"
 	"os"
@@ -15,6 +14,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	urn "github.com/leodido/go-urn"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -84,6 +85,8 @@ var (
 		"gtfield":          isGtField,
 		"ltefield":         isLteField,
 		"ltfield":          isLtField,
+		"fieldcontains":    fieldContains,
+		"fieldexcludes":    fieldExcludes,
 		"alpha":            isAlpha,
 		"alphanum":         isAlphanum,
 		"alphaunicode":     isAlphaUnicode,
@@ -119,6 +122,10 @@ var (
 		"uuid3":            isUUID3,
 		"uuid4":            isUUID4,
 		"uuid5":            isUUID5,
+		"uuid_rfc4122":     isUUIDRFC4122,
+		"uuid3_rfc4122":    isUUID3RFC4122,
+		"uuid4_rfc4122":    isUUID4RFC4122,
+		"uuid5_rfc4122":    isUUID5RFC4122,
 		"ascii":            isASCII,
 		"printascii":       isPrintableASCII,
 		"multibyte":        hasMultiByteCharacter,
@@ -368,6 +375,26 @@ func isUUID(fl FieldLevel) bool {
 	return uUIDRegex.MatchString(fl.Field().String())
 }
 
+// IsUUID5RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v5 UUID.
+func isUUID5RFC4122(fl FieldLevel) bool {
+	return uUID5RFC4122Regex.MatchString(fl.Field().String())
+}
+
+// IsUUID4RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v4 UUID.
+func isUUID4RFC4122(fl FieldLevel) bool {
+	return uUID4RFC4122Regex.MatchString(fl.Field().String())
+}
+
+// IsUUID3RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v3 UUID.
+func isUUID3RFC4122(fl FieldLevel) bool {
+	return uUID3RFC4122Regex.MatchString(fl.Field().String())
+}
+
+// IsUUIDRFC4122 is the validation function for validating if the field's value is a valid RFC4122 UUID of any version.
+func isUUIDRFC4122(fl FieldLevel) bool {
+	return uUIDRFC4122Regex.MatchString(fl.Field().String())
+}
+
 // IsISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
 func isISBN(fl FieldLevel) bool {
 	return isISBN10(fl) || isISBN13(fl)
@@ -584,6 +611,31 @@ func containsAny(fl FieldLevel) bool {
 // Contains is the validation function for validating that the field's value contains the text specified within the param.
 func contains(fl FieldLevel) bool {
 	return strings.Contains(fl.Field().String(), fl.Param())
+}
+
+// FieldContains is the validation function for validating if the current field's value contains the field specified by the param's value.
+func fieldContains(fl FieldLevel) bool {
+	field := fl.Field()
+
+	currentField, _, ok := fl.GetStructFieldOK()
+
+	if !ok {
+		return false
+	}
+
+	return strings.Contains(field.String(), currentField.String())
+}
+
+// FieldExcludes is the validation function for validating if the current field's value excludes the field specified by the param's value.
+func fieldExcludes(fl FieldLevel) bool {
+	field := fl.Field()
+
+	currentField, _, ok := fl.GetStructFieldOK()
+	if !ok {
+		return true
+	}
+
+	return !strings.Contains(field.String(), currentField.String())
 }
 
 // IsNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
