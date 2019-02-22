@@ -32,19 +32,6 @@ func now() string {
 	return time.Now().UTC().Format(time.RFC822Z)
 }
 
-func defaulted(dflt string, given ...*string) (string, error) {
-	if len(given) == 0 {
-		return dflt, nil
-	}
-	if len(given) != 1 {
-		return dflt, errors.New("more than 1 value given to default")
-	}
-	if given[0] == nil {
-		return dflt, errors.New("nil string given")
-	}
-	return *given[0], nil
-}
-
 // SSHConfig is an SSH config
 // We make some assumptions here around the structure of the machines
 // A bastion is internet accessible and can be used to reach other machines
