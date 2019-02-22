@@ -76,10 +76,10 @@ func (s *SSHConfig) String() (string, error) {
 type Bastion struct {
 	Host `yaml:",inline"`
 
-	Hosts        []Host          `yaml:"hosts"`
-	IdentityFile string          `yaml:"identity_file"`
-	User         string          `yaml:"user"`
-	ExecCommand  *SSHExecCommand `yaml:"exec_command,omitempty"`
+	Hosts          []Host          `yaml:"hosts"`
+	IdentityFile   string          `yaml:"identity_file"`
+	User           string          `yaml:"user"`
+	SSHExecCommand *SSHExecCommand `yaml:"ssh_exec_command,omitempty"`
 }
 
 // SSHExecCommand is a command to execute on successful ssh match

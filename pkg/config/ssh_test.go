@@ -18,7 +18,7 @@ func TestSSHConfig(t *testing.T) {
 		},
 	}
 
-	a.Equal("blessclient run", sshConf.Bastions[0].ExecCommand.String())
+	a.Equal("blessclient run", sshConf.Bastions[0].SSHExecCommand.String())
 
 	s, err := sshConf.String()
 	a.Nil(err)
@@ -36,13 +36,13 @@ func TestCustomExecCommand(t *testing.T) {
 	sshConf := &config.SSHConfig{
 		Bastions: []config.Bastion{
 			config.Bastion{
-				ExecCommand: &expected,
+				SSHExecCommand: &expected,
 			},
 		},
 	}
 
 	// Before template
-	a.Equal(contents, sshConf.Bastions[0].ExecCommand.String())
+	a.Equal(contents, sshConf.Bastions[0].SSHExecCommand.String())
 
 	// Template
 	s, err := sshConf.String()
