@@ -57,6 +57,9 @@ ssh_config:
     - pattern: bastion.foo.bar.com
       # User you want to use to ssh into these machines
       user: foo_user
+      # Use this if you want to override the call to "blessclient run"
+      # Useful if you want to use aws-vault or similar
+      ssh_exec_command: "blessclient run"
       # Patterns for servers behind this bastion
       hosts:
         - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
