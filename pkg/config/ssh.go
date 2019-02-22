@@ -44,7 +44,6 @@ func (s *SSHConfig) String() (string, error) {
 	fnMap := make(template.FuncMap)
 	fnMap["now"] = now
 	fnMap["version"] = util.VersionString
-	fnMap["defaulted"] = defaulted
 
 	t, err := template.New("ssh_config").Funcs(fnMap).Parse(sshConfigTemplate)
 	if err != nil {
