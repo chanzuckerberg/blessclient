@@ -187,7 +187,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 	opts := awsokta.ProviderOptions{
 		MFAConfig:          mfaConfig,
 		Profiles:           profiles,
-		SessionDuration:    time.Hour * 18,
+		SessionDuration:    time.Hour * 12,
 		AssumeRoleDuration: time.Hour,
 	}
 
