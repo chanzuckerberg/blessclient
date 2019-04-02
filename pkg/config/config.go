@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/keyring"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
@@ -85,13 +86,14 @@ type ClientConfig struct {
 
 // OktaConfig is the Okta config
 type OktaConfig struct {
-	Domain        string  `yaml:"domain"`
-	Organization  string  `yaml:"organization"`
-	Profile       string  `yaml:"profile"`
-	KeyringKeyID  *string `yaml:"keyring_key_id,omitempty"`
-	MFAProvider   *string `yaml:"mfa_provider,omitempty"`
-	MFAFactorType *string `yaml:"mfa_factor_type,omitempty"`
-	DuoDevice     *string `yaml:"duo_device,omitempty"`
+	Domain         string  `yaml:"domain"`
+	Organization   string  `yaml:"organization"`
+	Profile        string  `yaml:"profile"`
+	KeyringKeyID   *string `yaml:"keyring_key_id,omitempty"`
+	MFAProvider    *string `yaml:"mfa_provider,omitempty"`
+	MFAFactorType  *string `yaml:"mfa_factor_type,omitempty"`
+	DuoDevice      *string `yaml:"duo_device,omitempty"`
+	KeyringBackend *string `yaml:"keyring_backend,omitempty"`
 }
 
 // LambdaConfig is the lambda config
@@ -284,6 +286,16 @@ func (c *Config) GetOktaMFAConfig() awsokta.MFAConfig {
 		FactorType: factorType,
 		DuoDevice:  duoDevice,
 	}
+}
+
+// GetAWSOktaKeyringBackend gets the keyring backends to be used to store AWS Okta credentials.
+// Defaults to an empty list which will select a keyring backend based on OS.
+func (c *Config) GetAWSOktaKeyringBackend() []keyring.BackendType {
+	var backends []keyring.BackendType
+	if c.OktaConfig.KeyringBackend != nil {
+		backends = append(backends, keyring.BackendType(*c.OktaConfig.KeyringBackend))
+	}
+	return backends
 }
 
 // SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing
