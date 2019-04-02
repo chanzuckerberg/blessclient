@@ -38,11 +38,11 @@ var oktaSetupCmd = &cobra.Command{
 			return errors.Errorf("The okta_config section is not found in your config")
 		}
 
-		kr, err := awsokta.OpenKeyring(nil)
+		kr, err := awsokta.OpenKeyring(conf.GetAWSOktaKeyringBackend())
 		if err != nil {
 			return err
 		}
-		username, err := awsokta.Prompt("Okta username", false)
+		username, err := awsokta.Prompt("Okta username (email address)", false)
 		if err != nil {
 			return err
 		}

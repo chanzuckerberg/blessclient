@@ -191,7 +191,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 		AssumeRoleDuration: time.Hour,
 	}
 
-	kr, err := awsokta.OpenKeyring(nil)
+	kr, err := awsokta.OpenKeyring(conf.GetAWSOktaKeyringBackend())
 	if err != nil {
 		return nil, errors.Wrap(err, "Error opening keyring for credential storage")
 	}
