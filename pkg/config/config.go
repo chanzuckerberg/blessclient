@@ -288,7 +288,7 @@ func (c *Config) GetOktaMFAConfig() awsokta.MFAConfig {
 	}
 }
 
-// Gets the keyring backends to be used to store AWS Okta credentials.
+// GetAWSOktaKeyringBackend gets the keyring backends to be used to store AWS Okta credentials.
 // Defaults to an empty list which will select a keyring backend based on OS.
 func (c *Config) GetAWSOktaKeyringBackend() []keyring.BackendType {
 	var backends []keyring.BackendType
