@@ -120,7 +120,7 @@ func (s *SSH) ReadAndParseCert() (*ssh.Certificate, error) {
 }
 
 // IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh(c *config.Config, username string) (bool, error) {
+func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	cert, err := s.ReadAndParseCert()
 	if err != nil {
 		return false, err
@@ -138,8 +138,15 @@ func (s *SSH) IsCertFresh(c *config.Config, username string) (bool, error) {
 	// TODO: add more validation for certificate critical options
 	val, ok := cert.CriticalOptions["source-address"]
 	isFresh = isFresh && ok && val == strings.Join(c.ClientConfig.BastionIPS, ",")
-	// Compare principals
-	isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.GetRemoteUsers(username))
+
+	validatePrinicipals := true
+	if c.ClientConfig.ValidatePrincipals != nil {
+		validatePrincipals = c.ClientConfig.ValidatePrincipals
+	}
+	if validatePrincipals {
+		// Compare principals
+		isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers)
+	}
 
 	return isFresh, nil
 }

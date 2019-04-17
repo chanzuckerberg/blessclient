@@ -80,7 +80,7 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 }
 
 // RequestCert requests a cert
-func (c *Client) RequestCert(ctx context.Context) error {
+func (c *Client) RequestCert(ctx context.Context, s *SSH) error {
 	log.Debugf("Requesting certificate")
 	ctx, span := trace.StartSpan(ctx, "request_cert")
 	defer span.End()
@@ -91,24 +91,6 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
 		BastionUserIP:   "0.0.0.0/0",
 		Command:         "*",
-	}
-
-	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
-	if err != nil {
-		return err
-	}
-
-	// Check to see if ssh client version is compatible with the key type
-	s.CheckKeyTypeAndClientVersion(ctx)
-
-	isFresh, err := s.IsCertFresh(c.conf, c.username)
-	if err != nil {
-		return err
-	}
-	span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
-	if isFresh {
-		log.Debug("Cert is already fresh - using it")
-		return nil
 	}
 
 	log.Debug("Requesting new cert")

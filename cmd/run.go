@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -87,10 +88,28 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
+		ssh, err := ssh.NewSSH(conf.ClientConfig.SSHPrivateKey)
+		if err != nil {
+			return err
+		}
+
+		// Check to see if ssh client version is compatible with the key type
+		ssh.CheckKeyTypeAndClientVersion(ctx)
+
+		isFresh, err := ssh.IsCertFresh(conf)
+		if err != nil {
+			return err
+		}
+		span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
+		if isFresh {
+			log.Debug("Cert is already fresh - using it")
+			return nil
+		}
+
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			log.Debugf("Attempting region %s", region.AWSRegion)
-			err = processRegion(ctx, conf, sess, region)
+			err = processRegion(ctx, conf, sess, region, ssh)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
@@ -102,7 +121,7 @@ var runCmd = &cobra.Command{
 	},
 }
 
-func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) error {
+func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region, ssh *SSH) error {
 	ctx, span := trace.StartSpan(ctx, "process_region")
 	defer span.End()
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
@@ -115,7 +134,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 	}
 
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldUser, username))
-	return getCert(ctx, conf, awsClient, username, region)
+	return getCert(ctx, conf, awsClient, username, region, ssh)
 }
 
 // getAWSClient configures an aws client
@@ -207,7 +226,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 }
 
 // getCert requests a cert and persists it to disk
-func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region) error {
+func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region, ssh *SSH) error {
 	ctx, span := trace.StartSpan(ctx, "get_cert")
 	defer span.End()
 	kmsauthContext := &kmsauth.AuthContextV2{
@@ -230,7 +249,7 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 		awsClient,
 	)
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
-	err = client.RequestCert(ctx)
+	err = client.RequestCert(ctx, ssh)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
