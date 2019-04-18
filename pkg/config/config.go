@@ -83,7 +83,7 @@ type ClientConfig struct {
 	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
 	BastionIPS []string `yaml:"bastion_ips"`
 	// ask bless to validate existing certs against the remote users
-	// default is true.
+	// the default is true.
 	ValidatePrincipals *bool `yaml:"validate_principals"`
 }
 
@@ -255,6 +255,18 @@ func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (
 		return "", err
 	}
 	return *user.UserName, nil
+}
+
+// GetRemoteUsers gets the list of remote usernames, defaulting to the provided username if
+// the list of configured remote users is empty.
+func (c *Config) GetRemoteUsers(username string) []string {
+	log.Debugf("Getting remote usernames")
+	remoteUsers := c.ClientConfig.RemoteUsers
+	if len(remoteUsers) == 0 {
+		log.Debugf("Defaulting to setting provided username as remote username")
+		remoteUsers = []string{username}
+	}
+	return remoteUsers
 }
 
 // GetOktaMFAConfig gets the user's designated MFA device, defaulting to "phone1"
