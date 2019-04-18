@@ -80,7 +80,7 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 }
 
 // RequestCert requests a cert
-func (c *Client) RequestCert(ctx context.Context, s *SSH) error {
+func (c *Client) RequestCert(ctx context.Context) error {
 	log.Debugf("Requesting certificate")
 	ctx, span := trace.StartSpan(ctx, "request_cert")
 	defer span.End()
@@ -91,6 +91,11 @@ func (c *Client) RequestCert(ctx context.Context, s *SSH) error {
 		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
 		BastionUserIP:   "0.0.0.0/0",
 		Command:         "*",
+	}
+
+	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	if err != nil {
+		return err
 	}
 
 	log.Debug("Requesting new cert")

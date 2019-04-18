@@ -109,7 +109,7 @@ var runCmd = &cobra.Command{
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			log.Debugf("Attempting region %s", region.AWSRegion)
-			err = processRegion(ctx, conf, sess, region, ssh)
+			err = processRegion(ctx, conf, sess, region)
 			if err != nil {
 				log.Errorf("Error in region %s: %s. Attempting next region if one is available.", region.AWSRegion, err.Error())
 				regionErrors = multierror.Append(regionErrors, err)
@@ -121,7 +121,7 @@ var runCmd = &cobra.Command{
 	},
 }
 
-func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region, ssh *SSH) error {
+func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) error {
 	ctx, span := trace.StartSpan(ctx, "process_region")
 	defer span.End()
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
@@ -134,7 +134,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 	}
 
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldUser, username))
-	return getCert(ctx, conf, awsClient, username, region, ssh)
+	return getCert(ctx, conf, awsClient, username, region)
 }
 
 // getAWSClient configures an aws client
@@ -226,7 +226,7 @@ func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
 }
 
 // getCert requests a cert and persists it to disk
-func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region, ssh *SSH) error {
+func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region) error {
 	ctx, span := trace.StartSpan(ctx, "get_cert")
 	defer span.End()
 	kmsauthContext := &kmsauth.AuthContextV2{
@@ -249,7 +249,7 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 		awsClient,
 	)
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
-	err = client.RequestCert(ctx, ssh)
+	err = client.RequestCert(ctx)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
