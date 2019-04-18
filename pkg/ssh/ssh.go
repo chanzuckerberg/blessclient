@@ -138,15 +138,7 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	// TODO: add more validation for certificate critical options
 	val, ok := cert.CriticalOptions["source-address"]
 	isFresh = isFresh && ok && val == strings.Join(c.ClientConfig.BastionIPS, ",")
-
-	validatePrincipals := true
-	if c.ClientConfig.ValidatePrincipals != nil {
-		validatePrincipals = *c.ClientConfig.ValidatePrincipals
-	}
-	if validatePrincipals {
-		// Compare principals
-		isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers)
-	}
+	isFresh = isFresh && (c.ClientConfig.SkipPrincipalValidation || reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers))
 
 	return isFresh, nil
 }

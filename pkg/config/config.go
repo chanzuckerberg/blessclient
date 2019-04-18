@@ -84,7 +84,7 @@ type ClientConfig struct {
 	BastionIPS []string `yaml:"bastion_ips"`
 	// ask bless to validate existing certs against the remote users
 	// the default is true.
-	ValidatePrincipals *bool `yaml:"validate_principals"`
+	SkipPrincipalValidation bool `yaml:"skip_principal_validation"`
 }
 
 // OktaConfig is the Okta config
