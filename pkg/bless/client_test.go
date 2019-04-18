@@ -138,26 +138,6 @@ func (ts *TestSuite) TestErrOnMalformedCert() {
 	a.Contains(err.Error(), "Could not parse cert")
 }
 
-// If we already have a fresh cert don't request one
-func (ts *TestSuite) TestFreshCert() {
-	t := ts.T()
-	a := assert.New(t)
-	// cert generated as follows:
-	// ssh-keygen -t rsa -f test_key
-	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
-	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
-	cert, err := ioutil.ReadFile("testdata/cert")
-	a.Nil(err)
-	err = ioutil.WriteFile(certPath, cert, 0644)
-	a.Nil(err)
-	defer os.RemoveAll(certPath)
-	err = ts.client.RequestCert(ts.ctx)
-	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertNotCalled(t, "InvokeWithContext"))
-}
-
 func (ts *TestSuite) TestBadPrincipalsCert() {
 	t := ts.T()
 	a := assert.New(t)
