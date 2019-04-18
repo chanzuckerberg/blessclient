@@ -98,19 +98,6 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		return err
 	}
 
-	// Check to see if ssh client version is compatible with the key type
-	s.CheckKeyTypeAndClientVersion(ctx)
-
-	isFresh, err := s.IsCertFresh(c.conf, c.username)
-	if err != nil {
-		return err
-	}
-	span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
-	if isFresh {
-		log.Debug("Cert is already fresh - using it")
-		return nil
-	}
-
 	log.Debug("Requesting new cert")
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {

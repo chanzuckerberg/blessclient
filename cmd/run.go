@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -85,6 +86,24 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 			return errors.Wrap(err, "Could not create aws session")
+		}
+
+		ssh, err := ssh.NewSSH(conf.ClientConfig.SSHPrivateKey)
+		if err != nil {
+			return err
+		}
+
+		// Check to see if ssh client version is compatible with the key type
+		ssh.CheckKeyTypeAndClientVersion(ctx)
+
+		isFresh, err := ssh.IsCertFresh(conf)
+		if err != nil {
+			return err
+		}
+		span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
+		if isFresh {
+			log.Debug("Cert is already fresh - using it")
+			return nil
 		}
 
 		var regionErrors error

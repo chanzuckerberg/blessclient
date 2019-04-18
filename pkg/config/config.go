@@ -82,6 +82,9 @@ type ClientConfig struct {
 	RemoteUsers []string `yaml:"remote_users"`
 	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
 	BastionIPS []string `yaml:"bastion_ips"`
+	// ask bless to validate existing certs against the remote users
+	// the default is true.
+	SkipPrincipalValidation bool `yaml:"skip_principal_validation"`
 }
 
 // OktaConfig is the Okta config
