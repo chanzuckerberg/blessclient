@@ -123,21 +123,6 @@ func (ts *TestSuite) TestEverythingOk() {
 	a.Nil(err)
 }
 
-// If we can't parse the cert on disk - error
-func (ts *TestSuite) TestErrOnMalformedCert() {
-	t := ts.T()
-	a := assert.New(t)
-
-	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
-	err := ioutil.WriteFile(certPath, []byte("bad cert"), 0644)
-	a.Nil(err)
-	defer os.RemoveAll(certPath)
-
-	err = ts.client.RequestCert(ts.ctx)
-	a.NotNil(err)
-	a.Contains(err.Error(), "Could not parse cert")
-}
-
 func (ts *TestSuite) TestBadPrincipalsCert() {
 	t := ts.T()
 	a := assert.New(t)
