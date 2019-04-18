@@ -169,6 +169,17 @@ func (ts *TestSuite) TestUpdateAWSUsernameEmptyResponse() {
 	a.Contains(err.Error(), "AWS returned nil user")
 }
 
+func (ts *TestSuite) TestGetRemoteUsers() {
+	t := ts.T()
+	a := assert.New(t)
+
+	c, err := config.DefaultConfig()
+	a.Nil(err)
+
+	remoteUsers := c.GetRemoteUsers("testusername")
+	a.Equal([]string{"testusername"}, remoteUsers)
+}
+
 func (ts *TestSuite) TestGetOktaMFADevice() {
 	t := ts.T()
 	a := assert.New(t)
