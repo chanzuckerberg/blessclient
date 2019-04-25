@@ -41,7 +41,6 @@ matrix:
       stage: publish-osx
       sudo: true
       go: 1.12.x
-      secure: "KV2+lOfog0Qk2FUhwvg40J/cZFtzr/v3cM4Wdrf2FwOSTNdjc0/v2iuhCtD1GnIqUvbkCVziSrtF4qhDvWwKyZ4wzdZcTMV7dJeAFGIZJxQzyKpcnHEJBpFISPR1yFNJ2aD1Qt8pA221SUfHqAz/SEv1TcYA6kEjadycZqG7fQbQaXdqoJTevRqGAZUKJReRyxSBCbuP25BWbn9eo60vCYZY9S1Qnzy+pkppeZwaBpLGNmFZoOrYsXn+YY+MN50LJmmeV76u3kYJTnH7JcO1UfcWzN7EZABdMaWiptFbmwKHiywnBcQ+/oK9mgWvkcXgZKcodErBu5BPTtLcYT0AmveFgLE+U3MqKuphyXYUaVIpKpVNchzOdacHLyFFdvZ7DamX8pEVHvpu+jvaiBX4YX1xDtm12n+fX0wKF+ENgseqIxDDzDZ6w5KxOqVUU3xgitSIiQ9Y5w04aSH6MRtWXAuCcUfsg/ZZ3497PXSt4SVdQWGAAvdi+fAjQ84+fA+pFlKF+xcT1fgleh32ss6JLhes2Cxp7SCTSbRKAnSidhWBMFXgYX6mrY5aOyA00wdlEevNrLfXXiSLtEXGkwbJmC5v1FsOcZnsxfaUeTNSTkeuRWSBlAOkxETGkR9QQmUOhHtQChOLpIVYh3JQezc8kWznPF++VIeIa62VKMSf/RY="
       script:
         - curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | BINDIR=/Users/travis/bin sh
         - make publish-darwin
@@ -50,7 +49,6 @@ matrix:
       stage: publish-prerelease-osx
       sudo: true
       go: 1.12.x
-      secure: "KV2+lOfog0Qk2FUhwvg40J/cZFtzr/v3cM4Wdrf2FwOSTNdjc0/v2iuhCtD1GnIqUvbkCVziSrtF4qhDvWwKyZ4wzdZcTMV7dJeAFGIZJxQzyKpcnHEJBpFISPR1yFNJ2aD1Qt8pA221SUfHqAz/SEv1TcYA6kEjadycZqG7fQbQaXdqoJTevRqGAZUKJReRyxSBCbuP25BWbn9eo60vCYZY9S1Qnzy+pkppeZwaBpLGNmFZoOrYsXn+YY+MN50LJmmeV76u3kYJTnH7JcO1UfcWzN7EZABdMaWiptFbmwKHiywnBcQ+/oK9mgWvkcXgZKcodErBu5BPTtLcYT0AmveFgLE+U3MqKuphyXYUaVIpKpVNchzOdacHLyFFdvZ7DamX8pEVHvpu+jvaiBX4YX1xDtm12n+fX0wKF+ENgseqIxDDzDZ6w5KxOqVUU3xgitSIiQ9Y5w04aSH6MRtWXAuCcUfsg/ZZ3497PXSt4SVdQWGAAvdi+fAjQ84+fA+pFlKF+xcT1fgleh32ss6JLhes2Cxp7SCTSbRKAnSidhWBMFXgYX6mrY5aOyA00wdlEevNrLfXXiSLtEXGkwbJmC5v1FsOcZnsxfaUeTNSTkeuRWSBlAOkxETGkR9QQmUOhHtQChOLpIVYh3JQezc8kWznPF++VIeIa62VKMSf/RY="
       script:
         - curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | BINDIR=/Users/travis/bin sh
         - make publish-prerelease-darwin
@@ -59,8 +57,8 @@ matrix:
       stage: publish-linux
       sudo: true
       go: 1.12.x
-      secure: "KV2+lOfog0Qk2FUhwvg40J/cZFtzr/v3cM4Wdrf2FwOSTNdjc0/v2iuhCtD1GnIqUvbkCVziSrtF4qhDvWwKyZ4wzdZcTMV7dJeAFGIZJxQzyKpcnHEJBpFISPR1yFNJ2aD1Qt8pA221SUfHqAz/SEv1TcYA6kEjadycZqG7fQbQaXdqoJTevRqGAZUKJReRyxSBCbuP25BWbn9eo60vCYZY9S1Qnzy+pkppeZwaBpLGNmFZoOrYsXn+YY+MN50LJmmeV76u3kYJTnH7JcO1UfcWzN7EZABdMaWiptFbmwKHiywnBcQ+/oK9mgWvkcXgZKcodErBu5BPTtLcYT0AmveFgLE+U3MqKuphyXYUaVIpKpVNchzOdacHLyFFdvZ7DamX8pEVHvpu+jvaiBX4YX1xDtm12n+fX0wKF+ENgseqIxDDzDZ6w5KxOqVUU3xgitSIiQ9Y5w04aSH6MRtWXAuCcUfsg/ZZ3497PXSt4SVdQWGAAvdi+fAjQ84+fA+pFlKF+xcT1fgleh32ss6JLhes2Cxp7SCTSbRKAnSidhWBMFXgYX6mrY5aOyA00wdlEevNrLfXXiSLtEXGkwbJmC5v1FsOcZnsxfaUeTNSTkeuRWSBlAOkxETGkR9QQmUOhHtQChOLpIVYh3JQezc8kWznPF++VIeIa62VKMSf/RY="
       script:
         - sudo apt update -q
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
+        - go get -u github.com/aktau/github-release
         - make publish-linux

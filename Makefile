@@ -38,7 +38,7 @@ publish-linux: build ## Update the github release with a linux build. Must be ru
 	--user czibuildbot \
 	--repo blessclient \
 	--tag ${TRAVIS_TAG} \
-	--name blessclient_${TRAVIS_TAG}_linux_amd64 \
+	--name blessclient_${TRAVIS_TAG}_linux_amd64.tar.gz \
 	--file blessclient.tar.gz
 
 
