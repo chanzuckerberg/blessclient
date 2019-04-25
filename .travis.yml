@@ -48,6 +48,7 @@ matrix:
       script:
         - make release-darwin
     - os: linux
+      if: tag =~ ^v
       stage: release-linux
       sudo: true
       go: 1.12.x
