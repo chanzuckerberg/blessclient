@@ -10,10 +10,9 @@ setup:
 test:
 	go test -coverprofile=coverage.txt -covermode=atomic ./...
 
-release:
+release: ## Create a new tag and let travis_ci do the rest
 	bff bump
 	git push
-	goreleaser release --rm-dist
 
 build: ## build the binary
 	go build ${LDFLAGS} .
@@ -27,7 +26,19 @@ release-prerelease: build ## release to github as a 'pre-release'
 	goreleaser release -f .goreleaser.prerelease.yml --debug
 .PHONY: release-prerelease
 
-release-github-binary: build ## release the osx binary to github, assumes existing github release
+release-darwin:
+	goreleaser release -f .goreleaser.darwin.yml --debug
+
+release-linux: build ## Update the github release with a linux build. Must be run after release-darwin
+	@tar -zcvf blessclient.tar.gz blessclient
+	@github-release upload \
+	--security_token ${GITHUB_TOKEN} \
+	--user czibuildbot \
+	--repo blessclient \
+	--tag ${TRAVIS_TAG} \
+	--name blessclient_${TRAVIS_TAG}_linux_amd64 \
+	--file blessclient.tar.gz
+
 
 install:
 	go install  ${LDFLAGS} .
