@@ -29,6 +29,9 @@ release-prerelease: build ## release to github as a 'pre-release'
 release-darwin:
 	goreleaser release -f .goreleaser.darwin.yml --debug
 
+release-prerelease-darwin:
+	goreleaser release -f .goreleaser.prerelease.darwin.yml --debug
+
 release-linux: build ## Update the github release with a linux build. Must be run after release-darwin
 	@tar -zcvf blessclient.tar.gz blessclient
 	@github-release upload \
