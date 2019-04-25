@@ -27,7 +27,7 @@ matrix:
       sudo: true
       go: 1.12.x
       script:
-        - make setup
+        - sudo make setup
         - make lint
     # - os: osx
     # stage: release
