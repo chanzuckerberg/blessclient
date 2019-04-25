@@ -6,6 +6,7 @@ LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0 # golangci-lint
 	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | BINDIR=./_bin sh
+	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
 
 test:
 	go test -coverprofile=coverage.txt -covermode=atomic ./...

@@ -6,6 +6,7 @@ env:
 stages:
   - test
   - publish-osx
+  - publish-prerelease-osx
   - publish-linux
 matrix:
   include:
@@ -38,16 +39,20 @@ matrix:
     - os: osx
       if: tag =~ /^v\d+\.\d+\.\d+$/ # only for releases vX.Y.Z
       stage: publish-osx
+      sudo: true
       go: 1.12.x
       secure: "KV2+lOfog0Qk2FUhwvg40J/cZFtzr/v3cM4Wdrf2FwOSTNdjc0/v2iuhCtD1GnIqUvbkCVziSrtF4qhDvWwKyZ4wzdZcTMV7dJeAFGIZJxQzyKpcnHEJBpFISPR1yFNJ2aD1Qt8pA221SUfHqAz/SEv1TcYA6kEjadycZqG7fQbQaXdqoJTevRqGAZUKJReRyxSBCbuP25BWbn9eo60vCYZY9S1Qnzy+pkppeZwaBpLGNmFZoOrYsXn+YY+MN50LJmmeV76u3kYJTnH7JcO1UfcWzN7EZABdMaWiptFbmwKHiywnBcQ+/oK9mgWvkcXgZKcodErBu5BPTtLcYT0AmveFgLE+U3MqKuphyXYUaVIpKpVNchzOdacHLyFFdvZ7DamX8pEVHvpu+jvaiBX4YX1xDtm12n+fX0wKF+ENgseqIxDDzDZ6w5KxOqVUU3xgitSIiQ9Y5w04aSH6MRtWXAuCcUfsg/ZZ3497PXSt4SVdQWGAAvdi+fAjQ84+fA+pFlKF+xcT1fgleh32ss6JLhes2Cxp7SCTSbRKAnSidhWBMFXgYX6mrY5aOyA00wdlEevNrLfXXiSLtEXGkwbJmC5v1FsOcZnsxfaUeTNSTkeuRWSBlAOkxETGkR9QQmUOhHtQChOLpIVYh3JQezc8kWznPF++VIeIa62VKMSf/RY="
       script:
+        - sudo make setup
         - make publish-darwin
     - os: osx
       if: tag =~ /\+.+/ # only do prerelease for prereleases vX.Y.Z+AAAAA
       stage: publish-prerelease-osx
+      sudo: true
       go: 1.12.x
       secure: "KV2+lOfog0Qk2FUhwvg40J/cZFtzr/v3cM4Wdrf2FwOSTNdjc0/v2iuhCtD1GnIqUvbkCVziSrtF4qhDvWwKyZ4wzdZcTMV7dJeAFGIZJxQzyKpcnHEJBpFISPR1yFNJ2aD1Qt8pA221SUfHqAz/SEv1TcYA6kEjadycZqG7fQbQaXdqoJTevRqGAZUKJReRyxSBCbuP25BWbn9eo60vCYZY9S1Qnzy+pkppeZwaBpLGNmFZoOrYsXn+YY+MN50LJmmeV76u3kYJTnH7JcO1UfcWzN7EZABdMaWiptFbmwKHiywnBcQ+/oK9mgWvkcXgZKcodErBu5BPTtLcYT0AmveFgLE+U3MqKuphyXYUaVIpKpVNchzOdacHLyFFdvZ7DamX8pEVHvpu+jvaiBX4YX1xDtm12n+fX0wKF+ENgseqIxDDzDZ6w5KxOqVUU3xgitSIiQ9Y5w04aSH6MRtWXAuCcUfsg/ZZ3497PXSt4SVdQWGAAvdi+fAjQ84+fA+pFlKF+xcT1fgleh32ss6JLhes2Cxp7SCTSbRKAnSidhWBMFXgYX6mrY5aOyA00wdlEevNrLfXXiSLtEXGkwbJmC5v1FsOcZnsxfaUeTNSTkeuRWSBlAOkxETGkR9QQmUOhHtQChOLpIVYh3JQezc8kWznPF++VIeIa62VKMSf/RY="
       script:
+        - sudo make setup
         - make publish-prerelease-darwin
     - os: linux
       if: tag =~ /^v/ # we do linux for both prereleases and releases
