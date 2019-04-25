@@ -139,7 +139,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 
 // getAWSClient configures an aws client
 func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) *cziAWS.Client {
-	ctx, span := trace.StartSpan(ctx, "get_aws_client")
+	_, span := trace.StartSpan(ctx, "get_aws_client")
 	defer span.End()
 	// for things meant to be run as a user
 	userConf := &aws.Config{

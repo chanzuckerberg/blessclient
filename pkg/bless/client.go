@@ -126,7 +126,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error writing cert to disk")
 	}
-	err = c.updateSSHAgent(ctx)
+	err = c.updateSSHAgent()
 	if err != nil {
 		// Not a fatal error so just printing a warning
 		log.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
@@ -134,7 +134,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) updateSSHAgent(ctx context.Context) error {
+func (c *Client) updateSSHAgent() error {
 	if !c.conf.ClientConfig.UpdateSSHAgent {
 		log.Debug("Skipping adding to ssh-agent")
 		return nil
@@ -164,7 +164,7 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	}
 
 	// calculate how many seconds before cert expiry
-	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).Sub(time.Now()) / time.Second)
+	certLifetimeSecs := uint32(time.Until(time.Unix(int64(cert.ValidBefore), 0)) / time.Second)
 	log.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
 
 	a := agent.NewClient(agentSock)

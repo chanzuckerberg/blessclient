@@ -29,8 +29,6 @@ const (
 	defaultCacheDir = "cache"
 	// defaultKMSAuthCache is the default kmsauth cache
 	defaultKMSAuthCache = "kmsauth"
-	// defaultAWSSessionCache is the default aws session cache
-	defaultAWSSessionCache = "session"
 	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
 	DefaultSSHPrivateKey = "~/.ssh/id_ed25519"
 )
