@@ -23,7 +23,6 @@ release-prerelease: build ## release to github as a 'pre-release'
 	git tag v"$$version"; \
 	git push
 	git push --tags
-	goreleaser release -f .goreleaser.prerelease.yml --debug
 .PHONY: release-prerelease
 
 release-darwin:
