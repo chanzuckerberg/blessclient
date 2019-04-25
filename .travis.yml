@@ -1,19 +1,30 @@
 language: go
-go:
-- '1.11'
+go_import_path: github.com/chanzuckerberg/blessclient
+sudo: false
 install:
   - npm install -g snyk
   - make setup
-jobs:
+matrix:
   include:
-    - stage: check
+    - os: linux
+      stage: test
+      go: 1.12.x
       script:
         - make test
         - bash <(curl -s https://codecov.io/bash)
-    - stage: check
+    - os: osx
+      stage: test
+      go: 1.12.x
+      script:
+        - make test
+        - bash <(curl -s https://codecov.io/bash)
+    - os: linux
+      stage: test
+      go: 1.12.x
       script:
         - bash _bin/snyk.sh
-    - stage: check
+    - os: linux
+      stage: test
+      go: 1.12.x
       script:
         - make lint
-

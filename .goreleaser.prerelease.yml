@@ -1,0 +1,28 @@
+builds:
+  - binary: blessclient
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+      - "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha={{.Commit}} -X github.com/chanzuckerberg/blessclient/pkg/util.Version={{.Version}} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=false -X github.com/chanzuckerberg/blessclient/pkg/util.Release=true"
+
+archive:
+  files:
+    - none*
+
+release:
+  prerelease: true
+  github:
+    owner: chanzuckerberg
+    name: blessclient
+
+brew:
+  description: "SSH without pain."
+  github:
+    owner: chanzuckerberg
+    name: homebrew-tap
+  homepage: "https://github.com/chanzuckerberg/blessclient"
+  test: system "#{bin}/blessclient version"

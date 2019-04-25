@@ -15,6 +15,18 @@ release:
 	git push
 	goreleaser release --rm-dist
 
+build: ## build the binary
+	go build ${LDFLAGS} .
+.PHONY: build
+
+release-prerelease: build ## release to github as a 'pre-release'
+	version=`./blessclient version`; \
+	git tag v"$$version"; \
+	git push
+	git push --tags
+	goreleaser release -f .goreleaser.prerelease.yml --debug
+.PHONY: release-prerelease
+
 install:
 	go install  ${LDFLAGS} .
 
