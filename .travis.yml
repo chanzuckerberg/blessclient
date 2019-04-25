@@ -6,6 +6,7 @@ env:
 stages:
   - test
   - publish-osx
+  - publish-prerelease-osx
   - publish-linux
 matrix:
   include:
