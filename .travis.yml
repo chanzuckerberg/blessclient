@@ -27,7 +27,7 @@ matrix:
       go: 1.12.x
       script:
         - make setup
-        - travis_wait make lint
+        - make lint
     # - os: osx
     # stage: release
     # go: 1.12.x
