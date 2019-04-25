@@ -24,6 +24,7 @@ matrix:
         - bash _bin/snyk.sh
     - os: linux
       stage: test
+      sudo: true
       go: 1.12.x
       script:
         - make setup
