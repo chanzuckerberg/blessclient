@@ -64,12 +64,14 @@ func TestLock(t *testing.T) {
 
 	l, err := util.NewLock(lockDir)
 	a.Nil(err)
+	// nolint: gosimple
 	var b backoff.BackOff
 	b = backoff.NewConstantBackOff(time.Millisecond)
 	// Only one retry so we don't wait too long
 	b = backoff.WithMaxRetries(b, uint64(1))
 
 	err = l.Lock(b)
+	// nolint: errcheck
 	defer l.Unlock()
 	if os.Getenv("SHOULD_FAIL_LOCK") == "YES" {
 		// This lock should fail since the other process owns it

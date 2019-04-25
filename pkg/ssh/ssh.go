@@ -166,7 +166,7 @@ func GetSSHVersion() (string, error) {
 // compatible with the ssh client version
 // Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
 func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
-	ctx, span := trace.StartSpan(ctx, "check_ssh_client")
+	_, span := trace.StartSpan(ctx, "check_ssh_client")
 	defer span.End()
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()
