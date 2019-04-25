@@ -1,9 +1,8 @@
 language: go
 go_import_path: github.com/chanzuckerberg/blessclient
 sudo: false
-install:
-  - npm install -g snyk
-  - make setup
+env:
+  - CGO_ENABLED=1
 matrix:
   include:
     - os: linux
@@ -17,14 +16,20 @@ matrix:
       go: 1.12.x
       script:
         - make test
-        - bash <(curl -s https://codecov.io/bash)
     - os: linux
       stage: test
       go: 1.12.x
       script:
+        - npm install -g snyk
         - bash _bin/snyk.sh
     - os: linux
       stage: test
       go: 1.12.x
       script:
-        - make lint
+        - make setup
+        - travis_wait make lint
+    # - os: osx
+    # stage: release
+    # go: 1.12.x
+    # script:
+    # -
