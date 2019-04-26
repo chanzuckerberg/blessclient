@@ -86,7 +86,7 @@ func (c *OktaCreds) Validate(mfaConfig MFAConfig) error {
 	return nil
 }
 
-func getOktaDomain(region string) (string, error) {
+func GetOktaDomain(region string) (string, error) {
 	switch region {
 	case "us":
 		return OktaServerUs, nil
@@ -131,6 +131,7 @@ func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string,
 			},
 		})
 	}
+	log.Debug("domain: " + domain)
 
 	return &OktaClient{
 		// Setting Organization for backwards compatibility
@@ -277,12 +278,18 @@ func (o *OktaClient) selectMFADevice() (*OktaUserAuthnFactor, error) {
 		log.Infof("%d: %s (%s)", i, f.Provider, f.FactorType)
 	}
 	i, err := Prompt("Select MFA method", false)
+	if i == "" {
+		return nil, errors.New("Invalid selection - Please use an option that is listed")
+	}
 	if err != nil {
 		return nil, err
 	}
 	factorIdx, err := strconv.Atoi(i)
 	if err != nil {
 		return nil, err
+	}
+	if factorIdx > (len(factors) - 1) {
+		return nil, errors.New("Invalid selection - Please use an option that is listed")
 	}
 	return &factors[factorIdx], nil
 }
@@ -561,9 +568,9 @@ func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
 	}
 
 	newCookieItem := keyring.Item{
-		Key:   p.OktaSessionCookieKey,
-		Data:  []byte(newSessionCookie),
-		Label: "okta session cookie",
+		Key:                         p.OktaSessionCookieKey,
+		Data:                        []byte(newSessionCookie),
+		Label:                       "okta session cookie",
 		KeychainNotTrustApplication: false,
 	}
 

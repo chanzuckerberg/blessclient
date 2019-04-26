@@ -50,7 +50,6 @@
 [[constraint]]
   branch = "master"
   name = "github.com/segmentio/aws-okta"
-  source = "github.com/chanzuckerberg/aws-okta"
 
 [[constraint]]
   name = "github.com/segmentio/go-prompt"
