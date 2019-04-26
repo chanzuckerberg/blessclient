@@ -15,6 +15,7 @@ test:
 release: test ## Create a new tag and let travis_ci do the rest
 	bff bump
 	git push
+	git push --tags
 .PHONY: release
 
 build: ## build the binary
