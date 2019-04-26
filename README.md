@@ -22,6 +22,8 @@ brew install blessclient
 ### Linux
 Binaries are available on the [releases](https://github.com/chanzuckerberg/blessclient/releases) page. Download one for your architecture, put it in your path and make it executable.
 
+You might also need to install `libusb-dev`. For ubuntu you can install `libusb-1.0-0-dev`.
+
 ## Usage
 
 At a high level:

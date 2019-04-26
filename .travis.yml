@@ -14,6 +14,8 @@ matrix:
       stage: test
       go: 1.12.x
       script:
+        - sudo apt update -q
+        - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - make test
         - bash <(curl -s https://codecov.io/bash)
     - os: osx
@@ -25,6 +27,8 @@ matrix:
       stage: test
       go: 1.12.x
       script:
+        - sudo apt update -q
+        - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - npm install -g snyk
         - bash _bin/snyk.sh
     - os: linux
@@ -33,6 +37,8 @@ matrix:
       go: 1.12.x
       script:
         - sudo make setup
+        - sudo apt update -q
+        - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - make lint
 
     # Publish
