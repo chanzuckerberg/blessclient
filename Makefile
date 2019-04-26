@@ -37,7 +37,7 @@ publish-prerelease-darwin:
 .PHONY: publish-prerelease-darwin
 
 publish-linux: build ## Update the github release with a linux build. Must be run after release-darwin
-	tar -zcvf blessclient.tar.gz blessclient
+	tar -zcf blessclient.tar.gz blessclient
 	github-release upload \
 	--user chanzuckerberg \
 	--repo blessclient \
