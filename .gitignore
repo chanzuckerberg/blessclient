@@ -1,4 +1,5 @@
 blessclient
+blessclient.tar.gz
 dist
 coverage.*
 profile.cov
