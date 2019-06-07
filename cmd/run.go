@@ -126,7 +126,11 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 	defer span.End()
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
 
-	awsClient := getAWSClient(ctx, conf, sess, region)
+	awsClient, err := getAWSClient(ctx, conf, sess, region)
+	if err != nil {
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
+		return err
+	}
 	username, err := conf.GetAWSUsername(ctx, awsClient)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
@@ -138,7 +142,7 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 }
 
 // getAWSClient configures an aws client
-func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) *cziAWS.Client {
+func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) (*cziAWS.Client, error) {
 	_, span := trace.StartSpan(ctx, "get_aws_client")
 	defer span.End()
 	// for things meant to be run as a user
@@ -151,7 +155,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		creds, err := getAWSOktaCredentials(conf)
 		if err != nil {
 			log.Errorf("Error in retrieving AWS Okta session credentials: %s.", err.Error())
-			return nil
+			return nil, err
 		}
 
 		userConf = &aws.Config{
@@ -182,7 +186,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		WithKMS(userConf).
 		WithSTS(userConf).
 		WithLambda(lambdaConf)
-	return awsClient
+	return awsClient, nil
 }
 
 func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
