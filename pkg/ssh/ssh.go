@@ -133,7 +133,7 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 
 	// to protect against time-skew issues we potentially generate a certificate timeSkew duration
 	//    earlier than we might've otherwise
-	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(-1 * timeSkew)    // uper bound
+	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(-1 * timeSkew) // uper bound
 	isFresh := now.Before(validBefore)
 
 	// TODO: add more validation for certificate critical options
