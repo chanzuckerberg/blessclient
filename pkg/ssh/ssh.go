@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	timeSkew = time.Second
+	timeSkew = 10 * time.Second
 )
 
 // SSH is a namespace
