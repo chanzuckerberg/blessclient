@@ -58,3 +58,21 @@ func (i *MockIAMSvc) GetLoginProfileWithContext(ctx aws.Context, in *iam.GetLogi
 	out := args.Get(0).(*iam.GetLoginProfileOutput)
 	return out, args.Error(1)
 }
+
+func (i *MockIAMSvc) ListAccessKeysWithContext(ctx aws.Context, in *iam.ListAccessKeysInput, ro ...request.Option) (*iam.ListAccessKeysOutput, error) {
+	args := i.Called(in)
+	out := args.Get(0).(*iam.ListAccessKeysOutput)
+	return out, args.Error(1)
+}
+
+func (i *MockIAMSvc) CreateAccessKeyWithContext(ctx aws.Context, in *iam.CreateAccessKeyInput, ro ...request.Option) (*iam.CreateAccessKeyOutput, error) {
+	args := i.Called(in)
+	out := args.Get(0).(*iam.CreateAccessKeyOutput)
+	return out, args.Error(1)
+}
+
+func (i *MockIAMSvc) DeleteAccessKeyWithContext(ctx aws.Context, in *iam.DeleteAccessKeyInput, ro ...request.Option) (*iam.DeleteAccessKeyOutput, error) {
+	args := i.Called(in)
+	out := args.Get(0).(*iam.DeleteAccessKeyOutput)
+	return out, args.Error(1)
+}

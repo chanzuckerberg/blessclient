@@ -63,7 +63,7 @@ func (e *Exporter) Close() {
 // Don't have a Honeycomb account? Sign up at https://ui.honeycomb.io/signup
 func NewExporter(writeKey, dataset string) *Exporter {
 	// Developer note: bump this with each release
-	versionStr := "0.0.6"
+	versionStr := "1.0.1"
 	libhoney.UserAgentAddition = "Honeycomb-OpenCensus-exporter/" + versionStr
 
 	libhoney.Init(libhoney.Config{
