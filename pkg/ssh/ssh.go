@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	timeSkew = time.Second * 30
+	timeSkew = 10 * time.Second
 )
 
 // SSH is a namespace
@@ -130,10 +130,11 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	}
 
 	now := time.Now()
-	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(timeSkew)    // uper bound
-	validAfter := time.Unix(int64(cert.ValidAfter), 0).Add(-1 * timeSkew) // lower bound
 
-	isFresh := now.After(validAfter) && now.Before(validBefore)
+	// to protect against time-skew issues we potentially generate a certificate timeSkew duration
+	//    earlier than we might've otherwise
+	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(-1 * timeSkew) // upper bound
+	isFresh := now.Before(validBefore)
 
 	// TODO: add more validation for certificate critical options
 	val, ok := cert.CriticalOptions["source-address"]

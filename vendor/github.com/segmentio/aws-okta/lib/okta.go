@@ -164,7 +164,7 @@ func (o *OktaClient) AuthenticateUser() error {
 	log.Debug("Step: 1")
 	err = o.Get("POST", "api/v1/authn", payload, &oktaUserAuthn, "json")
 	if err != nil {
-		return fmt.Errorf("Failed to authenticate with okta: %#v", err)
+		return fmt.Errorf("Failed to authenticate with okta. If your credentials have changed, use 'aws-okta add': %#v", err)
 	}
 
 	o.UserAuth = &oktaUserAuthn
@@ -476,7 +476,11 @@ func (o *OktaClient) Get(method string, path string, data []byte, recv interface
 			"Cache-Control": []string{"no-cache"},
 		}
 	} else {
-		header = http.Header{}
+		// disable gzip encoding; it was causing spurious EOFs
+		// for some users; see #148
+		header = http.Header{
+			"Accept-Encoding": []string{"identity"},
+		}
 	}
 
 	transCfg := &http.Transport{

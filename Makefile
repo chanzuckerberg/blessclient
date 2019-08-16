@@ -51,6 +51,12 @@ install:
 	go install  ${LDFLAGS} .
 .PHONY: install
 
+deps:
+	go get .
+	go mod tidy
+	go mod vendor
+.PHONY: deps
+
 lint: ## run the fast go linters
 	golangci-lint run --no-config \
 		--disable-all --enable=deadcode  --enable=gocyclo --enable=golint --enable=varcheck \

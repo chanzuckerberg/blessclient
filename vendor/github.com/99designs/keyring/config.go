@@ -1,5 +1,6 @@
 package keyring
 
+// Config contains configuration for keyring
 type Config struct {
 	// AllowedBackends is a whitelist of backend providers that can be used. Nil means all available.
 	AllowedBackends []BackendType
@@ -45,4 +46,7 @@ type Config struct {
 
 	// PassPrefix is a string prefix to prepend to the item path stored in pass
 	PassPrefix string
+
+	// WinCredPrefix is a string prefix to prepend to the key name
+	WinCredPrefix string
 }
