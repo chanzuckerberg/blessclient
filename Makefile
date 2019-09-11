@@ -2,13 +2,19 @@ SHA=$(shell git rev-parse --short HEAD)
 VERSION=$(shell cat VERSION)
 DIRTY=$(shell if `git diff-index --quiet HEAD --`; then echo false; else echo true;  fi)
 LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha=${SHA} -X github.com/chanzuckerberg/blessclient/pkg/util.Version=${VERSION} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=${DIRTY}"
+export GOFLAGS=-mod=vendor
+export GO111MODULE=on
 
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0 # golangci-lint
 	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | BINDIR=./_bin sh
 .PHONY: setup
 
-test:
+test: deps ## run tests, will update vendor
+	go test -coverprofile=coverage.txt -covermode=atomic ./...
+.PHONY: test
+
+test-ci: ## run tests in CI, will fail if vendor is not up to date
 	go test -coverprofile=coverage.txt -covermode=atomic ./...
 .PHONY: test
 
@@ -47,12 +53,11 @@ publish-linux: build ## Update the github release with a linux build. Must be ru
 	--file blessclient.tar.gz
 .PHONY: publish-linux
 
-install:
+install: deps
 	go install  ${LDFLAGS} .
 .PHONY: install
 
 deps:
-	go get .
 	go mod tidy
 	go mod vendor
 .PHONY: deps

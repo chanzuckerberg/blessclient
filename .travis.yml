@@ -16,13 +16,13 @@ matrix:
       script:
         - sudo apt update -q
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
-        - make test
+        - make test-ci
         - bash <(curl -s https://codecov.io/bash)
     - os: osx
       stage: test
       go: 1.12.x
       script:
-        - make test
+        - make test-ci
     - os: linux
       stage: test
       go: 1.12.x
