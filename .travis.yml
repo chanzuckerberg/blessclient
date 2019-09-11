@@ -22,7 +22,7 @@ matrix:
       stage: test
       go: 1.12.x
       script:
-        - make test
+        - make test-ci
     - os: linux
       stage: test
       go: 1.12.x
