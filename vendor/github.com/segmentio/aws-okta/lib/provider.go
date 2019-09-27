@@ -36,7 +36,7 @@ type ProviderOptions struct {
 	ExpiryWindow       time.Duration
 	Profiles           Profiles
 	MFAConfig          MFAConfig
-
+	AssumeRoleArn      string
 	// if true, use store_singlekritem SessionCache (new)
 	// if false, use store_kritempersession SessionCache (old)
 	SessionCacheSingleItem bool
@@ -187,7 +187,7 @@ func (p *Provider) getSamlURL() (string, error) {
 	if err != nil {
 		return "", errors.New("aws_saml_url missing from ~/.aws/config")
 	}
-	log.Debugf("Using aws_saml_url from profile: %s", profile)
+	log.Debugf("Using aws_saml_url from profile %s: %s", profile, oktaAwsSAMLUrl)
 	return oktaAwsSAMLUrl, nil
 }
 
@@ -201,6 +201,8 @@ func (p *Provider) getOktaSessionCookieKey() string {
 }
 
 func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
+	var profileARN string
+	var ok bool
 	source := sourceProfile(p.profile, p.profiles)
 	oktaAwsSAMLUrl, err := p.getSamlURL()
 	if err != nil {
@@ -208,9 +210,15 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 	}
 	oktaSessionCookieKey := p.getOktaSessionCookieKey()
 
-	profileARN, ok := p.profiles[source]["role_arn"]
-	if !ok {
-		return sts.Credentials{}, errors.New("Source profile must provide `role_arn`")
+	// if the assumable role is passed it have it override what is in the profile
+	if p.AssumeRoleArn != "" {
+		profileARN = p.AssumeRoleArn
+		log.Debug("Overriding Assumable role with: ", profileARN)
+	} else {
+		profileARN, ok = p.profiles[source]["role_arn"]
+		if !ok {
+			return sts.Credentials{}, errors.New("Source profile must provide `role_arn`")
+		}
 	}
 
 	provider := OktaProvider{
@@ -220,6 +228,10 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 		SessionDuration:      p.SessionDuration,
 		OktaAwsSAMLUrl:       oktaAwsSAMLUrl,
 		OktaSessionCookieKey: oktaSessionCookieKey,
+	}
+
+	if region := p.profiles[source]["region"]; region != "" {
+		provider.AwsRegion = region
 	}
 
 	creds, oktaUsername, err := provider.Retrieve()
@@ -239,10 +251,7 @@ func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
 	}
 	oktaSessionCookieKey := p.getOktaSessionCookieKey()
 
-	profileARN, ok := p.profiles[source]["role_arn"]
-	if !ok {
-		return &url.URL{}, errors.New("Source profile must provide `role_arn`")
-	}
+	profileARN := p.profiles[source]["role_arn"]
 
 	provider := OktaProvider{
 		MFAConfig:            p.ProviderOptions.MFAConfig,
@@ -251,6 +260,10 @@ func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
 		SessionDuration:      p.SessionDuration,
 		OktaAwsSAMLUrl:       oktaAwsSAMLUrl,
 		OktaSessionCookieKey: oktaSessionCookieKey,
+	}
+
+	if region := p.profiles[source]["region"]; region != "" {
+		provider.AwsRegion = region
 	}
 
 	loginURL, err := provider.GetSAMLLoginURL()
@@ -297,4 +310,32 @@ func (p *Provider) roleSessionName() string {
 
 	// Try to work out a role name that will hopefully end up unique.
 	return fmt.Sprintf("%d", time.Now().UTC().UnixNano())
+}
+
+// GetRoleARN uses p to establish temporary credentials then calls
+// lib.GetRoleARN with them to get the role's ARN
+func (p *Provider) GetRoleARN() (string, error) {
+	creds, err := p.getSamlSessionCreds()
+	if err != nil {
+		return "", err
+	}
+	return GetRoleARN(credentials.Value{
+		AccessKeyID:     *creds.AccessKeyId,
+		SecretAccessKey: *creds.SecretAccessKey,
+		SessionToken:    *creds.SessionToken,
+	})
+}
+
+// GetRoleARN makes a call to AWS to get-caller-identity and returns the
+// assumed role's name and ARN.
+func GetRoleARN(c credentials.Value) (string, error) {
+	client := sts.New(aws_session.New(&aws.Config{Credentials: credentials.NewStaticCredentialsFromCreds(c)}))
+
+	indentity, err := client.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	if err != nil {
+		log.Errorf("Error getting caller identity: %s", err.Error())
+		return "", err
+	}
+	arn := *indentity.Arn
+	return arn, nil
 }
