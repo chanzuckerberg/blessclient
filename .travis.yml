@@ -1,3 +1,4 @@
+dist: bionic
 language: go
 go_import_path: github.com/chanzuckerberg/blessclient
 sudo: false
