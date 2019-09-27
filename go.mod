@@ -1,6 +1,6 @@
 module github.com/chanzuckerberg/blessclient
 
-go 1.12
+go 1.13
 
 require (
 	github.com/99designs/keyring v1.1.1
@@ -21,7 +21,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nightlyone/lockfile v0.0.0-20180618180623-0ad87eef1443
 	github.com/pkg/errors v0.8.1
-	github.com/segmentio/aws-okta v0.22.1
+	github.com/segmentio/aws-okta v0.24.1
 	github.com/segmentio/go-prompt v1.2.1-0.20161017233205-f0d19b6901ad
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5

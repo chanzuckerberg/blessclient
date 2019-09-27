@@ -169,9 +169,10 @@ github.com/nightlyone/lockfile
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/segmentio/aws-okta v0.22.1
+# github.com/segmentio/aws-okta v0.24.1
 github.com/segmentio/aws-okta/lib
 github.com/segmentio/aws-okta/internal/sessioncache
+github.com/segmentio/aws-okta/lib/mfa
 github.com/segmentio/aws-okta/lib/saml
 # github.com/segmentio/go-prompt v1.2.1-0.20161017233205-f0d19b6901ad
 github.com/segmentio/go-prompt
@@ -252,7 +253,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
+# golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/api v0.1.0
