@@ -11,7 +11,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/locales v0.12.1 // indirect
 	github.com/go-playground/universal-translator v0.16.0 // indirect
-	github.com/godbus/dbus v4.1.0+incompatible // indirect
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-getter v1.3.0
 	github.com/hashicorp/go-multierror v1.0.0
