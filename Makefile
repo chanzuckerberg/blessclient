@@ -4,6 +4,7 @@ DIRTY=$(shell if `git diff-index --quiet HEAD --`; then echo false; else echo tr
 LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha=${SHA} -X github.com/chanzuckerberg/blessclient/pkg/util.Version=${VERSION} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=${DIRTY}"
 export GOFLAGS=-mod=vendor
 export GO111MODULE=on
+export CGO_ENABLED=1
 
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0 # golangci-lint
