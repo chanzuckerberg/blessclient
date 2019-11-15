@@ -148,7 +148,7 @@ func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 func (s *SSH) WriteCert(b []byte) error {
 	certPath := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
 	logrus.Debugf("Writing cert to %s", certPath)
-	err := ioutil.WriteFile(certPath, b, 0400)
+	err := ioutil.WriteFile(certPath, b, 0600)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
 }
 
