@@ -4,3 +4,4 @@ dist
 coverage.*
 profile.cov
 _bin/bff
+bin

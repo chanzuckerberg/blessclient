@@ -7,8 +7,9 @@ export GO111MODULE=on
 export CGO_ENABLED=1
 
 setup:
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0 # golangci-lint
-	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | BINDIR=./_bin sh
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- v1.16.0
+	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | sh
+	curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s -- v0.9.14
 .PHONY: setup
 
 test: deps ## run tests, will update vendor
@@ -64,8 +65,17 @@ deps:
 .PHONY: deps
 
 lint: ## run the fast go linters
-	golangci-lint run --no-config \
+	./bin/golangci-lint run --no-config \
 		--disable-all --enable=deadcode  --enable=gocyclo --enable=golint --enable=varcheck \
 		--enable=structcheck --enable=errcheck --enable=dupl --enable=unparam --enable=goimports \
 		--enable=interfacer --enable=unconvert --enable=gosec --enable=megacheck
 .PHONY: lint
+
+lint-ci: ## run the fast go linters
+	./bin/reviewdog -conf .reviewdog.yml  -reporter=github-pr-review
+.PHONY: lint-ci
+
+lint-all: ## run the fast go linters
+	# doesn't seem to be a way to get reviewdog to not filter by diff
+	./bin/golangci-lint run
+.PHONY: lint-all
