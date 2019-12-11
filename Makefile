@@ -65,7 +65,7 @@ deps:
 .PHONY: deps
 
 lint: ## run the fast go linters
-	golangci-lint run --no-config \
+	./bin/golangci-lint run --no-config \
 		--disable-all --enable=deadcode  --enable=gocyclo --enable=golint --enable=varcheck \
 		--enable=structcheck --enable=errcheck --enable=dupl --enable=unparam --enable=goimports \
 		--enable=interfacer --enable=unconvert --enable=gosec --enable=megacheck
@@ -77,5 +77,5 @@ lint-ci: ## run the fast go linters
 
 lint-all: ## run the fast go linters
 	# doesn't seem to be a way to get reviewdog to not filter by diff
-	golangci-lint run
+	./bin/golangci-lint run
 .PHONY: lint-all
