@@ -15,9 +15,10 @@ matrix:
   include:
     - os: linux
       stage: test
-      script:
+      install:
         - sudo apt update -q
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
+      script:
         - make test-ci
         - bash <(curl -s https://codecov.io/bash)
     - os: osx
@@ -26,19 +27,28 @@ matrix:
         - make test-ci
     - os: linux
       stage: test
-      script:
+      install:
         - sudo apt update -q
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - npm install -g snyk
-        - bash _bin/snyk.sh
+      script:
+        - if [ -z "$SNYK_TOKEN" ]; then
+            echo "SNYK_TOKEN not set, skipping"
+            exit 0
+          fi
+
+          echo "SNYK_TOKEN set, running"
+          snyk monitor --org=czi
+          snyk test
     - os: linux
       stage: test
       sudo: true
-      script:
-        - sudo make setup
+      install:
+        - make setup
         - sudo apt update -q
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
-        - make lint
+      script:
+        - make lint-ci
 
     # Publish
     - os: osx
