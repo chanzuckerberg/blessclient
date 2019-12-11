@@ -299,12 +299,21 @@ func (c *Config) GetAWSOktaKeyringBackend() []keyring.BackendType {
 	return backends
 }
 
-// SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing
-func (c *Config) SetAWSUsernameIfMissing(ctx context.Context, awsClient *cziAWS.Client) error {
-	username, err := c.GetAWSUsername(ctx, awsClient)
+// SetAWSUsername sets the ClientConfig.AWSUserName from a variety of sources
+func (c *Config) SetAWSUsername(ctx context.Context, awsClient *cziAWS.Client, usernameOverride *string) error {
+	getUsername := func() (*string, error) {
+		if usernameOverride != nil {
+			return usernameOverride, nil
+		}
+		username, err := c.GetAWSUsername(ctx, awsClient)
+		return &username, err
+	}
+
+	username, err := getUsername()
 	if err != nil {
 		return err
 	}
-	c.ClientConfig.AWSUserName = &username
+
+	c.ClientConfig.AWSUserName = username
 	return nil
 }
