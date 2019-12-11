@@ -32,14 +32,8 @@ matrix:
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - npm install -g snyk
       script:
-        - if [ -z "$SNYK_TOKEN" ]; then
-            echo "SNYK_TOKEN not set, skipping"
-            exit 0
-          fi
-
-          echo "SNYK_TOKEN set, running"
-          snyk monitor --org=czi
-          snyk test
+          - snyk monitor --org=czi
+          - snyk test
     - os: linux
       stage: test
       sudo: true
