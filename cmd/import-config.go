@@ -29,7 +29,7 @@ const (
 
 func init() {
 	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
-	importConfigCmd.Flags().StringP(flagUsername, "u", "", "Set your username instead of trying to infer it.")
+	importConfigCmd.Flags().StringP(flagUsername, "u", "", "Explicitly set your username instead of trying to infer it.")
 
 	rootCmd.AddCommand(importConfigCmd)
 }
