@@ -9,9 +9,9 @@ builds:
     ldflags:
       - "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha={{.Commit}} -X github.com/chanzuckerberg/blessclient/pkg/util.Version={{.Version}} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=false -X github.com/chanzuckerberg/blessclient/pkg/util.Release=true"
 
-archive:
-  files:
-    - none*
+archives:
+  - files:
+      - none*
 
 release:
   prerelease: true
