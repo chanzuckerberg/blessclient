@@ -173,7 +173,7 @@ func (c *Client) updateSSHAgent() error {
 	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
 
 	a := agent.NewClient(agentSock)
-	err = c.removeKeyFromAgent(a, privKey)
+	err = c.RemoveKeyFromAgent(a, privKey)
 	if err != nil {
 		// we ignore this error since duplicates don't
 		// typically cause any issues
@@ -190,7 +190,7 @@ func (c *Client) updateSSHAgent() error {
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
 }
 
-func (c *Client) removeKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
+func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
 	var pubKey ssh.PublicKey
 	var err error
 
@@ -201,7 +201,7 @@ func (c *Client) removeKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) 
 			return errors.Wrap(err, "could not parse public key from rsa.Private key")
 		}
 	case *dsa.PrivateKey:
-		pubKey, err = ssh.NewPublicKey(typedPrivKey.PublicKey)
+		pubKey, err = ssh.NewPublicKey(&typedPrivKey.PublicKey)
 		if err != nil {
 			return errors.Wrap(err, "could not parse public key from dsa.Private key")
 		}

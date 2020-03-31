@@ -2,6 +2,11 @@ package bless_test
 
 import (
 	"context"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 type TestSuite struct {
@@ -121,6 +128,50 @@ func (ts *TestSuite) TestEverythingOk() {
 
 	err := ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
+}
+
+type mockExtendedAgent struct {
+	agent.ExtendedAgent
+	Err error
+}
+
+func (m *mockExtendedAgent) Remove(ssh.PublicKey) error {
+	return m.Err
+}
+
+func (ts *TestSuite) TestRemoveCertFromAgent() {
+	t := ts.T()
+	a := assert.New(t)
+
+	mock := &mockExtendedAgent{}
+	c := bless.Client{}
+
+	// rsa
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	a.NoError(err)
+
+	// dsa
+	params := &dsa.Parameters{}
+	err = dsa.GenerateParameters(params, rand.Reader, dsa.L1024N160)
+	a.NoError(err)
+	dsaPrivatekey := &dsa.PrivateKey{}
+	dsaPrivatekey.PublicKey.Parameters = *params
+	err = dsa.GenerateKey(dsaPrivatekey, rand.Reader)
+	a.NoError(err)
+
+	// ecdsa
+	pubkeyCurve := elliptic.P256()                                      //see http://golang.org/pkg/crypto/elliptic/#P256
+	ecdsaPrivateKey, err := ecdsa.GenerateKey(pubkeyCurve, rand.Reader) // this generates a public & private key pair
+	a.NoError(err)
+
+	// no remove errors
+	a.NoError(c.RemoveKeyFromAgent(mock, rsaKey))
+	a.NoError(c.RemoveKeyFromAgent(mock, dsaPrivatekey))
+	a.NoError(c.RemoveKeyFromAgent(mock, ecdsaPrivateKey))
+
+	// errors
+	err = c.RemoveKeyFromAgent(mock, "not a key")
+	a.Error(err)
 }
 
 func (ts *TestSuite) TestBadPrincipalsCert() {
