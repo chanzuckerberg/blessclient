@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
@@ -164,10 +165,15 @@ func (ts *TestSuite) TestRemoveCertFromAgent() {
 	ecdsaPrivateKey, err := ecdsa.GenerateKey(pubkeyCurve, rand.Reader) // this generates a public & private key pair
 	a.NoError(err)
 
+	// ed25519
+	_, ed25519PrivKey, err := ed25519.GenerateKey(rand.Reader)
+	a.NoError(err)
+
 	// no remove errors
 	a.NoError(c.RemoveKeyFromAgent(mock, rsaKey))
 	a.NoError(c.RemoveKeyFromAgent(mock, dsaPrivatekey))
 	a.NoError(c.RemoveKeyFromAgent(mock, ecdsaPrivateKey))
+	a.NoError(c.RemoveKeyFromAgent(mock, ed25519PrivKey))
 
 	// errors
 	err = c.RemoveKeyFromAgent(mock, "not a key")

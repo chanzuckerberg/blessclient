@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/json"
 	"net"
@@ -210,8 +211,13 @@ func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) 
 		if err != nil {
 			return errors.Wrap(err, "could not parse public key from ecdsa.Private key")
 		}
+	case ed25519.PrivateKey:
+		pubKey, err = ssh.NewPublicKey(typedPrivKey.Public())
+		if err != nil {
+			return errors.Wrap(err, "could not parse public key from ed25519.Private key")
+		}
 	default:
-		return errors.New("can't remove public key from agent since wrong type")
+		return errors.Errorf("can't remove public key from agent since wrong type %T", privKey)
 	}
 
 	return errors.Wrap(a.Remove(pubKey), "could not remove pub key from agent")
