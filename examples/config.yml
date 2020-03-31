@@ -4,7 +4,7 @@
 version: 0 # blessclient config version
 client_config:
   # The aws user (not role) profile to use. "" means "default"
-  aws_user_profile: ""
+  aws_user_profile: ''
   # The lifetime for your certificate
   cert_lifetime: 30m
   # A default ssh key. We prefer ed25519 keys but you can also use RSA keys.
@@ -31,39 +31,26 @@ lambda_config:
   # For multi-region availability or geographic colocation.
   # Regions will be attempted in the order specified.
   regions:
-  - aws_region: us-west-2
-    # The kmsauth key_id (not arn) of the key to use for authentication for this region
-    kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-  - aws_region: us-east-2
-    kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-# configuration for aws-okta
-okta_config:
-  # the name of the profile to be used for aws-okta (profiles are listed at ~/.aws/config)
-  profile: bless_profile
-  # optional, the MFA provider to be used for Okta MFA verification (e.g. Okta, DUO)
-  # defaults to DUO
-  mfa_provider: DUO
-  # optional, the factor type to be used for Okta MFA verification (e.g. sms, token, web)
-  # DUO requires the "web" factor type
-  mfa_factor_type: web
-  # optional, the Duo device to be used for Duo MFA verification (e.g. phone1, phone2, u2f)
-  # duo_device should only be set if the provider is "DUO"
-  duo_device: phone1
+    - aws_region: us-west-2
+      # The kmsauth key_id (not arn) of the key to use for authentication for this region
+      kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+    - aws_region: us-east-2
+      kms_auth_key_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
 # This will help you generate a ~/.ssh/config compatible with blessclient
 ssh_config:
   # If you have a bastion and other servers behind it then
   bastions:
-      # The address of the bastion
+    # The address of the bastion
     - pattern: bastion.foo.bar.com
       # User you want to use to ssh into these machines
       user: foo_user
       # Use this if you want to override the call to "blessclient run"
       # Useful if you want to use aws-vault or similar
-      ssh_exec_command: "blessclient run"
+      ssh_exec_command: 'blessclient run'
       # Patterns for servers behind this bastion
       hosts:
         - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
-        - pattern: "!bastion.foo.bar.com *.foo.bar.com" # Also anything *.foo.bar.com
+        - pattern: '!bastion.foo.bar.com *.foo.bar.com' # Also anything *.foo.bar.com
 # If you with to enable telemetry, add this block, otherwise exclude
 telemetry:
   # Honeycomb telemetry

@@ -11,7 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/stretchr/testify/assert"
@@ -94,26 +93,6 @@ func (ts *TestSuite) TestPersist() {
 	a.Equal(c1, c2)
 }
 
-func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
-	t := ts.T()
-	a := assert.New(t)
-
-	output := &sts.GetCallerIdentityOutput{}
-	output.SetUserId("role_id:test_user")
-	ts.mockSTS.On("GetCallerIdentityWithContext", mock.Anything).Return(output, nil)
-	c, err := config.DefaultConfig()
-	mfaDevice := "phone1"
-	c.OktaConfig = &config.OktaConfig{
-		Profile:   "testprofile",
-		DuoDevice: &mfaDevice,
-	}
-	a.Nil(err)
-
-	username, err := c.GetAWSUsername(ts.ctx, ts.awsClient)
-	a.Nil(err)
-	a.Equal(username, "test_user")
-}
-
 func (ts *TestSuite) TestUpdateAWSUsername() {
 	t := ts.T()
 	a := assert.New(t)
@@ -178,27 +157,6 @@ func (ts *TestSuite) TestGetRemoteUsers() {
 
 	remoteUsers := c.GetRemoteUsers("testusername")
 	a.Equal([]string{"testusername"}, remoteUsers)
-}
-
-func (ts *TestSuite) TestGetOktaMFADevice() {
-	t := ts.T()
-	a := assert.New(t)
-
-	c, err := config.DefaultConfig()
-	a.Nil(err)
-	c.OktaConfig = &config.OktaConfig{
-		Profile: "testprofile",
-	}
-	conf := c.GetOktaMFAConfig()
-	a.Equal(conf.DuoDevice, "phone1")
-
-	configFactorType := "u2f"
-	c.OktaConfig = &config.OktaConfig{
-		Profile:       "testprofile",
-		MFAFactorType: &configFactorType,
-	}
-	conf = c.GetOktaMFAConfig()
-	a.Equal(conf.FactorType, "u2f")
 }
 
 func TestDuration(t *testing.T) {

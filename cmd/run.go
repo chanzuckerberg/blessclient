@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"context"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
@@ -20,7 +18,6 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/honeycombio/opencensus-exporter/honeycomb"
 	"github.com/pkg/errors"
-	awsokta "github.com/segmentio/aws-okta/lib"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.opencensus.io/trace"
@@ -149,24 +146,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
 	}
-	if conf.OktaConfig != nil {
-		// override user credentials with Okta credentials
-		log.Debugf("Getting Okta AWS SSO credentials")
-		creds, err := getAWSOktaCredentials(conf)
-		if err != nil {
-			log.Errorf("Error in retrieving AWS Okta session credentials: %s.", err.Error())
-			return nil, err
-		}
-
-		userConf = &aws.Config{
-			Region: aws.String(region.AWSRegion),
-			Credentials: credentials.NewStaticCredentials(
-				creds.AccessKeyID,
-				creds.SecretAccessKey,
-				creds.SessionToken,
-			),
-		}
-	}
 
 	lambdaConf := userConf
 	if conf.LambdaConfig.RoleARN != nil {
@@ -187,46 +166,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		WithSTS(userConf).
 		WithLambda(lambdaConf)
 	return awsClient, nil
-}
-
-func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {
-
-	awsOktaConfig, err := awsokta.NewConfigFromEnv()
-	if err != nil {
-		return nil, errors.Wrap(err, "Error getting aws-okta config")
-	}
-
-	profiles, err := awsOktaConfig.Parse()
-	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing aws-okta config")
-	}
-
-	profile := conf.OktaConfig.Profile
-	if _, ok := profiles[profile]; !ok {
-		return nil, errors.Errorf("Profile '%s' not found in your aws config", profile)
-	}
-
-	mfaConfig := conf.GetOktaMFAConfig()
-	opts := awsokta.ProviderOptions{
-		MFAConfig:          mfaConfig,
-		Profiles:           profiles,
-		SessionDuration:    time.Hour * 12,
-		AssumeRoleDuration: time.Hour,
-	}
-
-	kr, err := awsokta.OpenKeyring(conf.GetAWSOktaKeyringBackend())
-	if err != nil {
-		return nil, errors.Wrap(err, "Error opening keyring for credential storage")
-	}
-
-	p, err := awsokta.NewProvider(kr, profile, opts)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error initializing aws-okta provider")
-	}
-
-	creds, err := p.Retrieve()
-
-	return &creds, errors.Wrap(err, "Error retrieving credentials using aws-okta. Run `blessclient okta-setup` and then try again.")
 }
 
 // getCert requests a cert and persists it to disk
