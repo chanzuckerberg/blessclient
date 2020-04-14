@@ -3,7 +3,7 @@ language: go
 go_import_path: github.com/chanzuckerberg/blessclient
 sudo: false
 go:
-  - "1.14"
+  - "1.14.1"
 env:
   - CGO_ENABLED=1
 stages:
