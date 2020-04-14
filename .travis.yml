@@ -7,12 +7,15 @@ go:
 env:
   - CGO_ENABLED=1
 stages:
+  - check
   - test
   - publish-osx
   - publish-prerelease-osx
   - publish-linux
 matrix:
   include:
+    - state: check
+      script: make check-dep
     - os: linux
       stage: test
       install:
