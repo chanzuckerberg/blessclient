@@ -14,8 +14,9 @@ stages:
   - publish-linux
 matrix:
   include:
-    - state: check
-      script: make check-dep
+    - name: check-mod
+      stage: check
+      script: make check-mod
     - os: linux
       stage: test
       install:
