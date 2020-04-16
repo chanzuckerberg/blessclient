@@ -3,16 +3,20 @@ language: go
 go_import_path: github.com/chanzuckerberg/blessclient
 sudo: false
 go:
-  - "1.14"
+  - "1.14.1"
 env:
   - CGO_ENABLED=1
 stages:
+  - check
   - test
   - publish-osx
   - publish-prerelease-osx
   - publish-linux
 matrix:
   include:
+    - name: check-mod
+      stage: check
+      script: make check-mod
     - os: linux
       stage: test
       install:
