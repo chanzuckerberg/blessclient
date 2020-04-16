@@ -75,7 +75,7 @@ lint: ## run the fast go linters
 .PHONY: lint
 
 lint-ci: ## run the fast go linters
-	./bin/reviewdog -conf .reviewdog.yml  -reporter=github-pr-review
+	./bin/reviewdog -tee -conf .reviewdog.yml  -reporter=github-pr-review
 .PHONY: lint-ci
 
 lint-all: ## run the fast go linters
