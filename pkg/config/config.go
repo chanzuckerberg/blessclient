@@ -8,13 +8,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -204,22 +202,17 @@ func (c *Config) GetKMSAuthCachePath(region string) (string, error) {
 
 // GetAWSUsername gets the caller's aws username for kmsauth
 func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
-	ctx, span := trace.StartSpan(ctx, "get_aws_username")
-	defer span.End()
 	log.Debugf("Getting current aws iam user")
 	if c.ClientConfig.AWSUserName != nil {
 		log.Debugf("Using username %s from config", *c.ClientConfig.AWSUserName)
-		span.AddAttributes(trace.BoolAttribute(telemetry.FieldIsCached, true))
 		return *c.ClientConfig.AWSUserName, nil
 	}
 	user, err := awsClient.IAM.GetCurrentUser(ctx)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	if user == nil || user.UserName == nil {
 		err = errors.New("AWS returned nil user")
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	return *user.UserName, nil

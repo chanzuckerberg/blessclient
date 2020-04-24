@@ -11,7 +11,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-getter v1.4.1
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/honeycombio/opencensus-exporter v1.0.1
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nightlyone/lockfile v1.0.0
@@ -20,7 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v0.0.7
 	github.com/stretchr/testify v1.5.1
-	go.opencensus.io v0.22.3
+	go.opencensus.io v0.22.3 // indirect
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	gopkg.in/yaml.v2 v2.2.8
 )

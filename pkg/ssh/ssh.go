@@ -16,7 +16,6 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -167,8 +166,6 @@ func GetSSHVersion() (string, error) {
 // compatible with the ssh client version
 // Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
 func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
-	_, span := trace.StartSpan(ctx, "check_ssh_client")
-	defer span.End()
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()
 	if err != nil {
@@ -180,21 +177,14 @@ func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
 		logrus.WithError(err).Warn("Could not deduce ssh client version")
 		return
 	}
-	span.AddAttributes(trace.StringAttribute("ssh_client_version", version))
 
-	switch k := key.(type) {
-	case *rsa.PrivateKey:
-		if k == nil {
-			break
-		}
-		span.AddAttributes(trace.StringAttribute("ssh_key_type", "rsa"), trace.Int64Attribute("ssh_key_size", int64(k.Size())))
+	_, ok := key.(*rsa.PrivateKey)
+	if ok {
 		if strings.Contains(version, "OpenSSH_7.8") {
 			logrus.Debug(`
 Looks like you are attempting to use an RSA key with OpenSSH_7.8.
 This might be an unsupported opperation.
 See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
 		}
-	default:
-		span.AddAttributes(trace.StringAttribute("ssh_key_type", "other"))
 	}
 }

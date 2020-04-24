@@ -14,13 +14,11 @@ import (
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
-	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )
@@ -78,8 +76,6 @@ type LambdaResponse struct {
 
 // RequestKMSAuthToken requests a new kmsauth token
 func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedToken, error) {
-	ctx, span := trace.StartSpan(ctx, "request_kmsauth")
-	defer span.End()
 	token, err := c.tg.GetEncryptedToken(ctx)
 	return token, errors.Wrap(err, "Error requesting kmsauth token")
 }
@@ -87,8 +83,6 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 // RequestCert requests a cert
 func (c *Client) RequestCert(ctx context.Context) error {
 	logrus.Debugf("Requesting certificate")
-	ctx, span := trace.StartSpan(ctx, "request_cert")
-	defer span.End()
 
 	payload := &LambdaPayload{
 		BastionUser:     c.username,
@@ -124,7 +118,6 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	logrus.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
 	lambdaResponse, err := c.getCert(ctx, payload)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 	err = s.WriteCert([]byte(*lambdaResponse.Certificate))
@@ -224,9 +217,6 @@ func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) 
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "bless_lambda")
-	defer span.End()
-
 	payloadB, err := json.Marshal(payload)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not serialize lambda payload")
