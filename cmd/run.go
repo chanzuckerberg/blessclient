@@ -85,13 +85,10 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
-		ssh, err := ssh.NewSSH(conf.ClientConfig.SSHPrivateKey)
+		ssh, err := ssh.NewSSH()
 		if err != nil {
 			return err
 		}
-
-		// Check to see if ssh client version is compatible with the key type
-		ssh.CheckKeyTypeAndClientVersion(ctx)
 
 		isFresh, err := ssh.IsCertFresh(conf)
 		if err != nil {

@@ -98,7 +98,7 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		Command:         "*",
 	}
 
-	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	s, err := cziSSH.NewSSH()
 	if err != nil {
 		return err
 	}
@@ -140,10 +140,6 @@ func (c *Client) RequestCert(ctx context.Context) error {
 }
 
 func (c *Client) updateSSHAgent() error {
-	if !c.conf.ClientConfig.UpdateSSHAgent {
-		logrus.Debug("Skipping adding to ssh-agent")
-		return nil
-	}
 	authSock := os.Getenv("SSH_AUTH_SOCK")
 	if authSock == "" {
 		return errors.New("SSH_AUTH_SOCK environment variable empty")

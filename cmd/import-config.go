@@ -28,7 +28,6 @@ const (
 )
 
 func init() {
-	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
 	importConfigCmd.Flags().StringP(flagUsername, "u", "", "Explicitly set your username instead of trying to infer it.")
 
 	rootCmd.AddCommand(importConfigCmd)
@@ -72,24 +71,6 @@ var importConfigCmd = &cobra.Command{
 		}
 		conf.ClientConfig.ConfigFile = configFileExpanded
 
-		// Try to use the specified key
-		sshPrivateKeyPath, err := determineSSHKeyPath(cmd, conf)
-		if err != nil {
-			return errors.Wrap(err, "Could not determine ssh key")
-		}
-		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKeyPath)
-		if err != nil {
-			return errors.Wrapf(err, "Could not expand ssh private key path %s", sshPrivateKeyPath)
-		}
-		conf.ClientConfig.SSHPrivateKey = sshPrivateKeyExpanded
-		_, err = os.Stat(conf.ClientConfig.SSHPrivateKey)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("Found no ssh key at %s, please generate one", conf.ClientConfig.SSHPrivateKey)
-			}
-			return errors.Wrapf(err, "Error reading %s", conf.ClientConfig.SSHPrivateKey)
-		}
-
 		// Now try doing something about the ssh config
 		err = sshConfig(conf)
 		if err != nil {
@@ -122,20 +103,6 @@ var importConfigCmd = &cobra.Command{
 		}
 		return conf.Persist()
 	},
-}
-
-// value precendence:
-// 1. cli override
-// 2. config file override
-// 3. default value
-func determineSSHKeyPath(cmd *cobra.Command, conf *config.Config) (string, error) {
-	if cmd.Flags().Changed(flagKeyFile) {
-		return cmd.Flags().GetString(flagKeyFile)
-	}
-	if conf != nil && conf.ClientConfig.SSHPrivateKey != "" {
-		return conf.ClientConfig.SSHPrivateKey, nil
-	}
-	return cmd.Flags().GetString(flagKeyFile)
 }
 
 func determineUsernameOverride(cmd *cobra.Command) (*string, error) {
@@ -182,11 +149,6 @@ func sshConfig(conf *config.Config) error {
 	if err != nil {
 		// Unsure if we want to error out here
 		log.Warnf("Error backing up %s: %s", sshConfPath, err.Error())
-	}
-
-	// Populate the inferred key
-	for i := range conf.SSHConfig.Bastions {
-		conf.SSHConfig.Bastions[i].IdentityFile = conf.ClientConfig.SSHPrivateKey
 	}
 
 	sshConfig, err := conf.SSHConfig.String()

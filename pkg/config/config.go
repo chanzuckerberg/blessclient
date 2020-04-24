@@ -25,8 +25,6 @@ const (
 	defaultCacheDir = "cache"
 	// defaultKMSAuthCache is the default kmsauth cache
 	defaultKMSAuthCache = "kmsauth"
-	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
-	DefaultSSHPrivateKey = "~/.ssh/id_ed25519"
 )
 
 // Config is a blessclient config
@@ -63,10 +61,6 @@ type ClientConfig struct {
 	AWSUserProfile string ` yaml:"aws_user_profile"`
 	// AWSUserName is your AWS username
 	AWSUserName *string ` yaml:"aws_username,omitempty"`
-
-	// Path to your ssh private key
-	SSHPrivateKey  string `yaml:"ssh_private_key"`
-	UpdateSSHAgent bool   `yaml:"update_ssh_agent"`
 
 	// cert related
 	CertLifetime Duration `yaml:"cert_lifetime,inline"`
@@ -121,18 +115,12 @@ func DefaultConfig() (*Config, error) {
 		return nil, errors.Wrapf(err, "Could not expand %s", DefaultConfigFile)
 	}
 
-	expandedSSHPrivateKey, err := homedir.Expand(DefaultSSHPrivateKey)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Could not expand %s", DefaultSSHPrivateKey)
-	}
-
 	c := &Config{
 		ClientConfig: ClientConfig{
-			ConfigFile:    expandedDefaultConfigFile,
-			CertLifetime:  Duration{30 * time.Minute},
-			SSHPrivateKey: expandedSSHPrivateKey,
-			RemoteUsers:   []string{},
-			BastionIPS:    []string{},
+			ConfigFile:   expandedDefaultConfigFile,
+			CertLifetime: Duration{30 * time.Minute},
+			RemoteUsers:  []string{},
+			BastionIPS:   []string{},
 		},
 		LambdaConfig: LambdaConfig{},
 	}
