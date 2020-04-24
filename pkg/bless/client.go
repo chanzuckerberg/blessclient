@@ -150,21 +150,6 @@ func (c *Client) updateSSHAgent() error {
 	}
 	defer agentSock.Close()
 
-	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
-	if err != nil {
-		return err
-	}
-
-	privKey, err := s.ReadAndParsePrivateKey()
-	if err != nil {
-		return err
-	}
-
-	cert, err := s.ReadAndParseCert()
-	if err != nil {
-		return err
-	}
-
 	// calculate how many seconds before cert expiry
 	certLifetimeSecs := uint32(time.Until(time.Unix(int64(cert.ValidBefore), 0)) / time.Second)
 	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
