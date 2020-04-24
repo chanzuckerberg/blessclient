@@ -38,9 +38,6 @@ type Config struct {
 	LambdaConfig LambdaConfig `yaml:"lambda_config"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `yaml:"ssh_config,omitempty"`
-
-	// Telemetry does telemetry
-	Telemetry Telemetry `yaml:"telemetry,omitempty"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -87,19 +84,6 @@ type LambdaConfig struct {
 	FunctionVersion *string `yaml:"function_version,omitempty"`
 	// bless lambda regions
 	Regions []Region `yaml:"regions,omitempty"`
-}
-
-// Telemetry to track adoption, performance, errors
-type Telemetry struct {
-	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
-}
-
-// Honeycomb telemetry configuration
-type Honeycomb struct {
-	WriteKey string `yaml:"write_key,omitempty"`
-	Dataset  string `yaml:"dataset,omitempty"`
-	// SecretManagerARN is a secret that holds the honeycomb write key
-	SecretManagerARN string `yaml:"secret_manager_arn,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
