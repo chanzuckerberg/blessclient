@@ -26,3 +26,6 @@ brew:
     name: homebrew-tap
   homepage: 'https://github.com/chanzuckerberg/blessclient'
   test: system "#{bin}/blessclient version"
+
+env_files:
+  github_token: ~/.config/goreleaser/github_token
