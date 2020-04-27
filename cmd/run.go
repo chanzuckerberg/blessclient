@@ -13,7 +13,6 @@ import (
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	kmsauth "github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -29,13 +28,7 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		id, err := uuid.NewUUID()
-		if err != nil {
-			// Just for telemetry so ignore errors
-			log.Debugf("Failed to generate UUID with error %s", err.Error())
-		}
 		log.Debugf("Running blessclient v%s", util.VersionCacheKey())
-		log.Debugf("RunID: %s", id.String())
 		ctx := context.Background()
 		expandedConfigFile, err := util.GetConfigPath(cmd)
 		if err != nil {
@@ -64,9 +57,6 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
-		// Check to see if ssh client version is compatible with the key type
-		ssh.CheckKeyTypeAndClientVersion(ctx)
 
 		isFresh, err := ssh.IsCertFresh(conf)
 		if err != nil {
