@@ -1,12 +1,9 @@
 package ssh
 
 import (
-	"context"
-	"crypto/rsa"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"reflect"
 	"strings"
@@ -28,9 +25,6 @@ type SSH struct {
 	keyName      string
 	sshDirectory string
 }
-
-// HACK: we keep this around to test
-var sshVersionCmd = exec.Command("ssh", "-V") // #nosec
 
 // NewSSH returns a new SSH object
 func NewSSH(privateKey string) (*SSH, error) {
@@ -149,42 +143,4 @@ func (s *SSH) WriteCert(b []byte) error {
 	logrus.Debugf("Writing cert to %s", certPath)
 	err := ioutil.WriteFile(certPath, b, 0600)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
-}
-
-// GetSSHVersion gets the version of the ssh client
-func GetSSHVersion() (string, error) {
-	output, err := sshVersionCmd.CombinedOutput()
-	if err != nil {
-		return "", errors.Wrap(err, "Error executing ssh -V")
-	}
-
-	logrus.WithField("version", string(output)).Debug("ssh client version")
-	return string(output), nil
-}
-
-// CheckKeyTypeAndClientVersion checks to see if the key type selected is
-// compatible with the ssh client version
-// Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
-func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
-	// We check the ssh client version and ssh key type
-	key, err := s.ReadAndParsePrivateKey()
-	if err != nil {
-		logrus.WithError(err).Warn("Could not parse private key")
-		return
-	}
-	version, err := GetSSHVersion()
-	if err != nil {
-		logrus.WithError(err).Warn("Could not deduce ssh client version")
-		return
-	}
-
-	_, ok := key.(*rsa.PrivateKey)
-	if ok {
-		if strings.Contains(version, "OpenSSH_7.8") {
-			logrus.Debug(`
-Looks like you are attempting to use an RSA key with OpenSSH_7.8.
-This might be an unsupported opperation.
-See: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates`)
-		}
-	}
 }
