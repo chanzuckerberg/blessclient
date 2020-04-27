@@ -23,9 +23,10 @@ import (
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
+	cziAWSMocks "github.com/chanzuckerberg/go-misc/aws/mocks"
 	"github.com/chanzuckerberg/go-misc/kmsauth"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -34,8 +35,9 @@ import (
 type TestSuite struct {
 	suite.Suite
 
-	mockKMS    *cziAws.MockKMSSvc
-	mockLambda *cziAws.MockLambdaSvc
+	ctrl       *gomock.Controller
+	mockKMS    *cziAWSMocks.MockKMSAPI
+	mockLambda *cziAWSMocks.MockLambdaAPI
 	client     *bless.Client
 
 	// some default vals
@@ -50,12 +52,16 @@ type TestSuite struct {
 
 // cleanup
 func (ts *TestSuite) TearDownTest() {
+	// assert mocks
+	ts.ctrl.Finish()
+
 	rmPaths(ts.pathsToRemove)
 	ts.server.Close()
 }
 
 func (ts *TestSuite) SetupTest() {
 	t := ts.T()
+
 	a := assert.New(t)
 	ts.ctx = context.Background()
 
@@ -77,9 +83,10 @@ func (ts *TestSuite) SetupTest() {
 	authKey := "my auth key"
 	ttl := time.Hour
 
+	ts.ctrl = gomock.NewController(t)
 	awsClient := cziAws.New(sess)
-	awsClient, ts.mockKMS = awsClient.WithMockKMS()
-	awsClient, ts.mockLambda = awsClient.WithMockLambda()
+	awsClient, ts.mockKMS = awsClient.WithMockKMS(ts.ctrl)
+	awsClient, ts.mockLambda = awsClient.WithMockLambda(ts.ctrl)
 
 	authContext := &kmsauth.AuthContextV2{
 		To:       "a",
@@ -124,8 +131,8 @@ func (ts *TestSuite) TestEverythingOk() {
 	t := ts.T()
 	a := assert.New(t)
 
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.EXPECT().EncryptWithContext(gomock.Any(), gomock.Any()).Return(ts.encryptOut, nil)
+	ts.mockLambda.EXPECT().InvokeWithContext(gomock.Any(), gomock.Any()).Return(ts.lambdaExecuteOut, nil)
 
 	err := ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
@@ -183,11 +190,13 @@ func (ts *TestSuite) TestRemoveCertFromAgent() {
 func (ts *TestSuite) TestBadPrincipalsCert() {
 	t := ts.T()
 	a := assert.New(t)
+
 	// cert generated as follows:
 	// ssh-keygen -t rsa -f test_key
 	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.EXPECT().EncryptWithContext(gomock.Any(), gomock.Any()).Return(ts.encryptOut, nil)
+	ts.mockLambda.EXPECT().InvokeWithContext(gomock.Any(), gomock.Any()).Return(ts.lambdaExecuteOut, nil)
+
 	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
 	cert, err := ioutil.ReadFile("testdata/bad-principal")
 	a.Nil(err)
@@ -196,7 +205,6 @@ func (ts *TestSuite) TestBadPrincipalsCert() {
 	defer os.RemoveAll(certPath)
 	err = ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertCalled(t, "InvokeWithContext", mock.Anything))
 }
 
 func (ts *TestSuite) TestBadCriticalOptionsCert() {
@@ -205,8 +213,8 @@ func (ts *TestSuite) TestBadCriticalOptionsCert() {
 	// cert generated as follows:
 	// ssh-keygen -t rsa -f test_key
 	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.EXPECT().EncryptWithContext(gomock.Any(), gomock.Any()).Return(ts.encryptOut, nil)
+	ts.mockLambda.EXPECT().InvokeWithContext(gomock.Any(), gomock.Any()).Return(ts.lambdaExecuteOut, nil)
 	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
 	cert, err := ioutil.ReadFile("testdata/bad-critical-options")
 	a.Nil(err)
@@ -215,7 +223,6 @@ func (ts *TestSuite) TestBadCriticalOptionsCert() {
 	defer os.RemoveAll(certPath)
 	err = ts.client.RequestCert(ts.ctx)
 	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertCalled(t, "InvokeWithContext", mock.Anything))
 }
 
 func (ts *TestSuite) TestReportsLambdaErrors() {
@@ -233,8 +240,8 @@ func (ts *TestSuite) TestReportsLambdaErrors() {
 		Payload: lambdaBytes,
 	}
 
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.EXPECT().EncryptWithContext(gomock.Any(), gomock.Any()).Return(ts.encryptOut, nil)
+	ts.mockLambda.EXPECT().InvokeWithContext(gomock.Any(), gomock.Any()).Return(ts.lambdaExecuteOut, nil)
 
 	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)
@@ -258,8 +265,8 @@ func (ts *TestSuite) TestNoCertificateInResponse() {
 		Payload: lambdaBytes,
 	}
 
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
+	ts.mockKMS.EXPECT().EncryptWithContext(gomock.Any(), gomock.Any()).Return(ts.encryptOut, nil)
+	ts.mockLambda.EXPECT().InvokeWithContext(gomock.Any(), gomock.Any()).Return(ts.lambdaExecuteOut, nil)
 
 	err = ts.client.RequestCert(ts.ctx)
 	a.NotNil(err)

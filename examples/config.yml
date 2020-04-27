@@ -51,13 +51,3 @@ ssh_config:
       hosts:
         - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
         - pattern: '!bastion.foo.bar.com *.foo.bar.com' # Also anything *.foo.bar.com
-# If you with to enable telemetry, add this block, otherwise exclude
-telemetry:
-  # Honeycomb telemetry
-  honeycomb:
-    # A secret manager arn to fetch a honeycomb write key.
-    # Note that the user you specified in client_config.aws_user_profile
-    # must be able to read this secret
-    secret_manager_arn: arn:aws:secretsmanager:us-west-2:123456789123:secret:blessclient/blessclient-honeycomb
-    # Honeycomb dataset to write data to
-    dataset: blessclient

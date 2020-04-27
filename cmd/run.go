@@ -9,18 +9,15 @@ import (
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/chanzuckerberg/blessclient/pkg/ssh"
-	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	kmsauth "github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/honeycombio/opencensus-exporter/honeycomb"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go.opencensus.io/trace"
 )
 
 func init() {
@@ -52,27 +49,6 @@ var runCmd = &cobra.Command{
 		}
 		log.Debugf("Parsed config is: %s", spew.Sdump(conf))
 
-		// tracing
-		traceSampling := float64(1)
-		trace.ApplyConfig(trace.Config{DefaultSampler: trace.ProbabilitySampler(traceSampling)})
-		if conf.Telemetry.Honeycomb != nil {
-			honeycombExporter := honeycomb.NewExporter(conf.Telemetry.Honeycomb.WriteKey, conf.Telemetry.Honeycomb.Dataset)
-			defer honeycombExporter.Close()
-			honeycombExporter.ServiceName = "blessclient"
-			honeycombExporter.SampleFraction = traceSampling
-			trace.RegisterExporter(honeycombExporter)
-		}
-
-		ctx, span := trace.StartSpan(ctx, cmd.Use)
-		span.AddAttributes(
-			trace.StringAttribute(telemetry.FieldID, id.String()),
-			trace.StringAttribute(telemetry.FieldBlessclientVersion, util.VersionCacheKey()),
-			trace.StringAttribute(telemetry.FieldBlessclientGitSha, util.GitSha),
-			trace.StringAttribute(telemetry.FieldBlessclientRelease, util.Release),
-			trace.StringAttribute(telemetry.FieldBlessclientDirty, util.Dirty),
-		)
-		defer span.End()
-
 		sess, err := session.NewSessionWithOptions(
 			session.Options{
 				SharedConfigState:       session.SharedConfigEnable,
@@ -81,7 +57,6 @@ var runCmd = &cobra.Command{
 			},
 		)
 		if err != nil {
-			span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
@@ -97,7 +72,6 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
 		if isFresh {
 			log.Debug("Cert is already fresh - using it")
 			return nil
@@ -119,29 +93,20 @@ var runCmd = &cobra.Command{
 }
 
 func processRegion(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) error {
-	ctx, span := trace.StartSpan(ctx, "process_region")
-	defer span.End()
-	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
-
 	awsClient, err := getAWSClient(ctx, conf, sess, region)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 	username, err := conf.GetAWSUsername(ctx, awsClient)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 
-	span.AddAttributes(trace.StringAttribute(telemetry.FieldUser, username))
 	return getCert(ctx, conf, awsClient, username, region)
 }
 
 // getAWSClient configures an aws client
 func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) (*cziAWS.Client, error) {
-	_, span := trace.StartSpan(ctx, "get_aws_client")
-	defer span.End()
 	// for things meant to be run as a user
 	userConf := &aws.Config{
 		Region: aws.String(region.AWSRegion),
@@ -170,8 +135,6 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 
 // getCert requests a cert and persists it to disk
 func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client, username string, region config.Region) error {
-	ctx, span := trace.StartSpan(ctx, "get_cert")
-	defer span.End()
 	kmsauthContext := &kmsauth.AuthContextV2{
 		From:     username,
 		To:       conf.LambdaConfig.FunctionName,
@@ -179,7 +142,6 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 	}
 	kmsAuthCachePath, err := conf.GetKMSAuthCachePath(region.AWSRegion)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 
@@ -194,7 +156,6 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
 	err = client.RequestCert(ctx)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return err
 	}
 	return nil

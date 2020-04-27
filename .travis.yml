@@ -3,7 +3,7 @@ language: go
 go_import_path: github.com/chanzuckerberg/blessclient
 sudo: false
 go:
-  - "1.14.1"
+  - '1.14.1'
 env:
   - CGO_ENABLED=1
 stages:
@@ -36,7 +36,6 @@ matrix:
         - sudo apt install -yq libusb-dev libusb-1.0.0-dev
         - npm install -g snyk
       script:
-        - snyk monitor --org=czi
         - snyk test || echo "Skipping Failed Test"
     - os: linux
       stage: test

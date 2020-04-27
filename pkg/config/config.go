@@ -8,13 +8,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -40,9 +38,6 @@ type Config struct {
 	LambdaConfig LambdaConfig `yaml:"lambda_config"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `yaml:"ssh_config,omitempty"`
-
-	// Telemetry does telemetry
-	Telemetry Telemetry `yaml:"telemetry,omitempty"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -89,19 +84,6 @@ type LambdaConfig struct {
 	FunctionVersion *string `yaml:"function_version,omitempty"`
 	// bless lambda regions
 	Regions []Region `yaml:"regions,omitempty"`
-}
-
-// Telemetry to track adoption, performance, errors
-type Telemetry struct {
-	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
-}
-
-// Honeycomb telemetry configuration
-type Honeycomb struct {
-	WriteKey string `yaml:"write_key,omitempty"`
-	Dataset  string `yaml:"dataset,omitempty"`
-	// SecretManagerARN is a secret that holds the honeycomb write key
-	SecretManagerARN string `yaml:"secret_manager_arn,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
@@ -204,22 +186,17 @@ func (c *Config) GetKMSAuthCachePath(region string) (string, error) {
 
 // GetAWSUsername gets the caller's aws username for kmsauth
 func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
-	ctx, span := trace.StartSpan(ctx, "get_aws_username")
-	defer span.End()
 	log.Debugf("Getting current aws iam user")
 	if c.ClientConfig.AWSUserName != nil {
 		log.Debugf("Using username %s from config", *c.ClientConfig.AWSUserName)
-		span.AddAttributes(trace.BoolAttribute(telemetry.FieldIsCached, true))
 		return *c.ClientConfig.AWSUserName, nil
 	}
 	user, err := awsClient.IAM.GetCurrentUser(ctx)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	if user == nil || user.UserName == nil {
 		err = errors.New("AWS returned nil user")
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	return *user.UserName, nil
