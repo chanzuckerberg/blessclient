@@ -1,7 +1,7 @@
 builds:
   - binary: blessclient
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -19,3 +19,6 @@ release:
   github:
     owner: chanzuckerberg
     name: blessclient
+
+env_files:
+  github_token: ~/.config/goreleaser/github_token
