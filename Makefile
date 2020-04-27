@@ -23,6 +23,7 @@ release: test ## Create a new tag and let travis_ci do the rest
 	bff bump
 	git push
 	git push --tags
+	goreleaser release -f .goreleaser.yml --rm-dist
 .PHONY: release
 
 build: ## build the binary
@@ -35,24 +36,6 @@ release-prerelease: test build ## release to github as a 'pre-release'
 	git push
 	git push --tags
 .PHONY: release-prerelease
-
-publish-darwin:
-	goreleaser release -f .goreleaser.darwin.yml --debug
-.PHONY: publish-darwin
-
-publish-prerelease-darwin:
-	goreleaser release -f .goreleaser.prerelease.darwin.yml --debug
-.PHONY: publish-prerelease-darwin
-
-publish-linux: build ## Update the github release with a linux build. Must be run after release-darwin
-	tar -zcf blessclient.tar.gz blessclient
-	github-release upload \
-	--user chanzuckerberg \
-	--repo blessclient \
-	--tag ${TRAVIS_TAG} \
-	--name blessclient_${TRAVIS_TAG}_linux_amd64.tar.gz \
-	--file blessclient.tar.gz
-.PHONY: publish-linux
 
 install: deps
 	go install  ${LDFLAGS} .
