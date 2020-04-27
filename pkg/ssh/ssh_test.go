@@ -1,13 +1,10 @@
 package ssh
 
 import (
-	"context"
 	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -87,70 +84,6 @@ func (ts *TestSuite) TestEmptySSHPathError() {
 	a.NotNil(err)
 	a.Equal("Must provide a non-empty path to the ssh private key", err.Error())
 	a.Nil(s)
-}
-
-func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
-	t := ts.T()
-	a := assert.New(t)
-
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-
-	s.CheckKeyTypeAndClientVersion(context.Background())
-}
-
-func (ts *TestSuite) TestSSHVersion() {
-	t := ts.T()
-	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
-
-	v, err := GetSSHVersion()
-	a.Nil(err)
-	a.NotEmpty(v)
-	a.Equal("OpenSSH_7.6\n", v)
-}
-
-func (ts *TestSuite) TestSSHVersionError() {
-	t := ts.T()
-	a := assert.New(t)
-	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
-	defer resetSSHCommand()
-
-	v, err := GetSSHVersion()
-	a.NotNil(err)
-	a.Empty(v)
-}
-
-func (ts *TestSuite) TestCheckVersionErrorLogError() {
-	t := ts.T()
-	a := assert.New(t)
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
-	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
-}
-
-func (ts *TestSuite) TestCheckVersionRSA78() {
-	log.SetLevel(log.DebugLevel)
-	t := ts.T()
-	a := assert.New(t)
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.8")
-	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
-
-	found := false
-	for _, entry := range ts.loggerHook.Entries {
-
-		found = found || strings.Contains(entry.Message, "RSA key with OpenSSH_7.8")
-	}
-	a.True(found)
 }
 
 func (ts *TestSuite) TestNoCertPresent() {
