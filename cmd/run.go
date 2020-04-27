@@ -143,7 +143,7 @@ func getCert(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client,
 		kmsauthContext,
 		awsClient,
 	)
-	client := bless.New(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
+	client := bless.NewKMSAuthClient(conf).WithAwsClient(awsClient).WithTokenGenerator(tg).WithUsername(username)
 	err = client.RequestCert(ctx)
 	if err != nil {
 		return err

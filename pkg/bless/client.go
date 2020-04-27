@@ -8,13 +8,11 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
-	"github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -22,48 +20,15 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
-// Client is a bless client
-type Client struct {
-	Aws      *cziAWS.Client
-	tg       *kmsauth.TokenGenerator
-	conf     *config.Config
-	username string
+// baseClient is a client with shared functionality
+type baseClient struct {
+	conf *config.Config
 }
 
-// New returns a new client
-func New(conf *config.Config) *Client {
-	return &Client{
+func newBaseClient(conf *config.Config) *baseClient {
+	return &baseClient{
 		conf: conf,
 	}
-}
-
-// WithAwsClient configures an aws client
-func (c *Client) WithAwsClient(client *cziAWS.Client) *Client {
-	c.Aws = client
-	return c
-}
-
-// WithUsername configures the username
-func (c *Client) WithUsername(username string) *Client {
-	c.username = username
-	return c
-}
-
-// WithTokenGenerator configures a token generator
-func (c *Client) WithTokenGenerator(tg *kmsauth.TokenGenerator) *Client {
-	c.tg = tg
-	return c
-}
-
-// LambdaPayload is the payload for the bless lambda
-type LambdaPayload struct {
-	RemoteUsernames string `json:"remote_usernames,omitempty"`
-	BastionIPs      string `json:"bastion_ips,omitempty"`
-	BastionUser     string `json:"bastion_user,omitempty"`
-	BastionUserIP   string `json:"bastion_user_ip,omitempty"`
-	Command         string `json:"command,omitempty"`
-	PublicKeyToSign string `json:"public_key_to_sign,omitempty"`
-	KMSAuthToken    string `json:"kmsauth_token"`
 }
 
 // LambdaResponse is a lambda response
@@ -73,65 +38,9 @@ type LambdaResponse struct {
 	ErrorMessage *string `json:"errorMessage"`
 }
 
-// RequestKMSAuthToken requests a new kmsauth token
-func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedToken, error) {
-	token, err := c.tg.GetEncryptedToken(ctx)
-	return token, errors.Wrap(err, "Error requesting kmsauth token")
-}
-
 // RequestCert requests a cert
-func (c *Client) RequestCert(ctx context.Context) error {
-	logrus.Debugf("Requesting certificate")
 
-	payload := &LambdaPayload{
-		BastionUser:     c.username,
-		RemoteUsernames: strings.Join(c.conf.GetRemoteUsers(c.username), ","),
-		BastionIPs:      strings.Join(c.conf.ClientConfig.BastionIPS, ","),
-		BastionUserIP:   "0.0.0.0/0",
-		Command:         "*",
-	}
-
-	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
-	if err != nil {
-		return err
-	}
-
-	logrus.Debug("Requesting new cert")
-	pubKey, err := s.ReadPublicKey()
-	if err != nil {
-		return err
-	}
-	logrus.Debugf("Using public key: %s", string(pubKey))
-
-	token, err := c.RequestKMSAuthToken(ctx)
-	if err != nil {
-		return err
-	}
-	if token == nil {
-		return errors.New("Missing KMSAuth Token")
-	}
-	logrus.Debugf("With KMSAuthToken %s", token.String())
-
-	payload.KMSAuthToken = token.String()
-	payload.PublicKeyToSign = string(pubKey)
-	logrus.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
-	lambdaResponse, err := c.getCert(ctx, payload)
-	if err != nil {
-		return err
-	}
-	err = s.WriteCert([]byte(*lambdaResponse.Certificate))
-	if err != nil {
-		return errors.Wrap(err, "Error writing cert to disk")
-	}
-	err = c.updateSSHAgent()
-	if err != nil {
-		// Not a fatal error so just printing a warning
-		logrus.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
-	}
-	return nil
-}
-
-func (c *Client) updateSSHAgent() error {
+func (c *baseClient) updateSSHAgent() error {
 	if !c.conf.ClientConfig.UpdateSSHAgent {
 		logrus.Debug("Skipping adding to ssh-agent")
 		return nil
@@ -168,7 +77,7 @@ func (c *Client) updateSSHAgent() error {
 	certLifetime := int64(cert.ValidBefore) - time.Now().Unix()
 	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetime)
 
-	err = c.RemoveKeyFromAgent(a, privKey)
+	err = c.removeKeyFromAgent(a, privKey)
 	if err != nil {
 		// we ignore this error since duplicates don't
 		// typically cause any issues
@@ -185,7 +94,7 @@ func (c *Client) updateSSHAgent() error {
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
 }
 
-func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
+func (c *baseClient) removeKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
 	var pubKey ssh.PublicKey
 	var err error
 
@@ -217,12 +126,17 @@ func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) 
 	return errors.Wrap(a.Remove(pubKey), "could not remove pub key from agent")
 }
 
-func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
-	payloadB, err := json.Marshal(payload)
-	if err != nil {
-		return nil, errors.Wrap(err, "Could not serialize lambda payload")
-	}
-	responseBytes, err := c.Aws.Lambda.ExecuteWithQualifier(ctx, c.conf.LambdaConfig.FunctionName, c.conf.LambdaConfig.FunctionVersion, payloadB)
+func (c *baseClient) getCert(
+	ctx context.Context,
+	awsClient *cziAWS.Client,
+	payload []byte) (*LambdaResponse, error) {
+
+	responseBytes, err := awsClient.Lambda.ExecuteWithQualifier(
+		ctx,
+		c.conf.LambdaConfig.FunctionName,
+		c.conf.LambdaConfig.FunctionVersion,
+		payload,
+	)
 	if err != nil {
 		return nil, err
 	}
