@@ -77,7 +77,7 @@ func (c *baseClient) updateSSHAgent() error {
 	certLifetime := int64(cert.ValidBefore) - time.Now().Unix()
 	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetime)
 
-	err = c.RemoveKeyFromAgent(a, privKey)
+	err = c.removeKeyFromAgent(a, privKey)
 	if err != nil {
 		// we ignore this error since duplicates don't
 		// typically cause any issues
@@ -94,7 +94,7 @@ func (c *baseClient) updateSSHAgent() error {
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
 }
 
-func (c *baseClient) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
+func (c *baseClient) removeKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
 	var pubKey ssh.PublicKey
 	var err error
 

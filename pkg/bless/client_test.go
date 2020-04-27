@@ -1,4 +1,4 @@
-package bless_test
+package bless
 
 import (
 	"context"
@@ -20,7 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
 	cziAWSMocks "github.com/chanzuckerberg/go-misc/aws/mocks"
@@ -38,7 +37,7 @@ type TestSuite struct {
 	ctrl       *gomock.Controller
 	mockKMS    *cziAWSMocks.MockKMSAPI
 	mockLambda *cziAWSMocks.MockLambdaAPI
-	client     *bless.Client
+	client     *KMSAuthClient
 
 	// some default vals
 	encryptOut       *kms.EncryptOutput
@@ -110,7 +109,7 @@ func (ts *TestSuite) SetupTest() {
 		CiphertextBlob: []byte(encryptedStr),
 		KeyId:          &keyID,
 	}
-	lambdaResponse := &bless.LambdaResponse{
+	lambdaResponse := &LambdaResponse{
 		Certificate:  aws.String("my new cert"),
 		ErrorType:    nil,
 		ErrorMessage: nil,
@@ -124,7 +123,7 @@ func (ts *TestSuite) SetupTest() {
 	ts.encryptOut = encryptOut
 	ts.lambdaExecuteOut = lambdaExecuteOut
 
-	ts.client = bless.New(conf).WithUsername(username).WithAwsClient(awsClient).WithTokenGenerator(tg)
+	ts.client = NewKMSAuthClient(conf).WithUsername(username).WithAwsClient(awsClient).WithTokenGenerator(tg)
 }
 
 func (ts *TestSuite) TestEverythingOk() {
@@ -152,7 +151,7 @@ func (ts *TestSuite) TestRemoveCertFromAgent() {
 	a := assert.New(t)
 
 	mock := &mockExtendedAgent{}
-	c := bless.Client{}
+	c := KMSAuthClient{}
 
 	// rsa
 	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -177,13 +176,13 @@ func (ts *TestSuite) TestRemoveCertFromAgent() {
 	a.NoError(err)
 
 	// no remove errors
-	a.NoError(c.RemoveKeyFromAgent(mock, rsaKey))
-	a.NoError(c.RemoveKeyFromAgent(mock, dsaPrivatekey))
-	a.NoError(c.RemoveKeyFromAgent(mock, ecdsaPrivateKey))
-	a.NoError(c.RemoveKeyFromAgent(mock, ed25519PrivKey))
+	a.NoError(c.baseClient.removeKeyFromAgent(mock, rsaKey))
+	a.NoError(c.baseClient.removeKeyFromAgent(mock, dsaPrivatekey))
+	a.NoError(c.baseClient.removeKeyFromAgent(mock, ecdsaPrivateKey))
+	a.NoError(c.baseClient.removeKeyFromAgent(mock, ed25519PrivKey))
 
 	// errors
-	err = c.RemoveKeyFromAgent(mock, "not a key")
+	err = c.baseClient.removeKeyFromAgent(mock, "not a key")
 	a.Error(err)
 }
 
@@ -229,7 +228,7 @@ func (ts *TestSuite) TestReportsLambdaErrors() {
 	t := ts.T()
 	a := assert.New(t)
 
-	lambdaResponse := &bless.LambdaResponse{
+	lambdaResponse := &LambdaResponse{
 		Certificate:  aws.String("my new cert"),
 		ErrorType:    aws.String("rando error"),
 		ErrorMessage: aws.String("rando error message"),
@@ -254,7 +253,7 @@ func (ts *TestSuite) TestNoCertificateInResponse() {
 	t := ts.T()
 	a := assert.New(t)
 
-	lambdaResponse := &bless.LambdaResponse{
+	lambdaResponse := &LambdaResponse{
 		Certificate:  nil,
 		ErrorType:    nil,
 		ErrorMessage: nil,

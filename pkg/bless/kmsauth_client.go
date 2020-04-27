@@ -44,6 +44,7 @@ func (k *KMSAuthLambdaPayload) Marshal() ([]byte, error) {
 func NewKMSAuthClient(conf *config.Config) *KMSAuthClient {
 	return &KMSAuthClient{
 		baseClient: newBaseClient(conf),
+		conf:       conf,
 	}
 }
 
