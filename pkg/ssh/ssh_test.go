@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"os/exec"
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
@@ -28,14 +27,8 @@ const (
 	expiredED25519PrivateKeyPath = "testdata/expired_id_ed25519"
 )
 
-// HACK we're mocking out the ssh command
-func resetSSHCommand() {
-	sshVersionCmd = exec.Command("ssh", "-V")
-}
-
 // cleanup
 func (ts *TestSuite) TearDownTest() {
-	resetSSHCommand()
 	ts.loggerHook.Reset()
 }
 
@@ -101,7 +94,6 @@ func (ts *TestSuite) TestNoCertPresent() {
 func (ts *TestSuite) TestExpiredCert() {
 	t := ts.T()
 	a := assert.New(t)
-	resetSSHCommand()
 
 	s, err := NewSSH(expiredED25519PrivateKeyPath) // no cert for this key
 	a.Nil(err)
@@ -118,8 +110,6 @@ func (ts *TestSuite) TestExpiredCert() {
 func (ts *TestSuite) TestIsCertFreshExpiredCert() {
 	t := ts.T()
 	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
 	s, err := NewSSH(expiredED25519PrivateKeyPath)
 	a.Nil(err)
 	a.NotNil(s)
@@ -138,8 +128,6 @@ func (ts *TestSuite) TestIsCertFreshExpiredCert() {
 func (ts *TestSuite) TestIsCertFreshNoCert() {
 	t := ts.T()
 	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
 	s, err := NewSSH(rsaPrivateKeyPath) // no cert for this key
 	a.Nil(err)
 	a.NotNil(s)
