@@ -7,13 +7,26 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
+type Agent struct {
+	agent.ExtendedAgent
+
+	conn net.Conn
+}
+
 // Get an SSH agent
-func GetSSHAgent(authSock string) (agent.ExtendedAgent, error) {
+func GetSSHAgent(authSock string) (*Agent, error) {
 	agentConn, err := net.Dial("unix", authSock)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not dial %s", authSock)
 	}
-	defer agentConn.Close()
 
-	return agent.NewClient(agentConn), nil
+	return &Agent{
+		ExtendedAgent: agent.NewClient(agentConn),
+
+		conn: agentConn,
+	}, nil
+}
+
+func (a *Agent) Close() error {
+	return a.conn.Close()
 }
