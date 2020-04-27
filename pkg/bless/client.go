@@ -147,6 +147,7 @@ func (c *Client) updateSSHAgent() error {
 	if err != nil {
 		return err
 	}
+	defer a.Close()
 
 	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
