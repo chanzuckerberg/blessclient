@@ -7,7 +7,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/json"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -144,15 +143,17 @@ func (c *Client) updateSSHAgent() error {
 		logrus.Debug("Skipping adding to ssh-agent")
 		return nil
 	}
+
+	// TODO(el): move to fail earlier
 	authSock := os.Getenv("SSH_AUTH_SOCK")
 	if authSock == "" {
 		return errors.New("SSH_AUTH_SOCK environment variable empty")
 	}
-	agentSock, err := net.Dial("unix", authSock)
+
+	a, err := cziSSH.GetSSHAgent(authSock)
 	if err != nil {
-		return errors.Wrap(err, "Could not dial SSH_AUTH_SOCK")
+		return err
 	}
-	defer agentSock.Close()
 
 	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
@@ -173,7 +174,6 @@ func (c *Client) updateSSHAgent() error {
 	certLifetime := int64(cert.ValidBefore) - time.Now().Unix()
 	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetime)
 
-	a := agent.NewClient(agentSock)
 	err = c.RemoveKeyFromAgent(a, privKey)
 	if err != nil {
 		// we ignore this error since duplicates don't
