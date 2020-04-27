@@ -7,7 +7,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/json"
-	"net"
 	"os"
 	"strings"
 	"time"
@@ -137,15 +136,17 @@ func (c *Client) updateSSHAgent() error {
 		logrus.Debug("Skipping adding to ssh-agent")
 		return nil
 	}
+
+	// TODO(el): move to fail earlier
 	authSock := os.Getenv("SSH_AUTH_SOCK")
 	if authSock == "" {
 		return errors.New("SSH_AUTH_SOCK environment variable empty")
 	}
-	agentSock, err := net.Dial("unix", authSock)
+
+	a, err := cziSSH.GetSSHAgent(authSock)
 	if err != nil {
-		return errors.Wrap(err, "Could not dial SSH_AUTH_SOCK")
+		return err
 	}
-	defer agentSock.Close()
 
 	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
@@ -163,10 +164,9 @@ func (c *Client) updateSSHAgent() error {
 	}
 
 	// calculate how many seconds before cert expiry
-	certLifetimeSecs := uint32(time.Until(time.Unix(int64(cert.ValidBefore), 0)) / time.Second)
-	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
+	certLifetime := int64(cert.ValidBefore) - time.Now().Unix()
+	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetime)
 
-	a := agent.NewClient(agentSock)
 	err = c.RemoveKeyFromAgent(a, privKey)
 	if err != nil {
 		// we ignore this error since duplicates don't
@@ -178,7 +178,7 @@ func (c *Client) updateSSHAgent() error {
 		PrivateKey:   privKey,
 		Certificate:  cert,
 		Comment:      "Added by blessclient",
-		LifetimeSecs: certLifetimeSecs,
+		LifetimeSecs: uint32(certLifetime),
 	}
 
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
