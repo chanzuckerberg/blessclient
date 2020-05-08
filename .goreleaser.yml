@@ -19,13 +19,22 @@ release:
     owner: chanzuckerberg
     name: blessclient
 
-brew:
-  description: 'SSH without pain.'
-  github:
-    owner: chanzuckerberg
-    name: homebrew-tap
-  homepage: 'https://github.com/chanzuckerberg/blessclient'
-  test: system "#{bin}/blessclient version"
+brews:
+  - description: 'SSH without pain.'
+    name: blessclient@0
+    github:
+      owner: chanzuckerberg
+      name: homebrew-tap
+    homepage: 'https://github.com/chanzuckerberg/blessclient'
+    test: system "#{bin}/blessclient version"
+
+  - description: 'SSH without pain.'
+    name: blessclient
+    github:
+      owner: chanzuckerberg
+      name: homebrew-tap
+    homepage: 'https://github.com/chanzuckerberg/blessclient'
+    test: system "#{bin}/blessclient version"
 
 env_files:
   github_token: ~/.config/goreleaser/github_token
