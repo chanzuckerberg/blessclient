@@ -8,6 +8,24 @@
 Inspiration for this project comes from [lyft/python-blessclient](https://github.com/lyft/python-blessclient).
 We decided to write in Go because it is much easier to distribute a statically linked binary to a large team than having to deal with python environments. Some features from [lyft/python-blessclient](https://github.com/lyft/python-blessclient) are currently missing but will be added over time while others are purposefully excluded.
 
+## Versions
+We are currently in the process of releasing a new major version of blessclient that will replace [netflix/bless](https://github.com/Netflix/bless) for a version that relies on federated identity.
+
+### v0.x.x - deprecation notice
+This version will soon be deprecated.
+For the time-being `brew install blessclient` will still point to `v0.x.x`
+
+You can use homebrew to install with
+```
+brew tap chanzuckerberg/tap
+brew install blessclient@0
+```
+
+We will keep a v0 branch around for high priority fixes until migrated fully to `v1.x.x`.
+
+### v1.x.x - in active development
+More to come.
+
 ## Install
 
 ### Mac
