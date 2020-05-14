@@ -142,7 +142,7 @@ func (ru RemoteUsernames) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "error unmarshalling remote usernames")
 	}
-	ru = RemoteUsernames(strings.Split(remoteUsernames, ","))
+	ru = RemoteUsernames(strings.Split(remoteUsernames, ",")) // nolint: go-lint
 	return nil
 }
 
