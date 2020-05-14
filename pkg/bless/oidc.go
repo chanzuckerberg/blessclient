@@ -16,6 +16,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type LambdaResponse struct {
+	Certificate  *string `json:"certificate,omitempty"`
+	ErrorType    *string `json:"errorType"`
+	ErrorMessage *string `json:"errorMessage"`
+}
+
 // OIDC is an oidc client
 type OIDC struct {
 	awsClient *cziAWS.Client
