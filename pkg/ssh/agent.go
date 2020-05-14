@@ -2,8 +2,10 @@ package ssh
 
 import (
 	"net"
+	"time"
 
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -29,4 +31,9 @@ func GetSSHAgent(authSock string) (*Agent, error) {
 
 func (a *Agent) Close() error {
 	return a.conn.Close()
+}
+
+func getLifetimeSecs(cert *ssh.Certificate) uint32 {
+	certLifetime := int64(cert.ValidBefore) - time.Now().Unix()
+	return uint32(certLifetime)
 }
