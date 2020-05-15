@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/util"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVersionString(t *testing.T) {
 	t.Parallel()
-	a := assert.New(t)
+	r := require.New(t)
 	_, err := util.VersionString()
-	a.Nil(err)
+	r.Nil(err)
 }
 
 func TestVersionStringBadRelease(t *testing.T) {
@@ -20,9 +20,9 @@ func TestVersionStringBadRelease(t *testing.T) {
 		util.Release = oldVal
 	}()
 	util.Release = "some random value"
-	a := assert.New(t)
+	r := require.New(t)
 	_, err := util.VersionString()
-	a.NotNil(err)
+	r.NotNil(err)
 }
 
 func TestVersionStringBadDirty(t *testing.T) {
@@ -31,9 +31,9 @@ func TestVersionStringBadDirty(t *testing.T) {
 		util.Dirty = oldVal
 	}()
 	util.Dirty = "some random value"
-	a := assert.New(t)
+	r := require.New(t)
 	_, err := util.VersionString()
-	a.NotNil(err)
+	r.NotNil(err)
 }
 
 func TestVersionCacheKeyError(t *testing.T) {
@@ -43,9 +43,9 @@ func TestVersionCacheKeyError(t *testing.T) {
 	}()
 	util.Dirty = "some random value"
 
-	a := assert.New(t)
+	r := require.New(t)
 	s := util.VersionCacheKey()
-	a.Empty(s)
+	r.Empty(s)
 }
 
 func TestVersionCacheKey(t *testing.T) {
@@ -63,9 +63,9 @@ func TestVersionCacheKey(t *testing.T) {
 	util.GitSha = "gitsha"
 	util.Release = "true"
 	util.Dirty = "false"
-	a := assert.New(t)
+	r := require.New(t)
 	s := util.VersionCacheKey()
-	a.Equal(util.Version, s)
+	r.Equal(util.Version, s)
 }
 
 func TestVersionCacheKeyBadVersion(t *testing.T) {
@@ -83,9 +83,9 @@ func TestVersionCacheKeyBadVersion(t *testing.T) {
 	util.GitSha = "gitsha"
 	util.Release = "true"
 	util.Dirty = "false"
-	a := assert.New(t)
+	r := require.New(t)
 	s := util.VersionCacheKey()
-	a.Empty(s)
+	r.Empty(s)
 }
 
 func TestVersionCacheKeyDirty(t *testing.T) {
@@ -103,7 +103,7 @@ func TestVersionCacheKeyDirty(t *testing.T) {
 	util.GitSha = "gitsha"
 	util.Release = "false"
 	util.Dirty = "false"
-	a := assert.New(t)
+	r := require.New(t)
 	s := util.VersionCacheKey()
-	a.Equal("1.1.1", s)
+	r.Equal("1.1.1", s)
 }

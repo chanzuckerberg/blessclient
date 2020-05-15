@@ -9,12 +9,10 @@ import (
 )
 
 const (
-	flagConfig  = "config"
 	flagVerbose = "verbose"
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringP(flagConfig, "c", config.DefaultConfigFile, "Use this to override the bless config file.")
 	rootCmd.PersistentFlags().BoolP(flagVerbose, "v", false, "Use this to enable verbose mode")
 }
 
@@ -36,10 +34,11 @@ var rootCmd = &cobra.Command{
 		}
 
 		// pid lock
-		configPath, err := util.GetConfigPath(cmd)
+		configPath, err := config.GetOrCreateConfigPath(config.DefaultConfigFile)
 		if err != nil {
 			return err
 		}
+
 		pidLock, err = util.NewLock(configPath)
 		if err != nil {
 			return err

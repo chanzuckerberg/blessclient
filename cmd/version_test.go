@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/util"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVersionNoError(t *testing.T) {
-	a := assert.New(t)
+	r := require.New(t)
 	err := versionCmd.RunE(nil, nil)
-	a.Nil(err)
+	r.Nil(err)
 }
 
 func TestVersionError(t *testing.T) {
-	a := assert.New(t)
+	r := require.New(t)
 	oldRelease := util.Release
 	defer func() {
 		util.Release = oldRelease
@@ -22,5 +22,5 @@ func TestVersionError(t *testing.T) {
 	util.Release = "An Invalid Release"
 
 	err := versionCmd.RunE(nil, nil)
-	a.NotNil(err)
+	r.NotNil(err)
 }
