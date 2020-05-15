@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,26 +8,16 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	getter "github.com/hashicorp/go-getter"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	prompt "github.com/segmentio/go-prompt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-const (
-	flagKeyFile  = "key-file"
-	flagUsername = "username"
-)
-
 func init() {
-	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
-	importConfigCmd.Flags().StringP(flagUsername, "u", "", "Explicitly set your username instead of trying to infer it.")
-
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -39,16 +28,6 @@ var importConfigCmd = &cobra.Command{
 	Long:          "This command fetches a config from a remote source and writes it to disk",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := context.Background()
-		configFile, err := cmd.Flags().GetString(flagConfig)
-		if err != nil {
-			return errors.New("Missing config")
-		}
-		configFileExpanded, err := homedir.Expand(configFile)
-		if err != nil {
-			return errors.Wrapf(err, "Could not expand %s", configFile)
-		}
-
 		src := args[0]
 
 		f, err := ioutil.TempFile("", "blessconfig")
@@ -63,29 +42,9 @@ var importConfigCmd = &cobra.Command{
 			return errors.Wrapf(err, "Could not fetch %s", src)
 		}
 
-		// Need to add some specific conf for user environment
 		conf, err := config.FromFile(f.Name())
 		if err != nil {
 			return err
-		}
-		conf.ClientConfig.ConfigFile = configFileExpanded
-
-		// Try to use the specified key
-		sshPrivateKeyPath, err := determineSSHKeyPath(cmd, conf)
-		if err != nil {
-			return errors.Wrap(err, "Could not determine ssh key")
-		}
-		sshPrivateKeyExpanded, err := homedir.Expand(sshPrivateKeyPath)
-		if err != nil {
-			return errors.Wrapf(err, "Could not expand ssh private key path %s", sshPrivateKeyPath)
-		}
-		conf.ClientConfig.SSHPrivateKey = sshPrivateKeyExpanded
-		_, err = os.Stat(conf.ClientConfig.SSHPrivateKey)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("Found no ssh key at %s, please generate one", conf.ClientConfig.SSHPrivateKey)
-			}
-			return errors.Wrapf(err, "Error reading %s", conf.ClientConfig.SSHPrivateKey)
 		}
 
 		// Now try doing something about the ssh config
@@ -94,50 +53,8 @@ var importConfigCmd = &cobra.Command{
 			return err
 		}
 
-		sess, err := session.NewSessionWithOptions(
-			session.Options{
-				SharedConfigState: session.SharedConfigEnable,
-				Profile:           conf.ClientConfig.AWSUserProfile,
-			},
-		)
-		if err != nil {
-			return errors.Wrap(err, "Could not create aws session")
-		}
-		awsClient := cziAWS.New(sess).WithAllServices(nil)
-
-		usernameOverride, err := determineUsernameOverride(cmd)
-		if err != nil {
-			return err
-		}
-
-		err = conf.SetAWSUsername(ctx, awsClient, usernameOverride)
-		if err != nil {
-			return err
-		}
-		return conf.Persist()
+		return conf.Persist(config.DefaultConfigFile)
 	},
-}
-
-// value precendence:
-// 1. cli override
-// 2. config file override
-// 3. default value
-func determineSSHKeyPath(cmd *cobra.Command, conf *config.Config) (string, error) {
-	if cmd.Flags().Changed(flagKeyFile) {
-		return cmd.Flags().GetString(flagKeyFile)
-	}
-	if conf != nil && conf.ClientConfig.SSHPrivateKey != "" {
-		return conf.ClientConfig.SSHPrivateKey, nil
-	}
-	return cmd.Flags().GetString(flagKeyFile)
-}
-
-func determineUsernameOverride(cmd *cobra.Command) (*string, error) {
-	if cmd.Flags().Changed(flagUsername) {
-		username, err := cmd.Flags().GetString(flagUsername)
-		return &username, err
-	}
-	return nil, nil
 }
 
 func sshConfig(conf *config.Config) error {
@@ -145,23 +62,22 @@ func sshConfig(conf *config.Config) error {
 		return nil // nothing to do
 	}
 
-	sshDir := path.Dir(conf.ClientConfig.SSHPrivateKey)
-	sshConfPath := path.Join(sshDir, "config")
-	err := backupFile(sshConfPath, fmt.Sprintf("%s.%d.bak", sshConfPath, time.Now().UTC().Unix()))
+	sshDir, err := homedir.Expand("~/.ssh")
 	if err != nil {
-		// Unsure if we want to error out here
-		log.Warnf("Error backing up %s: %s", sshConfPath, err.Error())
+		return errors.Wrap(err, "could not expand (~/.ssh)")
 	}
 
-	// Populate the inferred key
-	for i := range conf.SSHConfig.Bastions {
-		conf.SSHConfig.Bastions[i].IdentityFile = conf.ClientConfig.SSHPrivateKey
+	sshConfPath := path.Join(sshDir, "config")
+	err = backupFile(sshConfPath, fmt.Sprintf("%s.%d.bak", sshConfPath, time.Now().UTC().Unix()))
+	if err != nil {
+		return err
 	}
 
 	sshConfig, err := conf.SSHConfig.String()
 	if err != nil {
 		return err
 	}
+
 	log.Infof("Generated SSH Config:\n%s", sshConfig)
 	openFileFlag := os.O_CREATE | os.O_WRONLY
 
