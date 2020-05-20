@@ -51,8 +51,7 @@ type LambdaConfig struct {
 // DefaultConfig generates a config with some defaults
 func DefaultConfig() *Config {
 	return &Config{
-		Version:      ConfigVersion,
-		LambdaConfig: LambdaConfig{},
+		Version: ConfigVersion,
 	}
 }
 
@@ -62,10 +61,14 @@ func FromFile(confPath string) (*Config, error) {
 		return nil, errors.Wrapf(err, "could not read config at %s", confPath)
 	}
 
-	conf := DefaultConfig()
+	conf := &Config{}
 	err = yaml.Unmarshal(b, conf)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not yaml unmarshal config at %s", confPath)
+	}
+
+	if conf.Version != ConfigVersion {
+		return nil, errors.Errorf("expected config version %d but got %d", ConfigVersion, conf.Version)
 	}
 	return conf, nil
 }
