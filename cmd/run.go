@@ -12,10 +12,17 @@ import (
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	oidc "github.com/chanzuckerberg/go-misc/oidc_cli"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
+const (
+	flagForce = "force"
+)
+
 func init() {
+	runCmd.Flags().BoolP(flagForce, "f", false, "Force certificate refresh")
+
 	rootCmd.AddCommand(runCmd)
 }
 
@@ -24,12 +31,31 @@ var runCmd = &cobra.Command{
 	Short:         "run requests a certificate",
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		force, err := cmd.Flags().GetBool(flagForce)
+		if err != nil {
+			return errors.Wrap(err, "Missing force flag")
+		}
+
+		config, err := config.FromFile(config.DefaultConfigFile)
+		if err != nil {
+			return err
+		}
+
 		a, err := cziSSH.GetSSHAgent(os.Getenv("SSH_AUTH_SOCK"))
 		if err != nil {
 			return err
 		}
 		defer a.Close()
 		manager := cziSSH.NewAgentKeyManager(a)
+
+		hasCert, err := manager.HasValidCertificate()
+		if err != nil {
+			return err
+		}
+		if !force && hasCert {
+			logrus.Debug("fresh cert, nothing to do")
+			return nil
+		}
 
 		pub, priv, err := manager.GetKey()
 		if err != nil {
@@ -47,10 +73,9 @@ var runCmd = &cobra.Command{
 			cmd.Context(),
 			stsSvc,
 			&oidc.AwsOIDCCredsProviderConfig{
-				// TODO(el): split these into separate prs
-				// AWSRoleARN:    "",
-				// OIDCClientID:  "",
-				// OIDCIssuerURL: "",
+				AWSRoleARN:    config.ClientConfig.RoleARN,
+				OIDCClientID:  config.ClientConfig.OIDCClientID,
+				OIDCIssuerURL: config.ClientConfig.OIDCIssuerURL,
 			},
 		)
 		if err != nil {
@@ -65,10 +90,7 @@ var runCmd = &cobra.Command{
 		awsConf := aws.NewConfig().WithCredentials(credsProvider.Credentials).WithRegion("us-west-2")
 		awsClient := cziAWS.New(sess).WithLambda(awsConf)
 
-		client := bless.NewOIDC(
-			awsClient, &config.LambdaConfig{
-				FunctionName: "TODO", // TODO
-			})
+		client := bless.NewOIDC(awsClient, &config.LambdaConfig)
 
 		cert, err := client.RequestCert(
 			cmd.Context(),
@@ -86,6 +108,19 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
-		return manager.WriteKey(priv, cert)
+		err = manager.WriteKey(priv, cert)
+		if err != nil {
+			return err
+		}
+
+		hasCert, err = manager.HasValidCertificate()
+		if err != nil {
+			return err
+		}
+
+		if !hasCert {
+			return errors.Errorf("wrote error to key manager, but could not fetch it back")
+		}
+		return nil
 	},
 }
