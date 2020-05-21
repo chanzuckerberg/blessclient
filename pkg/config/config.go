@@ -24,10 +24,21 @@ type Config struct {
 	// Version versions this config
 	Version int `yaml:"version"`
 
+	// ClientConfig has configuration related to blessclient
+	ClientConfig ClientConfig `yaml:"client_config"`
 	// LambdaConfig holds configuration around the bless lambda
 	LambdaConfig LambdaConfig `yaml:"lambda_config"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `yaml:"ssh_config,omitempty"`
+}
+
+type ClientConfig struct {
+	// The OIDC client_id
+	OIDCClientID string `yaml:"oidc_client_id"`
+	// Oidc issuer url: eg: foo.okta.com
+	OIDCIssuerURL string `yaml:"oidc_issuer_url"`
+	// RoleARN is the aws role arn to assume to invoke the CA lambda
+	RoleARN string `yaml:"role_arn"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -38,8 +49,6 @@ type Region struct {
 
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
-	// RoleARN used to assume and invoke bless lambda
-	RoleARN *string `yaml:"role_arn,omitempty"`
 	// Bless lambda function name
 	FunctionName string `yaml:"function_name"`
 	// Bless lambda function version (lambda alias or version qualifier)
@@ -57,7 +66,12 @@ func DefaultConfig() *Config {
 }
 
 func FromFile(confPath string) (*Config, error) {
-	b, err := ioutil.ReadFile(confPath)
+	expandedConfPath, err := homedir.Expand(confPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not expand homedir")
+	}
+
+	b, err := ioutil.ReadFile(expandedConfPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not read config at %s", confPath)
 	}
