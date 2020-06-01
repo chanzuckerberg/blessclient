@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -33,22 +34,18 @@ func (a *AgentKeyManager) WriteKey(
 	priv crypto.PrivateKey,
 	cert *ssh.Certificate,
 ) error {
-	comment, err := a.getComment(cert)
-	if err != nil {
-		return err
-	}
-
-	err = a.agent.Add(agent.AddedKey{
+	err := a.agent.Add(agent.AddedKey{
 		PrivateKey:   priv,
 		Certificate:  cert,
-		Comment:      comment,
+		Comment:      a.getComment(cert),
 		LifetimeSecs: getLifetimeSecs(cert),
 	})
 	return errors.Wrap(err, "could not add keys to agent")
 }
 
-func (a *AgentKeyManager) getComment(cert *ssh.Certificate) (string, error) {
-	return "TODO", nil
+func (a *AgentKeyManager) getComment(cert *ssh.Certificate) string {
+	now := time.Now().Local().Format(time.UnixDate)
+	return fmt.Sprintf("Added by blessclient at %s", now)
 }
 
 func (a *AgentKeyManager) ListCertificates() ([]*ssh.Certificate, error) {
