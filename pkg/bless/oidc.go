@@ -16,10 +16,49 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type LambdaResponse struct {
-	Certificate  *string `json:"certificate,omitempty"`
-	ErrorType    *string `json:"errorType"`
-	ErrorMessage *string `json:"errorMessage"`
+// HACK(el): Temporarily hard-coding this here but should import from ssh-ca-lambda instead
+type Response struct {
+	Certificate  *Certificate `json:"certificate,omitempty"`
+	ErrorType    *string      `json:"errorType,omitempty"`
+	ErrorMessage *string      `json:"errorMessage,omitempty"`
+}
+
+type Certificate struct {
+	cert *ssh.Certificate
+}
+
+func (c *Certificate) MarshalJSON() ([]byte, error) {
+	data := base64.StdEncoding.EncodeToString(c.cert.Marshal())
+	return json.Marshal(map[string]string{"cert": data})
+}
+
+func (c *Certificate) UnmarshalJSON(data []byte) error {
+	intermediate := map[string]string{}
+	err := json.Unmarshal(data, &intermediate)
+	if err != nil {
+		return errors.Wrap(err, "could not json unmarshal public key")
+	}
+	certB64, ok := intermediate["cert"]
+	if !ok {
+		return errors.New("unknown serialization format")
+	}
+
+	b, err := base64.StdEncoding.DecodeString(certB64)
+	if err != nil {
+		return errors.Wrap(err, "could not b64 decode certificate")
+	}
+
+	sshPub, err := ssh.ParsePublicKey(b)
+	if err != nil {
+		return errors.Wrap(err, "could not ssh parse certificate")
+	}
+
+	cert, ok := sshPub.(*ssh.Certificate)
+	if !ok {
+		return errors.New("cert incorrect type")
+	}
+	c.cert = cert
+	return nil
 }
 
 // OIDC is an oidc client
@@ -64,40 +103,25 @@ func (o *OIDC) getCert(ctx context.Context, payload []byte) (*ssh.Certificate, e
 		return nil, err
 	}
 	logrus.Debugf("Raw lambda response %s", string(responseBytes))
-	lambdaResponse := &LambdaResponse{}
-	err = json.Unmarshal(responseBytes, lambdaResponse)
+	response := &Response{}
+	err = json.Unmarshal(responseBytes, response)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not deserialize lambda reponse")
 	}
 
-	logrus.Debugf("Parsed lambda response %s", spew.Sdump(lambdaResponse))
-	if lambdaResponse.ErrorType != nil {
-		if lambdaResponse.ErrorMessage != nil {
-			return nil, errors.Errorf("bless error: %s: %s", *lambdaResponse.ErrorType, *lambdaResponse.ErrorMessage)
+	logrus.Debugf("Parsed lambda response %s", spew.Sdump(response))
+	if response.ErrorType != nil {
+		if response.ErrorMessage != nil {
+			return nil, errors.Errorf("bless error: %s: %s", *response.ErrorType, *response.ErrorMessage)
 		}
-		return nil, errors.Errorf("bless error: %s", *lambdaResponse.ErrorType)
+		return nil, errors.Errorf("bless error: %s", *response.ErrorType)
 	}
 
-	if lambdaResponse.Certificate == nil {
+	if response.Certificate == nil || response.Certificate.cert == nil {
 		return nil, errors.New("No certificate in response")
 	}
 
-	certBytes, err := base64.StdEncoding.DecodeString(*lambdaResponse.Certificate)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not b64 decode certificate")
-	}
-
-	pubKey, err := ssh.ParsePublicKey(certBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse public key from lambda response")
-	}
-
-	cert, ok := pubKey.(*ssh.Certificate)
-	if !ok {
-		return nil, errors.Errorf("lambda return type not *ssh.Certificate")
-	}
-
-	return cert, nil
+	return response.Certificate.cert, nil
 }
 
 // SigningRequest is a request for a certificate
