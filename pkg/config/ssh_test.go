@@ -51,3 +51,49 @@ func TestCustomExecCommand(t *testing.T) {
 	r.Contains(s, expected.String())
 	r.Contains(s, fmt.Sprintf("exec \"%s\"", contents))
 }
+
+func TestUserOverride(t *testing.T) {
+	t.Parallel()
+	r := require.New(t)
+
+	sshConf := &config.SSHConfig{
+		Bastions: []config.Bastion{
+			{
+				Host: config.Host{
+					Pattern: "test0",
+				},
+				User: "foo",
+				Hosts: []config.Host{
+					{
+						User:    "bar",
+						Pattern: "10.0.0.*",
+					},
+					{
+						// no user override here
+						Pattern: "10.0.0.*",
+					},
+				},
+			},
+		},
+	}
+
+	expected := `
+Match OriginalHost  test0 exec "blessclient run"
+  User foo
+
+Host test0
+  User foo
+
+Host 10.0.0.*
+	ProxyJump test0
+	User bar
+
+Host 10.0.0.*
+	ProxyJump test0
+	User foo
+`
+
+	config, err := sshConf.String()
+	r.NoError(err)
+	r.Contains(config, expected)
+}

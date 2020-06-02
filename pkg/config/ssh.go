@@ -21,8 +21,12 @@ Host {{ .Pattern }}
   User {{ .User }}
 {{ range .Hosts }}
 Host {{ .Pattern }}
-  ProxyJump {{ $bastion.Pattern }}
-  User {{ $bastion.User }}
+	ProxyJump {{ $bastion.Pattern }}
+{{- if .User }}
+	User {{ .User }}
+{{- else }}
+	User {{ $bastion.User }}
+{{- end }}
 {{ end }}{{ end }}
 `
 )
@@ -81,4 +85,5 @@ func (ec *SSHExecCommand) String() string {
 // Host represents a Host block in an ssh config
 type Host struct {
 	Pattern string `yaml:"pattern"`
+	User    string `yaml:"user"`
 }
