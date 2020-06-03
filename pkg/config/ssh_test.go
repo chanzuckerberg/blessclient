@@ -6,6 +6,7 @@ import (
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	"github.com/stretchr/testify/require"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func TestSSHConfig(t *testing.T) {
@@ -61,8 +62,8 @@ func TestUserOverride(t *testing.T) {
 			{
 				Host: config.Host{
 					Pattern: "test0",
+					User:    "foo",
 				},
-				User: "foo",
 				Hosts: []config.Host{
 					{
 						User:    "bar",
@@ -96,4 +97,40 @@ Host 10.0.0.*
 	config, err := sshConf.String()
 	r.NoError(err)
 	r.Contains(config, expected)
+}
+
+func TestUnmarshalConfig(t *testing.T) {
+	// test we can roundtrip a config through yaml
+	t.Parallel()
+	r := require.New(t)
+
+	sshConf := &config.SSHConfig{
+		Bastions: []config.Bastion{
+			{
+				Host: config.Host{
+					Pattern: "test0",
+					User:    "foo",
+				},
+				Hosts: []config.Host{
+					{
+						User:    "bar",
+						Pattern: "10.0.0.*",
+					},
+					{
+						// no user override here
+						Pattern: "10.0.0.*",
+					},
+				},
+			},
+		},
+	}
+
+	data, err := yaml.Marshal(sshConf)
+	r.NoError(err)
+
+	newConf := &config.SSHConfig{}
+	err = yaml.Unmarshal(data, newConf)
+	r.NoError(err)
+
+	r.Equal(sshConf, newConf)
 }

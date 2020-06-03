@@ -67,7 +67,6 @@ type Bastion struct {
 
 	Hosts          []Host          `yaml:"hosts"`
 	IdentityFile   string          `yaml:"identity_file"`
-	User           string          `yaml:"user"`
 	SSHExecCommand *SSHExecCommand `yaml:"ssh_exec_command,omitempty"`
 }
 
