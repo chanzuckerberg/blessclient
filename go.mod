@@ -3,12 +3,12 @@ module github.com/chanzuckerberg/blessclient
 go 1.14
 
 require (
-	cloud.google.com/go v0.57.0 // indirect
-	cloud.google.com/go/storage v1.7.0 // indirect
-	github.com/aws/aws-sdk-go v1.30.23
+	cloud.google.com/go/storage v1.9.0 // indirect
+	github.com/aws/aws-sdk-go v1.31.10
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/chanzuckerberg/go-misc v0.0.0-20200507183956-c0dee2967ccc
+	github.com/chanzuckerberg/go-misc v0.0.0-20200529180313-a208b9344c4b
+	github.com/danieljoos/wincred v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/mock v1.4.3
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
@@ -24,10 +24,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/ulikunitz/xz v0.5.7 // indirect
-	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
-	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f // indirect
-	golang.org/x/tools v0.0.0-20200507205054-480da3ebd79c // indirect
-	google.golang.org/api v0.23.0 // indirect
-	google.golang.org/genproto v0.0.0-20200507105951-43844f6eee31 // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	golang.org/x/crypto v0.0.0-20200602180216-279210d13fed
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
+	golang.org/x/tools v0.0.0-20200604042327-9b20fe4cabe8 // indirect
+	google.golang.org/genproto v0.0.0-20200604104852-0b0486081ffb // indirect
+	gopkg.in/yaml.v2 v2.3.0
 )
