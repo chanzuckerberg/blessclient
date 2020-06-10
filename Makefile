@@ -6,6 +6,7 @@ export GO111MODULE=on
 export CGO_ENABLED=1
 
 setup:
+	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- v1.23.8
 	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/master/download.sh | sh
 	curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s -- v0.9.17
@@ -42,6 +43,7 @@ install: deps
 .PHONY: install
 
 deps:
+	go get -u ./...
 	go mod tidy
 .PHONY: deps
 
