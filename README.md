@@ -18,7 +18,7 @@ For the time-being `brew install blessclient` will still point to `v0.x.x`
 You can use homebrew to install with
 ```
 brew tap chanzuckerberg/tap
-brew install blessclient@0
+brew install blessclient@1
 ```
 
 We will keep a v0 branch around for high priority fixes until migrated fully to `v1.x.x`.
@@ -34,7 +34,7 @@ You can use homebrew -
 
 ```
 brew tap chanzuckerberg/tap
-brew install blessclient
+brew install blessclient@1
 ```
 
 ### Linux
