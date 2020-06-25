@@ -3,9 +3,9 @@ module github.com/chanzuckerberg/blessclient
 go 1.14
 
 require (
-	cloud.google.com/go v0.58.0 // indirect
+	cloud.google.com/go v0.59.0 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect
-	github.com/aws/aws-sdk-go v1.32.7
+	github.com/aws/aws-sdk-go v1.32.9
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chanzuckerberg/go-misc v0.0.0-20200622164707-c19d1f2e9ea7
@@ -27,10 +27,12 @@ require (
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
 	golang.org/x/sys v0.0.0-20200622214017-ed371f2e16b4 // indirect
 	golang.org/x/text v0.3.3 // indirect
-	golang.org/x/tools v0.0.0-20200623045635-ff88973b1e4e // indirect
-	google.golang.org/genproto v0.0.0-20200623002339-fbb79eadd5eb // indirect
+	golang.org/x/tools v0.0.0-20200625153920-aa12c9ebf5f8 // indirect
+	google.golang.org/genproto v0.0.0-20200624020401-64a14ca9d1ad // indirect
 	google.golang.org/grpc v1.30.0 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
