@@ -32,7 +32,7 @@ More to come.
 We recommend using [homebrew](https://brew.sh/):
 ```
 brew tap chanzuckerberg/tap
-brew install aws-oidc
+brew install blessclient@1
 ```
 
 ### WSL
@@ -40,7 +40,7 @@ We have tested on WSL Ubuntu-18. A couple extra steps are required:
 ```
 sudo apt update && sudo apt install xdg-utils
 brew tap chanzuckerberg/tap
-brew install aws-oidc
+brew install blessclient@1
 ```
 
 ## Usage
