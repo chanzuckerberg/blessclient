@@ -28,19 +28,20 @@ More to come.
 
 ## Install
 
-### Mac
-
-You can use homebrew -
-
+### Linux + macOS
+We recommend using [homebrew](https://brew.sh/):
 ```
 brew tap chanzuckerberg/tap
-brew install blessclient@1
+brew install aws-oidc
 ```
 
-### Linux
-Binaries are available on the [releases](https://github.com/chanzuckerberg/blessclient/releases) page. Download one for your architecture, put it in your path and make it executable.
-
-You might also need to install `libusb-dev`. For ubuntu you can install `libusb-1.0-0-dev`.
+### WSL
+We have tested on WSL Ubuntu-18. A couple extra steps are required:
+```
+sudo apt update && sudo apt install xdg-utils
+brew tap chanzuckerberg/tap
+brew install aws-oidc
+```
 
 ## Usage
 
