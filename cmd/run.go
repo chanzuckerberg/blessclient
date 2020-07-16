@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	oidc "github.com/chanzuckerberg/go-misc/oidc_cli"
@@ -17,11 +18,13 @@ import (
 )
 
 const (
-	flagForce = "force"
+	flagForce     = "force"
+	flagPrintCert = "print-cert"
 )
 
 func init() {
 	runCmd.Flags().BoolP(flagForce, "f", false, "Force certificate refresh")
+	runCmd.Flags().Bool(flagPrintCert, false, "Prints the SSH Certificate for debugging purposes")
 
 	rootCmd.AddCommand(runCmd)
 }
@@ -34,6 +37,10 @@ var runCmd = &cobra.Command{
 		force, err := cmd.Flags().GetBool(flagForce)
 		if err != nil {
 			return errors.Wrap(err, "Missing force flag")
+		}
+		printCert, err := cmd.Flags().GetBool(flagPrintCert)
+		if err != nil {
+			return errors.Wrap(err, "Missing print-cert flag")
 		}
 
 		config, err := config.FromFile(config.DefaultConfigFile)
@@ -106,6 +113,13 @@ var runCmd = &cobra.Command{
 		)
 		if err != nil {
 			return err
+		}
+
+		if printCert {
+			err = ssh.PrintCertificate(cert, os.Stderr)
+			if err != nil {
+				logrus.WithError(err).Debug("Could not print cert. Ignoring error.")
+			}
 		}
 
 		err = manager.WriteKey(priv, cert)
