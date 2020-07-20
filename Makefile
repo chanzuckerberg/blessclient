@@ -43,7 +43,6 @@ install: deps
 .PHONY: install
 
 deps:
-	go get -u ./...
 	go mod tidy
 .PHONY: deps
 
