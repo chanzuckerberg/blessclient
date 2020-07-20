@@ -111,6 +111,31 @@ You can check your version with
 ssh -V
 ```
 
+## Commands
+
+### run
+`run` will run blessclient and attempt to fetch an SSH certificate from the CA. It requires blessclient to be properly configured beforehand.
+
+### import-config
+`import-config` will import blessclient configuration from a remote location and configure your local blessclient.
+
+### token
+`token` will print, json formatted, your oauth2/oidc id_token and access_token. This command requires blessclient to be properly configured beforehand. This command is not typically part of a common workflow.
+
+The output will be written to stdout. The output is json formatted and looks like
+```json
+{
+  "version": 1,
+  "id_token": "<string>",
+  "access_token": "<string>",
+  "expiry": "2020-07-20T12:18:02-04:00"
+}
+```
+When running this command, no other output will be written to stdout.
+
+### version
+`version` will print blessclient's version.
+
 ## Other
 ### Deploying BLESS
 There are already [several](https://github.com/lyft/python-blessclient#run-a-bless-lambda-in-aws) [great](http://marcyoung.us/post/bless-part1/) [guides](https://www.tastycidr.net/a-practical-guide-to-deploying-netflixs-bless-certificate-authority/) on how to run a BLESS lambda. If you take a moment to skim through these, you'll notice that setting up a successful BLESS deployment requires thorough knowledge of AWS Lambda and IAM. Even then, you'll probably spend hours digging through CloudWatch logs (and who likes doing that).
