@@ -156,6 +156,8 @@ func TestLocalForward(t *testing.T) {
 						Pattern: "10.0.0.*",
 						LocalForwardPorts: map[uint16]uint16{
 							400: 4000,
+							500: 5000,
+							300: 3000,
 						},
 					},
 					{
@@ -177,7 +179,9 @@ Host test0
 Host 10.0.0.*
 	ProxyJump test0
 	User bar
+	LocalForward 300 localhost:3000
 	LocalForward 400 localhost:4000
+	LocalForward 500 localhost:5000
 Host 10.0.0.*
 	ProxyJump test0
 	User foo
