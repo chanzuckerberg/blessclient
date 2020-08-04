@@ -106,20 +106,17 @@ func TestUnmarshalConfig(t *testing.T) {
 		Bastions: []config.Bastion{
 			{
 				Host: config.Host{
-					Pattern:           "test0",
-					User:              "foo",
-					LocalForwardPorts: map[uint16]uint16{},
+					Pattern: "test0",
+					User:    "foo",
 				},
 				Hosts: []config.Host{
 					{
-						User:              "bar",
-						Pattern:           "10.0.0.*",
-						LocalForwardPorts: map[uint16]uint16{},
+						User:    "bar",
+						Pattern: "10.0.0.*",
 					},
 					{
 						// no user override here
-						Pattern:           "10.0.0.*",
-						LocalForwardPorts: map[uint16]uint16{},
+						Pattern: "10.0.0.*",
 					},
 				},
 			},

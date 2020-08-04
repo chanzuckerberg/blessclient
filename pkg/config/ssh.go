@@ -91,5 +91,5 @@ func (ec *SSHExecCommand) String() string {
 type Host struct {
 	Pattern           string            `yaml:"pattern"`
 	User              string            `yaml:"user"`
-	LocalForwardPorts map[uint16]uint16 `yaml:"local_forward_ports"`
+	LocalForwardPorts map[uint16]uint16 `yaml:"local_forward_ports,omitempty"`
 }
