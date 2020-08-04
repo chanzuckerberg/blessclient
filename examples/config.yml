@@ -4,7 +4,7 @@
 version: 0 # blessclient config version
 client_config:
   # The aws user (not role) profile to use. "" means "default"
-  aws_user_profile: ''
+  aws_user_profile: ""
   # The lifetime for your certificate
   cert_lifetime: 30m
   # A default ssh key. We prefer ed25519 keys but you can also use RSA keys.
@@ -46,8 +46,10 @@ ssh_config:
       user: foo_user
       # Use this if you want to override the call to "blessclient run"
       # Useful if you want to use aws-vault or similar
-      ssh_exec_command: 'blessclient run'
+      ssh_exec_command: "blessclient run"
       # Patterns for servers behind this bastion
       hosts:
         - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
-        - pattern: '!bastion.foo.bar.com *.foo.bar.com' # Also anything *.foo.bar.com
+          local_forward_ports:
+            300: 4000 # LocalForward local port 4000 to remote port 300
+        - pattern: "!bastion.foo.bar.com *.foo.bar.com" # Also anything *.foo.bar.com

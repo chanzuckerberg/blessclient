@@ -80,15 +80,13 @@ func TestUserOverride(t *testing.T) {
 
 	expected := `
 Match OriginalHost  test0 exec "blessclient run"
-  User foo
+	User foo
 
 Host test0
-  User foo
-
+	User foo
 Host 10.0.0.*
 	ProxyJump test0
 	User bar
-
 Host 10.0.0.*
 	ProxyJump test0
 	User foo
@@ -133,4 +131,61 @@ func TestUnmarshalConfig(t *testing.T) {
 	r.NoError(err)
 
 	r.Equal(sshConf, newConf)
+}
+
+func TestLocalForward(t *testing.T) {
+	t.Parallel()
+	r := require.New(t)
+
+	sshConf := &config.SSHConfig{
+		Bastions: []config.Bastion{
+			{
+				Host: config.Host{
+					Pattern: "test0",
+					User:    "foo",
+					LocalForwardPorts: map[uint16]uint16{
+						300: 3000,
+					},
+				},
+				Hosts: []config.Host{
+					{
+						User:    "bar",
+						Pattern: "10.0.0.*",
+						LocalForwardPorts: map[uint16]uint16{
+							400: 4000,
+							500: 5000,
+							300: 3000,
+						},
+					},
+					{
+						// no user override here
+						Pattern: "10.0.0.*",
+					},
+				},
+			},
+		},
+	}
+
+	expected := `
+Match OriginalHost  test0 exec "blessclient run"
+	User foo
+
+Host test0
+	User foo
+	LocalForward 300 localhost:3000
+Host 10.0.0.*
+	ProxyJump test0
+	User bar
+	LocalForward 300 localhost:3000
+	LocalForward 400 localhost:4000
+	LocalForward 500 localhost:5000
+Host 10.0.0.*
+	ProxyJump test0
+	User foo
+`
+
+	config, err := sshConf.String()
+	fmt.Println(config)
+	r.NoError(err)
+	r.Contains(config, expected)
 }
