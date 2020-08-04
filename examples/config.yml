@@ -51,6 +51,5 @@ ssh_config:
       hosts:
         - pattern: 10.0.* # Anything in the 10.0.* block will go through this bastion
           local_forward_ports:
-            300: 4000 # Remote port 300 to local port 4000
+            300: 4000 # LocalForward local port 4000 to remote port 300
         - pattern: "!bastion.foo.bar.com *.foo.bar.com" # Also anything *.foo.bar.com
-
