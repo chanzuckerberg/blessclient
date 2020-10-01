@@ -15,7 +15,9 @@ type Client struct {
 	KMS            *KMS
 	Lambda         *Lambda
 	S3             *S3
+	Firehose       *Firehose
 	SecretsManager *SecretsManager
+	SSM            *SSM
 	STS            *STS
 	Support        *Support
 }
@@ -33,20 +35,37 @@ func (c *Client) WithAllServices(conf *aws.Config) *Client {
 		WithKMS(conf).
 		WithLambda(conf).
 		WithS3(conf).
+		WithFirehose(conf).
 		WithSecretsManager(conf).
+		WithSSM(conf).
 		WithSTS(conf).
 		WithSupport(conf)
 }
 
 // ------- SecretsManager -----------
 
-// WithSecretsManager configures a secrets manager
+// WithSecretsManager configures a Secrets Manager svc
 func (c *Client) WithSecretsManager(conf *aws.Config) *Client {
 	c.SecretsManager = NewSecretsManager(c.session, conf)
 	return c
 }
 
-// TODO secretsmanager mock
+// WithMockSecretsManager mocks the Secrets Manager svc
+func (c *Client) WithMockSecretsManager() (*Client, *MockSecretsManagerSvc) {
+	mock := NewMockSecretsManager()
+	c.SecretsManager = &SecretsManager{Svc: mock}
+	return c, mock
+}
+
+// ------- Firehose -----------
+
+// WithFirehose configures the firehose service
+func (c *Client) WithFirehose(conf *aws.Config) *Client {
+	c.Firehose = NewFirehose(c.session, conf)
+	return c
+}
+
+// TODO(el): Firehose mock
 
 // ------- S3 -----------
 
@@ -56,7 +75,13 @@ func (c *Client) WithS3(conf *aws.Config) *Client {
 	return c
 }
 
-// TODO s3 mock
+// WithMockS3 mocks s3 svc
+func (c *Client) WithMockS3() (*Client, *MockS3Svc, *MockS3Manager) {
+	mock := NewMockS3()
+	mockDownloader := NewMockS3Manager()
+	c.S3 = &S3{Svc: mock, Downloader: mockDownloader}
+	return c, mock, mockDownloader
+}
 
 // ------- IAM -----------
 
@@ -70,6 +95,21 @@ func (c *Client) WithIAM(conf *aws.Config) *Client {
 func (c *Client) WithMockIAM() (*Client, *MockIAMSvc) {
 	mock := NewMockIAM()
 	c.IAM = &IAM{Svc: mock}
+	return c, mock
+}
+
+// ------- SSM -----------
+
+// WithSSM configures the SSM service
+func (c *Client) WithSSM(conf *aws.Config) *Client {
+	c.SSM = NewSSM(c.session, conf)
+	return c
+}
+
+// WithMockSSM mocks the SSM service
+func (c *Client) WithMockSSM() (*Client, *MockSSMSvc) {
+	mock := NewMockSSM()
+	c.SSM = &SSM{Svc: mock}
 	return c, mock
 }
 

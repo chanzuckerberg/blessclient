@@ -2,6 +2,9 @@ package bless
 
 import (
 	"context"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"encoding/json"
 	"net"
 	"os"
@@ -9,14 +12,15 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/ssh"
+	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/chanzuckerberg/go-misc/kmsauth"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"go.opencensus.io/trace"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 )
 
@@ -81,7 +85,7 @@ func (c *Client) RequestKMSAuthToken(ctx context.Context) (*kmsauth.EncryptedTok
 
 // RequestCert requests a cert
 func (c *Client) RequestCert(ctx context.Context) error {
-	log.Debugf("Requesting certificate")
+	logrus.Debugf("Requesting certificate")
 	ctx, span := trace.StartSpan(ctx, "request_cert")
 	defer span.End()
 
@@ -93,30 +97,17 @@ func (c *Client) RequestCert(ctx context.Context) error {
 		Command:         "*",
 	}
 
-	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
 		return err
 	}
 
-	// Check to see if ssh client version is compatible with the key type
-	s.CheckKeyTypeAndClientVersion(ctx)
-
-	isFresh, err := s.IsCertFresh(c.conf, c.username)
-	if err != nil {
-		return err
-	}
-	span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
-	if isFresh {
-		log.Debug("Cert is already fresh - using it")
-		return nil
-	}
-
-	log.Debug("Requesting new cert")
+	logrus.Debug("Requesting new cert")
 	pubKey, err := s.ReadPublicKey()
 	if err != nil {
 		return err
 	}
-	log.Debugf("Using public key: %s", string(pubKey))
+	logrus.Debugf("Using public key: %s", string(pubKey))
 
 	token, err := c.RequestKMSAuthToken(ctx)
 	if err != nil {
@@ -125,11 +116,11 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if token == nil {
 		return errors.New("Missing KMSAuth Token")
 	}
-	log.Debugf("With KMSAuthToken %s", token.String())
+	logrus.Debugf("With KMSAuthToken %s", token.String())
 
 	payload.KMSAuthToken = token.String()
 	payload.PublicKeyToSign = string(pubKey)
-	log.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
+	logrus.Debugf("Requesting cert with lambda payload %s", spew.Sdump(payload))
 	lambdaResponse, err := c.getCert(ctx, payload)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
@@ -139,17 +130,17 @@ func (c *Client) RequestCert(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "Error writing cert to disk")
 	}
-	err = c.updateSSHAgent(ctx)
+	err = c.updateSSHAgent()
 	if err != nil {
 		// Not a fatal error so just printing a warning
-		log.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
+		logrus.WithError(err).Warn("Error adding certificate to ssh-agent, is your ssh-agent running?")
 	}
 	return nil
 }
 
-func (c *Client) updateSSHAgent(ctx context.Context) error {
+func (c *Client) updateSSHAgent() error {
 	if !c.conf.ClientConfig.UpdateSSHAgent {
-		log.Debug("Skipping adding to ssh-agent")
+		logrus.Debug("Skipping adding to ssh-agent")
 		return nil
 	}
 	authSock := os.Getenv("SSH_AUTH_SOCK")
@@ -162,7 +153,7 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	}
 	defer agentSock.Close()
 
-	s, err := ssh.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
+	s, err := cziSSH.NewSSH(c.conf.ClientConfig.SSHPrivateKey)
 	if err != nil {
 		return err
 	}
@@ -171,16 +162,24 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	cert, err := s.ReadAndParseCert()
 	if err != nil {
 		return err
 	}
 
 	// calculate how many seconds before cert expiry
-	certLifetimeSecs := uint32(time.Unix(int64(cert.ValidBefore), 0).Sub(time.Now()) / time.Second)
-	log.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
+	certLifetimeSecs := uint32(time.Until(time.Unix(int64(cert.ValidBefore), 0)) / time.Second)
+	logrus.Debugf("SSH_AUTH_SOCK: adding key to agent with %ds ttl", certLifetimeSecs)
 
 	a := agent.NewClient(agentSock)
+	err = c.RemoveKeyFromAgent(a, privKey)
+	if err != nil {
+		// we ignore this error since duplicates don't
+		// typically cause any issues
+		logrus.Debugf("could not remove cert from ssh agent: %s", err.Error())
+	}
+
 	key := agent.AddedKey{
 		PrivateKey:   privKey,
 		Certificate:  cert,
@@ -189,6 +188,33 @@ func (c *Client) updateSSHAgent(ctx context.Context) error {
 	}
 
 	return errors.Wrap(a.Add(key), "Could not add key/certificate to SSH_AGENT_SOCK")
+}
+
+func (c *Client) RemoveKeyFromAgent(a agent.ExtendedAgent, privKey interface{}) error {
+	var pubKey ssh.PublicKey
+	var err error
+
+	switch typedPrivKey := privKey.(type) {
+	case *rsa.PrivateKey:
+		pubKey, err = ssh.NewPublicKey(typedPrivKey.Public())
+		if err != nil {
+			return errors.Wrap(err, "could not parse public key from rsa.Private key")
+		}
+	case *dsa.PrivateKey:
+		pubKey, err = ssh.NewPublicKey(&typedPrivKey.PublicKey)
+		if err != nil {
+			return errors.Wrap(err, "could not parse public key from dsa.Private key")
+		}
+	case *ecdsa.PrivateKey:
+		pubKey, err = ssh.NewPublicKey(typedPrivKey.Public())
+		if err != nil {
+			return errors.Wrap(err, "could not parse public key from ecdsa.Private key")
+		}
+	default:
+		return errors.New("can't remove public key from agent since wrong type")
+	}
+
+	return errors.Wrap(a.Remove(pubKey), "could not remove pub key from agent")
 }
 
 func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaResponse, error) {
@@ -203,14 +229,14 @@ func (c *Client) getCert(ctx context.Context, payload *LambdaPayload) (*LambdaRe
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Raw lambda response %s", string(responseBytes))
+	logrus.Debugf("Raw lambda response %s", string(responseBytes))
 	lambdaReponse := &LambdaResponse{}
 	err = json.Unmarshal(responseBytes, lambdaReponse)
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not deserialize lambda reponse")
 	}
 
-	log.Debugf("Parsed lambda response %s", spew.Sdump(lambdaReponse))
+	logrus.Debugf("Parsed lambda response %s", spew.Sdump(lambdaReponse))
 	if lambdaReponse.ErrorType != nil {
 		if lambdaReponse.ErrorMessage != nil {
 			return nil, errors.Errorf("bless error: %s: %s", *lambdaReponse.ErrorType, *lambdaReponse.ErrorMessage)

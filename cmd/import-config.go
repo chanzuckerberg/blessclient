@@ -23,11 +23,14 @@ import (
 )
 
 const (
-	flagKeyFile = "key-file"
+	flagKeyFile  = "key-file"
+	flagUsername = "username"
 )
 
 func init() {
 	importConfigCmd.Flags().StringP(flagKeyFile, "k", config.DefaultSSHPrivateKey, "Location of SSH private key")
+	importConfigCmd.Flags().StringP(flagUsername, "u", "", "Explicitly set your username instead of trying to infer it.")
+
 	rootCmd.AddCommand(importConfigCmd)
 }
 
@@ -107,7 +110,13 @@ var importConfigCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		err = conf.SetAWSUsernameIfMissing(ctx, awsClient)
+
+		usernameOverride, err := determineUsernameOverride(cmd)
+		if err != nil {
+			return err
+		}
+
+		err = conf.SetAWSUsername(ctx, awsClient, usernameOverride)
 		if err != nil {
 			return err
 		}
@@ -127,6 +136,14 @@ func determineSSHKeyPath(cmd *cobra.Command, conf *config.Config) (string, error
 		return conf.ClientConfig.SSHPrivateKey, nil
 	}
 	return cmd.Flags().GetString(flagKeyFile)
+}
+
+func determineUsernameOverride(cmd *cobra.Command) (*string, error) {
+	if cmd.Flags().Changed(flagUsername) {
+		username, err := cmd.Flags().GetString(flagUsername)
+		return &username, err
+	}
+	return nil, nil
 }
 
 func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {

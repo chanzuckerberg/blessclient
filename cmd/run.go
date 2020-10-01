@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	bless "github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
+	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -87,6 +88,24 @@ var runCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 
+		ssh, err := ssh.NewSSH(conf.ClientConfig.SSHPrivateKey)
+		if err != nil {
+			return err
+		}
+
+		// Check to see if ssh client version is compatible with the key type
+		ssh.CheckKeyTypeAndClientVersion(ctx)
+
+		isFresh, err := ssh.IsCertFresh(conf)
+		if err != nil {
+			return err
+		}
+		span.AddAttributes(trace.BoolAttribute(telemetry.FieldFreshCert, isFresh))
+		if isFresh {
+			log.Debug("Cert is already fresh - using it")
+			return nil
+		}
+
 		var regionErrors error
 		for _, region := range conf.LambdaConfig.Regions {
 			log.Debugf("Attempting region %s", region.AWSRegion)
@@ -107,7 +126,11 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 	defer span.End()
 	span.AddAttributes(trace.StringAttribute(telemetry.FieldRegion, region.AWSRegion))
 
-	awsClient := getAWSClient(ctx, conf, sess, region)
+	awsClient, err := getAWSClient(ctx, conf, sess, region)
+	if err != nil {
+		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
+		return err
+	}
 	username, err := conf.GetAWSUsername(ctx, awsClient)
 	if err != nil {
 		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
@@ -119,8 +142,8 @@ func processRegion(ctx context.Context, conf *config.Config, sess *session.Sessi
 }
 
 // getAWSClient configures an aws client
-func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) *cziAWS.Client {
-	ctx, span := trace.StartSpan(ctx, "get_aws_client")
+func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Session, region config.Region) (*cziAWS.Client, error) {
+	_, span := trace.StartSpan(ctx, "get_aws_client")
 	defer span.End()
 	// for things meant to be run as a user
 	userConf := &aws.Config{
@@ -132,7 +155,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		creds, err := getAWSOktaCredentials(conf)
 		if err != nil {
 			log.Errorf("Error in retrieving AWS Okta session credentials: %s.", err.Error())
-			return nil
+			return nil, err
 		}
 
 		userConf = &aws.Config{
@@ -163,7 +186,7 @@ func getAWSClient(ctx context.Context, conf *config.Config, sess *session.Sessio
 		WithKMS(userConf).
 		WithSTS(userConf).
 		WithLambda(lambdaConf)
-	return awsClient
+	return awsClient, nil
 }
 
 func getAWSOktaCredentials(conf *config.Config) (*credentials.Value, error) {

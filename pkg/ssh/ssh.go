@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	timeSkew = time.Second * 30
+	timeSkew = 10 * time.Second
 )
 
 // SSH is a namespace
@@ -120,7 +120,7 @@ func (s *SSH) ReadAndParseCert() (*ssh.Certificate, error) {
 }
 
 // IsCertFresh determines if the cert is still fresh
-func (s *SSH) IsCertFresh(c *config.Config, username string) (bool, error) {
+func (s *SSH) IsCertFresh(c *config.Config) (bool, error) {
 	cert, err := s.ReadAndParseCert()
 	if err != nil {
 		return false, err
@@ -130,16 +130,16 @@ func (s *SSH) IsCertFresh(c *config.Config, username string) (bool, error) {
 	}
 
 	now := time.Now()
-	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(timeSkew)    // uper bound
-	validAfter := time.Unix(int64(cert.ValidAfter), 0).Add(-1 * timeSkew) // lower bound
 
-	isFresh := now.After(validAfter) && now.Before(validBefore)
+	// to protect against time-skew issues we potentially generate a certificate timeSkew duration
+	//    earlier than we might've otherwise
+	validBefore := time.Unix(int64(cert.ValidBefore), 0).Add(-1 * timeSkew) // upper bound
+	isFresh := now.Before(validBefore)
 
 	// TODO: add more validation for certificate critical options
 	val, ok := cert.CriticalOptions["source-address"]
 	isFresh = isFresh && ok && val == strings.Join(c.ClientConfig.BastionIPS, ",")
-	// Compare principals
-	isFresh = isFresh && reflect.DeepEqual(cert.ValidPrincipals, c.GetRemoteUsers(username))
+	isFresh = isFresh && (c.ClientConfig.SkipPrincipalValidation || reflect.DeepEqual(cert.ValidPrincipals, c.ClientConfig.RemoteUsers))
 
 	return isFresh, nil
 }
@@ -148,7 +148,7 @@ func (s *SSH) IsCertFresh(c *config.Config, username string) (bool, error) {
 func (s *SSH) WriteCert(b []byte) error {
 	certPath := path.Join(s.sshDirectory, fmt.Sprintf("%s-cert.pub", s.keyName))
 	logrus.Debugf("Writing cert to %s", certPath)
-	err := ioutil.WriteFile(certPath, b, 0644)
+	err := ioutil.WriteFile(certPath, b, 0600)
 	return errors.Wrapf(err, "Could not write cert to %s", certPath)
 }
 
@@ -167,7 +167,7 @@ func GetSSHVersion() (string, error) {
 // compatible with the ssh client version
 // Particularly: https://github.com/chanzuckerberg/blessclient#ssh-client-78-cant-connect-with-certificates
 func (s *SSH) CheckKeyTypeAndClientVersion(ctx context.Context) {
-	ctx, span := trace.StartSpan(ctx, "check_ssh_client")
+	_, span := trace.StartSpan(ctx, "check_ssh_client")
 	defer span.End()
 	// We check the ssh client version and ssh key type
 	key, err := s.ReadAndParsePrivateKey()

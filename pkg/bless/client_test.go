@@ -2,6 +2,11 @@ package bless_test
 
 import (
 	"context"
+	"crypto/dsa"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 type TestSuite struct {
@@ -123,39 +130,48 @@ func (ts *TestSuite) TestEverythingOk() {
 	a.Nil(err)
 }
 
-// If we can't parse the cert on disk - error
-func (ts *TestSuite) TestErrOnMalformedCert() {
-	t := ts.T()
-	a := assert.New(t)
-
-	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
-	err := ioutil.WriteFile(certPath, []byte("bad cert"), 0644)
-	a.Nil(err)
-	defer os.RemoveAll(certPath)
-
-	err = ts.client.RequestCert(ts.ctx)
-	a.NotNil(err)
-	a.Contains(err.Error(), "Could not parse cert")
+type mockExtendedAgent struct {
+	agent.ExtendedAgent
+	Err error
 }
 
-// If we already have a fresh cert don't request one
-func (ts *TestSuite) TestFreshCert() {
+func (m *mockExtendedAgent) Remove(ssh.PublicKey) error {
+	return m.Err
+}
+
+func (ts *TestSuite) TestRemoveCertFromAgent() {
 	t := ts.T()
 	a := assert.New(t)
-	// cert generated as follows:
-	// ssh-keygen -t rsa -f test_key
-	// ssh-keygen -s test_key -I test-cert  -O critical:source-address:0.0.0.0/0 -n test-principal -V -520w:-510w test_key.pub
-	ts.mockKMS.On("EncryptWithContext", mock.Anything).Return(ts.encryptOut, nil)
-	ts.mockLambda.On("InvokeWithContext", mock.Anything).Return(ts.lambdaExecuteOut, nil)
-	certPath := fmt.Sprintf("%s-cert.pub", ts.conf.ClientConfig.SSHPrivateKey)
-	cert, err := ioutil.ReadFile("testdata/cert")
-	a.Nil(err)
-	err = ioutil.WriteFile(certPath, cert, 0644)
-	a.Nil(err)
-	defer os.RemoveAll(certPath)
-	err = ts.client.RequestCert(ts.ctx)
-	a.Nil(err)
-	a.True(ts.mockLambda.Mock.AssertNotCalled(t, "InvokeWithContext"))
+
+	mock := &mockExtendedAgent{}
+	c := bless.Client{}
+
+	// rsa
+	rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	a.NoError(err)
+
+	// dsa
+	params := &dsa.Parameters{}
+	err = dsa.GenerateParameters(params, rand.Reader, dsa.L1024N160)
+	a.NoError(err)
+	dsaPrivatekey := &dsa.PrivateKey{}
+	dsaPrivatekey.PublicKey.Parameters = *params
+	err = dsa.GenerateKey(dsaPrivatekey, rand.Reader)
+	a.NoError(err)
+
+	// ecdsa
+	pubkeyCurve := elliptic.P256()                                      //see http://golang.org/pkg/crypto/elliptic/#P256
+	ecdsaPrivateKey, err := ecdsa.GenerateKey(pubkeyCurve, rand.Reader) // this generates a public & private key pair
+	a.NoError(err)
+
+	// no remove errors
+	a.NoError(c.RemoveKeyFromAgent(mock, rsaKey))
+	a.NoError(c.RemoveKeyFromAgent(mock, dsaPrivatekey))
+	a.NoError(c.RemoveKeyFromAgent(mock, ecdsaPrivateKey))
+
+	// errors
+	err = c.RemoveKeyFromAgent(mock, "not a key")
+	a.Error(err)
 }
 
 func (ts *TestSuite) TestBadPrincipalsCert() {

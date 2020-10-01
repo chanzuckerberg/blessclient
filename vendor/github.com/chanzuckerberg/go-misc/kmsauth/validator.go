@@ -37,14 +37,6 @@ func NewTokenValidator(
 	}
 }
 
-// validate validates the token validator
-func (tv *TokenValidator) validate() error {
-	if tv == nil {
-		return errors.New("Nil token validator")
-	}
-	return tv.AuthContext.Validate()
-}
-
 // ValidateToken validates a token
 func (tv *TokenValidator) ValidateToken(ctx context.Context, tokenb64 string) error {
 	token, err := tv.decryptToken(ctx, tokenb64)
@@ -64,7 +56,7 @@ func (tv *TokenValidator) decryptToken(ctx context.Context, tokenb64 string) (*T
 	if err != nil {
 		return nil, err
 	}
-	ok, _ := tv.AuthKeys[keyID]
+	ok := tv.AuthKeys[keyID]
 	if !ok {
 		return nil, errors.Errorf("Invalid KMS key used %s", keyID)
 	}

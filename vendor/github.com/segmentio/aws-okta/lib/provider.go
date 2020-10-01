@@ -1,22 +1,27 @@
 package lib
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
 
+	"errors"
+
+	"github.com/segmentio/aws-okta/internal/sessioncache"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/99designs/keyring"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+
+	// use xerrors until 1.13 is stable/oldest supported version
+	"golang.org/x/xerrors"
 )
 
 const (
-	MaxSessionDuration    = time.Hour * 36
+	MaxSessionDuration    = time.Hour * 24 * 90
 	MinSessionDuration    = time.Minute * 15
 	MinAssumeRoleDuration = time.Minute * 15
 	MaxAssumeRoleDuration = time.Hour * 12
@@ -31,6 +36,10 @@ type ProviderOptions struct {
 	ExpiryWindow       time.Duration
 	Profiles           Profiles
 	MFAConfig          MFAConfig
+	AssumeRoleArn      string
+	// if true, use store_singlekritem SessionCache (new)
+	// if false, use store_kritempersession SessionCache (old)
+	SessionCacheSingleItem bool
 }
 
 func (o ProviderOptions) Validate() error {
@@ -59,13 +68,18 @@ func (o ProviderOptions) ApplyDefaults() ProviderOptions {
 	return o
 }
 
+type SessionCacheInterface interface {
+	Get(sessioncache.Key) (*sessioncache.Session, error)
+	Put(sessioncache.Key, *sessioncache.Session) error
+}
+
 type Provider struct {
 	credentials.Expiry
 	ProviderOptions
 	profile                string
 	expires                time.Time
 	keyring                keyring.Keyring
-	sessions               *KeyringSessions
+	sessions               SessionCacheInterface
 	profiles               Profiles
 	defaultRoleSessionName string
 }
@@ -75,10 +89,20 @@ func NewProvider(k keyring.Keyring, profile string, opts ProviderOptions) (*Prov
 	if err := opts.Validate(); err != nil {
 		return nil, err
 	}
+	var sessions SessionCacheInterface
+
+	if opts.SessionCacheSingleItem {
+		log.Debugf("Using SingleKrItemStore")
+		sessions = &sessioncache.SingleKrItemStore{k}
+	} else {
+		log.Debugf("Using KrItemPerSessionStore")
+		sessions = &sessioncache.KrItemPerSessionStore{k}
+	}
+
 	return &Provider{
 		ProviderOptions: opts,
 		keyring:         k,
-		sessions:        &KeyringSessions{k, opts.Profiles},
+		sessions:        sessions,
 		profile:         profile,
 		profiles:        opts.Profiles,
 	}, nil
@@ -91,44 +115,67 @@ func (p *Provider) Retrieve() (credentials.Value, error) {
 		window = time.Minute * 5
 	}
 
+	// TODO(nick): why are we using the source profile name and not the actual profile's name?
 	source := sourceProfile(p.profile, p.profiles)
-	session, name, err := p.sessions.Retrieve(source, p.SessionDuration)
-	p.defaultRoleSessionName = name
-	if err != nil {
-		session, err = p.getSamlSessionCreds()
-		if err != nil {
-			return credentials.Value{}, err
-		}
-		p.sessions.Store(source, p.roleSessionName(), session, p.SessionDuration)
+	profileConf, ok := p.profiles[p.profile]
+	if !ok {
+		return credentials.Value{}, fmt.Errorf("missing profile named %s", p.profile)
+	}
+	key := sessioncache.OrigKey{
+		ProfileName: source,
+		ProfileConf: profileConf,
+		Duration:    p.SessionDuration,
 	}
 
-	log.Debugf(" Using session %s, expires in %s",
-		(*session.AccessKeyId)[len(*session.AccessKeyId)-4:],
-		session.Expiration.Sub(time.Now()).String())
+	var creds sts.Credentials
+	if cachedSession, err := p.sessions.Get(key); err != nil {
+		creds, err = p.getSamlSessionCreds()
+		if err != nil {
+			return credentials.Value{}, xerrors.Errorf("getting creds via SAML: %w", err)
+		}
+		newSession := sessioncache.Session{
+			Name:        p.roleSessionName(),
+			Credentials: creds,
+		}
+		if err = p.sessions.Put(key, &newSession); err != nil {
+			return credentials.Value{}, xerrors.Errorf("putting to sessioncache", err)
+		}
+
+		// TODO(nick): not really clear why this is done
+		p.defaultRoleSessionName = newSession.Name
+	} else {
+		creds = cachedSession.Credentials
+		p.defaultRoleSessionName = cachedSession.Name
+	}
+
+	log.Debugf("Using session %s, expires in %s",
+		(*(creds.AccessKeyId))[len(*(creds.AccessKeyId))-4:],
+		creds.Expiration.Sub(time.Now()).String())
 
 	// If sourceProfile returns the same source then we do not need to assume a
 	// second role. Not assuming a second role allows us to assume IDP enabled
 	// roles directly.
 	if p.profile != source {
 		if role, ok := p.profiles[p.profile]["role_arn"]; ok {
-			session, err = p.assumeRoleFromSession(session, role)
+			var err error
+			creds, err = p.assumeRoleFromSession(creds, role)
 			if err != nil {
 				return credentials.Value{}, err
 			}
 
 			log.Debugf("using role %s expires in %s",
-				(*session.AccessKeyId)[len(*session.AccessKeyId)-4:],
-				session.Expiration.Sub(time.Now()).String())
+				(*(creds.AccessKeyId))[len(*(creds.AccessKeyId))-4:],
+				creds.Expiration.Sub(time.Now()).String())
 		}
 	}
 
-	p.SetExpiration(*session.Expiration, window)
-	p.expires = *session.Expiration
+	p.SetExpiration(*(creds.Expiration), window)
+	p.expires = *(creds.Expiration)
 
 	value := credentials.Value{
-		AccessKeyID:     *session.AccessKeyId,
-		SecretAccessKey: *session.SecretAccessKey,
-		SessionToken:    *session.SessionToken,
+		AccessKeyID:     *(creds.AccessKeyId),
+		SecretAccessKey: *(creds.SecretAccessKey),
+		SessionToken:    *(creds.SessionToken),
 		ProviderName:    "okta",
 	}
 
@@ -140,7 +187,7 @@ func (p *Provider) getSamlURL() (string, error) {
 	if err != nil {
 		return "", errors.New("aws_saml_url missing from ~/.aws/config")
 	}
-	log.Debugf("Using aws_saml_url from profile: %s", profile)
+	log.Debugf("Using aws_saml_url from profile %s: %s", profile, oktaAwsSAMLUrl)
 	return oktaAwsSAMLUrl, nil
 }
 
@@ -154,6 +201,8 @@ func (p *Provider) getOktaSessionCookieKey() string {
 }
 
 func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
+	var profileARN string
+	var ok bool
 	source := sourceProfile(p.profile, p.profiles)
 	oktaAwsSAMLUrl, err := p.getSamlURL()
 	if err != nil {
@@ -161,9 +210,15 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 	}
 	oktaSessionCookieKey := p.getOktaSessionCookieKey()
 
-	profileARN, ok := p.profiles[source]["role_arn"]
-	if !ok {
-		return sts.Credentials{}, errors.New("Source profile must provide `role_arn`")
+	// if the assumable role is passed it have it override what is in the profile
+	if p.AssumeRoleArn != "" {
+		profileARN = p.AssumeRoleArn
+		log.Debug("Overriding Assumable role with: ", profileARN)
+	} else {
+		profileARN, ok = p.profiles[source]["role_arn"]
+		if !ok {
+			return sts.Credentials{}, errors.New("Source profile must provide `role_arn`")
+		}
 	}
 
 	provider := OktaProvider{
@@ -173,6 +228,10 @@ func (p *Provider) getSamlSessionCreds() (sts.Credentials, error) {
 		SessionDuration:      p.SessionDuration,
 		OktaAwsSAMLUrl:       oktaAwsSAMLUrl,
 		OktaSessionCookieKey: oktaSessionCookieKey,
+	}
+
+	if region := p.profiles[source]["region"]; region != "" {
+		provider.AwsRegion = region
 	}
 
 	creds, oktaUsername, err := provider.Retrieve()
@@ -192,10 +251,7 @@ func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
 	}
 	oktaSessionCookieKey := p.getOktaSessionCookieKey()
 
-	profileARN, ok := p.profiles[source]["role_arn"]
-	if !ok {
-		return &url.URL{}, errors.New("Source profile must provide `role_arn`")
-	}
+	profileARN := p.profiles[source]["role_arn"]
 
 	provider := OktaProvider{
 		MFAConfig:            p.ProviderOptions.MFAConfig,
@@ -204,6 +260,10 @@ func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
 		SessionDuration:      p.SessionDuration,
 		OktaAwsSAMLUrl:       oktaAwsSAMLUrl,
 		OktaSessionCookieKey: oktaSessionCookieKey,
+	}
+
+	if region := p.profiles[source]["region"]; region != "" {
+		provider.AwsRegion = region
 	}
 
 	loginURL, err := provider.GetSAMLLoginURL()
@@ -215,7 +275,7 @@ func (p *Provider) GetSAMLLoginURL() (*url.URL, error) {
 
 // assumeRoleFromSession takes a session created with an okta SAML login and uses that to assume a role
 func (p *Provider) assumeRoleFromSession(creds sts.Credentials, roleArn string) (sts.Credentials, error) {
-	client := sts.New(session.New(&aws.Config{Credentials: credentials.NewStaticCredentials(
+	client := sts.New(aws_session.New(&aws.Config{Credentials: credentials.NewStaticCredentials(
 		*creds.AccessKeyId,
 		*creds.SecretAccessKey,
 		*creds.SessionToken,
@@ -236,6 +296,9 @@ func (p *Provider) assumeRoleFromSession(creds sts.Credentials, roleArn string) 
 	return *resp.Credentials, nil
 }
 
+// roleSessionName returns the profile's `role_session_name` if set, or the
+// provider's defaultRoleSessionName if set. If neither is set, returns some
+// arbitrary unique string
 func (p *Provider) roleSessionName() string {
 	if name := p.profiles[p.profile]["role_session_name"]; name != "" {
 		return name
@@ -247,4 +310,32 @@ func (p *Provider) roleSessionName() string {
 
 	// Try to work out a role name that will hopefully end up unique.
 	return fmt.Sprintf("%d", time.Now().UTC().UnixNano())
+}
+
+// GetRoleARN uses p to establish temporary credentials then calls
+// lib.GetRoleARN with them to get the role's ARN
+func (p *Provider) GetRoleARN() (string, error) {
+	creds, err := p.getSamlSessionCreds()
+	if err != nil {
+		return "", err
+	}
+	return GetRoleARN(credentials.Value{
+		AccessKeyID:     *creds.AccessKeyId,
+		SecretAccessKey: *creds.SecretAccessKey,
+		SessionToken:    *creds.SessionToken,
+	})
+}
+
+// GetRoleARN makes a call to AWS to get-caller-identity and returns the
+// assumed role's name and ARN.
+func GetRoleARN(c credentials.Value) (string, error) {
+	client := sts.New(aws_session.New(&aws.Config{Credentials: credentials.NewStaticCredentialsFromCreds(c)}))
+
+	indentity, err := client.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+	if err != nil {
+		log.Errorf("Error getting caller identity: %s", err.Error())
+		return "", err
+	}
+	arn := *indentity.Arn
+	return arn, nil
 }

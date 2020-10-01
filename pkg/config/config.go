@@ -29,8 +29,6 @@ const (
 	defaultCacheDir = "cache"
 	// defaultKMSAuthCache is the default kmsauth cache
 	defaultKMSAuthCache = "kmsauth"
-	// defaultAWSSessionCache is the default aws session cache
-	defaultAWSSessionCache = "session"
 	// DefaultSSHPrivateKey is a path to where users usually keep an ssh key
 	DefaultSSHPrivateKey = "~/.ssh/id_ed25519"
 )
@@ -82,6 +80,9 @@ type ClientConfig struct {
 	RemoteUsers []string `yaml:"remote_users"`
 	// bless calls these bastion ips - your source ip. 0.0.0.0/0 is all
 	BastionIPS []string `yaml:"bastion_ips"`
+	// ask bless to validate existing certs against the remote users
+	// the default is true.
+	SkipPrincipalValidation bool `yaml:"skip_principal_validation"`
 }
 
 // OktaConfig is the Okta config
@@ -298,12 +299,21 @@ func (c *Config) GetAWSOktaKeyringBackend() []keyring.BackendType {
 	return backends
 }
 
-// SetAWSUsernameIfMissing queries AWS for the username and sets it in the config if missing
-func (c *Config) SetAWSUsernameIfMissing(ctx context.Context, awsClient *cziAWS.Client) error {
-	username, err := c.GetAWSUsername(ctx, awsClient)
+// SetAWSUsername sets the ClientConfig.AWSUserName from a variety of sources
+func (c *Config) SetAWSUsername(ctx context.Context, awsClient *cziAWS.Client, usernameOverride *string) error {
+	getUsername := func() (*string, error) {
+		if usernameOverride != nil {
+			return usernameOverride, nil
+		}
+		username, err := c.GetAWSUsername(ctx, awsClient)
+		return &username, err
+	}
+
+	username, err := getUsername()
 	if err != nil {
 		return err
 	}
-	c.ClientConfig.AWSUserName = &username
+
+	c.ClientConfig.AWSUserName = username
 	return nil
 }

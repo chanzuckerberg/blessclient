@@ -125,11 +125,11 @@ func (ts *TestSuite) TestUpdateAWSUsername() {
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 
-	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.Nil(err)
 	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
 
-	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.Nil(err)
 	// Should read the username from the config
 	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
@@ -145,7 +145,7 @@ func (ts *TestSuite) TestUpdateAWSUsernameError() {
 	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, e)
 	c, err := config.DefaultConfig()
 	a.Nil(err)
-	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.NotNil(err)
 	a.Contains(err.Error(), e.Error())
 }
@@ -159,12 +159,12 @@ func (ts *TestSuite) TestUpdateAWSUsernameEmptyResponse() {
 	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, nil)
 	c, err := config.DefaultConfig()
 	a.Nil(err)
-	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.NotNil(err)
 	a.Contains(err.Error(), "AWS returned nil user")
 
 	output.User = nil
-	err = c.SetAWSUsernameIfMissing(ts.ctx, ts.awsClient)
+	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.NotNil(err)
 	a.Contains(err.Error(), "AWS returned nil user")
 }

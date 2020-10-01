@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/segmentio/aws-okta/lib/mfa"
 	"github.com/segmentio/aws-okta/lib/saml"
 	log "github.com/sirupsen/logrus"
 )
@@ -86,7 +87,7 @@ func (c *OktaCreds) Validate(mfaConfig MFAConfig) error {
 	return nil
 }
 
-func getOktaDomain(region string) (string, error) {
+func GetOktaDomain(region string) (string, error) {
 	switch region {
 	case "us":
 		return OktaServerUs, nil
@@ -131,6 +132,7 @@ func NewOktaClient(creds OktaCreds, oktaAwsSAMLUrl string, sessionCookie string,
 			},
 		})
 	}
+	log.Debug("domain: " + domain)
 
 	return &OktaClient{
 		// Setting Organization for backwards compatibility
@@ -163,7 +165,7 @@ func (o *OktaClient) AuthenticateUser() error {
 	log.Debug("Step: 1")
 	err = o.Get("POST", "api/v1/authn", payload, &oktaUserAuthn, "json")
 	if err != nil {
-		return fmt.Errorf("Failed to authenticate with okta: %#v", err)
+		return fmt.Errorf("Failed to authenticate with okta. If your credentials have changed, use 'aws-okta add': %#v", err)
 	}
 
 	o.UserAuth = &oktaUserAuthn
@@ -184,10 +186,11 @@ func (o *OktaClient) AuthenticateUser() error {
 	return nil
 }
 
-func (o *OktaClient) AuthenticateProfile(profileARN string, duration time.Duration) (sts.Credentials, string, error) {
+func (o *OktaClient) AuthenticateProfileWithRegion(profileARN string, duration time.Duration, region string) (sts.Credentials, string, error) {
 
 	// Attempt to reuse session cookie
 	var assertion SAMLAssertion
+
 	err := o.Get("GET", o.OktaAwsSAMLUrl, nil, &assertion, "saml")
 	if err != nil {
 		log.Debug("Failed to reuse session token, starting flow from start")
@@ -210,7 +213,17 @@ func (o *OktaClient) AuthenticateProfile(profileARN string, duration time.Durati
 	}
 
 	// Step 4 : Assume Role with SAML
-	samlSess := session.Must(session.NewSession())
+	log.Debug("Step 4: Assume Role with SAML")
+	var samlSess *session.Session
+	if region != "" {
+		log.Debugf("Using region: %s\n", region)
+		conf := &aws.Config{
+			Region: aws.String(region),
+		}
+		samlSess = session.Must(session.NewSession(conf))
+	} else {
+		samlSess = session.Must(session.NewSession())
+	}
 	svc := sts.New(samlSess)
 
 	samlParams := &sts.AssumeRoleWithSAMLInput{
@@ -236,6 +249,11 @@ func (o *OktaClient) AuthenticateProfile(profileARN string, duration time.Durati
 	}
 
 	return *samlResp.Credentials, sessionCookie, nil
+}
+
+
+func (o *OktaClient) AuthenticateProfile(profileARN string, duration time.Duration) (sts.Credentials, string, error) {
+    return o.AuthenticateProfileWithRegion(profileARN, duration, "")
 }
 
 func selectMFADeviceFromConfig(o *OktaClient) (*OktaUserAuthnFactor, error) {
@@ -277,6 +295,9 @@ func (o *OktaClient) selectMFADevice() (*OktaUserAuthnFactor, error) {
 		log.Infof("%d: %s (%s)", i, f.Provider, f.FactorType)
 	}
 	i, err := Prompt("Select MFA method", false)
+	if i == "" {
+		return nil, errors.New("Invalid selection - Please use an option that is listed")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -284,12 +305,16 @@ func (o *OktaClient) selectMFADevice() (*OktaUserAuthnFactor, error) {
 	if err != nil {
 		return nil, err
 	}
+	if factorIdx > (len(factors) - 1) {
+		return nil, errors.New("Invalid selection - Please use an option that is listed")
+	}
 	return &factors[factorIdx], nil
 }
 
 func (o *OktaClient) preChallenge(oktaFactorId, oktaFactorType string) ([]byte, error) {
 	var mfaCode string
 	var err error
+
 	//Software and Hardware based OTP Tokens
 	if strings.Contains(oktaFactorType, "token") {
 		log.Debug("Token MFA")
@@ -318,6 +343,7 @@ func (o *OktaClient) preChallenge(oktaFactorId, oktaFactorType string) ([]byte, 
 			return nil, err
 		}
 	}
+
 	payload, err := json.Marshal(OktaStateToken{
 		StateToken: o.UserAuth.StateToken,
 		PassCode:   mfaCode,
@@ -358,8 +384,34 @@ func (o *OktaClient) postChallenge(payload []byte, oktaFactorProvider string, ok
 					}
 				}()
 			}
-		}
+		} else if oktaFactorProvider == "FIDO" {
+			f := o.UserAuth.Embedded.Factor
 
+			log.Debug("FIDO U2F Details:")
+			log.Debug("  ChallengeNonce: ", f.Embedded.Challenge.Nonce)
+			log.Debug("  AppId: ", f.Profile.AppId)
+			log.Debug("  CredentialId: ", f.Profile.CredentialId)
+			log.Debug("  StateToken: ", o.UserAuth.StateToken)
+
+			fidoClient, err := mfa.NewFidoClient(f.Embedded.Challenge.Nonce,
+				f.Profile.AppId,
+				f.Profile.Version,
+				f.Profile.CredentialId,
+				o.UserAuth.StateToken)
+			if err != nil {
+				return err
+			}
+
+			signedAssertion, err := fidoClient.ChallengeU2f()
+			if err != nil {
+				return err
+			}
+			// re-assign the payload to provide U2F responses.
+			payload, err = json.Marshal(signedAssertion)
+			if err != nil {
+				return err
+			}
+		}
 		// Poll Okta until authentication has been completed
 		for o.UserAuth.Status != "SUCCESS" {
 			select {
@@ -388,7 +440,6 @@ func (o *OktaClient) challengeMFA() (err error) {
 	var payload []byte
 	var oktaFactorType string
 
-	log.Debugf("%s", o.UserAuth.StateToken)
 	factor, err := o.selectMFADevice()
 	if err != nil {
 		log.Debug("Failed to select MFA device")
@@ -431,11 +482,19 @@ func GetFactorId(f *OktaUserAuthnFactor) (id string, err error) {
 	switch f.FactorType {
 	case "web":
 		id = f.Id
+	case "token":
+		if f.Provider == "SYMANTEC" {
+			id = f.Id
+		} else {
+			err = fmt.Errorf("provider %s with factor token not supported", f.Provider)
+		}
 	case "token:software:totp":
 		id = f.Id
 	case "token:hardware":
 		id = f.Id
 	case "sms":
+		id = f.Id
+	case "u2f":
 		id = f.Id
 	case "push":
 		if f.Provider == "OKTA" || f.Provider == "DUO" {
@@ -469,7 +528,11 @@ func (o *OktaClient) Get(method string, path string, data []byte, recv interface
 			"Cache-Control": []string{"no-cache"},
 		}
 	} else {
-		header = http.Header{}
+		// disable gzip encoding; it was causing spurious EOFs
+		// for some users; see #148
+		header = http.Header{
+			"Accept-Encoding": []string{"identity"},
+		}
 	}
 
 	transCfg := &http.Transport{
@@ -528,6 +591,7 @@ type OktaProvider struct {
 	// to be stored in the keyring.
 	OktaSessionCookieKey string
 	MFAConfig            MFAConfig
+	AwsRegion            string
 }
 
 func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
@@ -555,15 +619,15 @@ func (p *OktaProvider) Retrieve() (sts.Credentials, string, error) {
 		return sts.Credentials{}, "", err
 	}
 
-	creds, newSessionCookie, err := oktaClient.AuthenticateProfile(p.ProfileARN, p.SessionDuration)
+	creds, newSessionCookie, err := oktaClient.AuthenticateProfileWithRegion(p.ProfileARN, p.SessionDuration, p.AwsRegion)
 	if err != nil {
 		return sts.Credentials{}, "", err
 	}
 
 	newCookieItem := keyring.Item{
-		Key:   p.OktaSessionCookieKey,
-		Data:  []byte(newSessionCookie),
-		Label: "okta session cookie",
+		Key:                         p.OktaSessionCookieKey,
+		Data:                        []byte(newSessionCookie),
+		Label:                       "okta session cookie",
 		KeychainNotTrustApplication: false,
 	}
 
