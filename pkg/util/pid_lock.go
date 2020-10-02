@@ -66,7 +66,7 @@ func (l *Lock) Lock(optBackoff ...backoff.BackOff) error {
 		b = optBackoff[0]
 	}
 
-	return errors.Wrap(backoff.Retry(l.lock.TryLock, b), "Error acquiring lock")
+	return errors.Wrap(backoff.Retry(l.lock.TryLock, b), "Error acquiring lock at ~/.blessclient/.lock")
 }
 
 // Unlock will unlock the pid lockfile
