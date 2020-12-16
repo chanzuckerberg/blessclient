@@ -3,20 +3,25 @@ name: Go
 on: push
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - check-mod
+          - test-ci
+          - lint-ci
     steps:
-
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
         go-version: 1.15.5
       id: go
-
     - name: checkout
       uses: actions/checkout@v2
+    - name: setup
+      run: make setup
+    - name: ${{ matrix.target }}
+      run: make ${{ matrix.target }}
 
-    - name: test
-      run: make test-ci
