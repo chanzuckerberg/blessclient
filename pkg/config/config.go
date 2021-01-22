@@ -103,7 +103,7 @@ func (c *Config) Persist(configPath string) error {
 	if err != nil {
 		return errors.Wrapf(err, "Could not write config to %s", configPath)
 	}
-	log.Infof("Config written to %s", configPath)
+	log.Debugf("Config written to %s", configPath)
 	return nil
 }
 
