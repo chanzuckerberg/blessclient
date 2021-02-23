@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.61.0 // indirect
-	github.com/aws/aws-sdk-go v1.33.6
+	github.com/aws/aws-sdk-go v1.37.16
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chanzuckerberg/go-misc v0.0.0-20200716151046-c2bf84000e9f
