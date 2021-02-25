@@ -5,7 +5,7 @@ go 1.14
 require (
 	cloud.google.com/go v0.78.0 // indirect
 	cloud.google.com/go/storage v1.13.0 // indirect
-	github.com/aws/aws-sdk-go v1.37.17
+	github.com/aws/aws-sdk-go v1.37.18
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/chanzuckerberg/go-misc v0.0.0-20210223161413-1f9caea1c29d
