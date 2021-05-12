@@ -16,14 +16,13 @@ require (
 	github.com/hashicorp/go-getter v1.5.2
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
-	github.com/magefile/mage v1.11.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/nightlyone/lockfile v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20201205024021-ac21108117ac // indirect
 	github.com/segmentio/go-prompt v1.2.1-0.20161017233205-f0d19b6901ad
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/ulikunitz/xz v0.5.10 // indirect
