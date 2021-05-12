@@ -12,7 +12,7 @@ setup:
 	curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s -- v0.9.17
 .PHONY: setup
 
-test: deps ## run tests, will update go.mod
+test: ## run tests, will update go.mod
 	go test -coverprofile=coverage.txt -covermode=atomic ./...
 .PHONY: test
 
@@ -38,18 +38,9 @@ release-prerelease: test build ## release to github as a 'pre-release'
 	git push --tags
 .PHONY: release-prerelease
 
-install: deps
+install:
 	go install  ${LDFLAGS} .
 .PHONY: install
-
-deps:
-	go mod tidy
-.PHONY: deps
-
-check-mod:
-	go mod tidy
-	git diff --exit-code -- go.mod go.sum
-.PHONY: check-mod
 
 lint: ## run the fast go linters
 	./bin/golangci-lint run --no-config \
