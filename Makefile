@@ -3,7 +3,7 @@ VERSION=$(shell cat VERSION)
 DIRTY=$(shell if `git diff-index --quiet HEAD --`; then echo false; else echo true;  fi)
 LDFLAGS=-ldflags "-w -s -X github.com/chanzuckerberg/blessclient/pkg/util.GitSha=${SHA} -X github.com/chanzuckerberg/blessclient/pkg/util.Version=${VERSION} -X github.com/chanzuckerberg/blessclient/pkg/util.Dirty=${DIRTY}"
 export GO111MODULE=on
-export CGO_ENABLED=1
+export CGO_ENABLED=0
 
 setup:
 	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
