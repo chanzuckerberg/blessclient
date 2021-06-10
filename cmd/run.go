@@ -1,20 +1,25 @@
 package cmd
 
 import (
+	"context"
+	"crypto"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/bless"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	"github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	oidc "github.com/chanzuckerberg/go-misc/oidc_cli"
+	"github.com/chanzuckerberg/go-misc/oidc_cli/client"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -94,29 +99,20 @@ var runCmd = &cobra.Command{
 			return err
 		}
 
-		awsConf := aws.NewConfig().WithCredentials(credsProvider.Credentials).WithRegion("us-west-2")
-		awsClient := cziAWS.New(sess).WithLambda(awsConf)
-
-		client := bless.NewOIDC(awsClient, &config.LambdaConfig)
-
-		cert, err := client.RequestCert(
+		cert, err := regionalGetCert(
 			cmd.Context(),
-			awsClient,
-			&bless.SigningRequest{
-				PublicKeyToSign: bless.NewPublicKeyToSign(pub),
-				Identity: bless.Identity{
-					OktaAccessToken: &bless.OktaAccessTokenInput{
-						AccessToken: token.AccessToken,
-					},
-				},
-			},
+			sess,
+			credsProvider.Credentials,
+			config,
+			token,
+			pub,
 		)
 		if err != nil {
 			return err
 		}
 
 		if printCert {
-			err = ssh.PrintCertificate(cert, os.Stderr)
+			err = cziSSH.PrintCertificate(cert, os.Stderr)
 			if err != nil {
 				logrus.WithError(err).Debug("Could not print cert. Ignoring error.")
 			}
@@ -137,4 +133,42 @@ var runCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+func regionalGetCert(
+	ctx context.Context,
+	sess *session.Session,
+	creds *credentials.Credentials,
+	blessConfig *config.Config,
+	token *client.Token,
+	publicKey crypto.PublicKey,
+) (*ssh.Certificate, error) {
+	var errors *multierror.Error
+
+	for _, region := range blessConfig.LambdaConfig.Regions {
+		logrus.Debugf("Attempting to get cert from region %s", region.AWSRegion)
+
+		awsConf := aws.NewConfig().WithCredentials(creds).WithRegion(region.AWSRegion)
+		awsClient := cziAWS.New(sess).WithLambda(awsConf)
+		client := bless.NewOIDC(awsClient, &blessConfig.LambdaConfig)
+		cert, err := client.RequestCert(
+			ctx,
+			awsClient,
+			&bless.SigningRequest{
+				PublicKeyToSign: bless.NewPublicKeyToSign(publicKey),
+				Identity: bless.Identity{
+					OktaAccessToken: &bless.OktaAccessTokenInput{
+						AccessToken: token.AccessToken,
+					},
+				},
+			},
+		)
+		// if no error, done and return
+		if err == nil {
+			return cert, nil
+		}
+		// if error, accumulate it
+		errors = multierror.Append(errors, err)
+	}
+	return nil, errors.ErrorOrNil()
 }
