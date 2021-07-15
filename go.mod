@@ -13,7 +13,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-getter v1.5.3
-	github.com/hashicorp/go-multierror v1.1.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
