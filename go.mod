@@ -9,7 +9,7 @@ require (
 	github.com/chanzuckerberg/go-misc v0.0.0-20211026171729-1010104601dc
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/mock v1.6.0
-	github.com/hashicorp/go-getter v1.5.9
+	github.com/hashicorp/go-getter v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nightlyone/lockfile v1.0.0
