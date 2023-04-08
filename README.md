@@ -8,6 +8,24 @@
 Inspiration for this project comes from [lyft/python-blessclient](https://github.com/lyft/python-blessclient).
 We decided to write in Go because it is much easier to distribute a statically linked binary to a large team than having to deal with python environments. Some features from [lyft/python-blessclient](https://github.com/lyft/python-blessclient) are currently missing but will be added over time while others are purposefully excluded.
 
+## Versions
+We are currently in the process of releasing a new major version of blessclient that will replace [netflix/bless](https://github.com/Netflix/bless) for a version that relies on federated identity.
+
+### v0.x.x - deprecation notice
+This version will soon be deprecated.
+For the time-being `brew install blessclient` will still point to `v0.x.x`
+
+You can use homebrew to install with
+```
+brew tap chanzuckerberg/tap
+brew install blessclient@0
+```
+
+We will keep a v0 branch around for high priority fixes until migrated fully to `v1.x.x`.
+
+### v1.x.x - in active development
+More to come.
+
 ## Install
 
 ### Mac
@@ -84,15 +102,6 @@ This ssh config does a couple of interesting things -
 
 - It transparently requests an ssh certificate if needed
 - It transparently does a ProxyJump through a bastion host (assuming 10.0.* is an ipblock for machines behind the bastion)
-
-### Enable Okta SSO
-
-By default, blessclient uses your IAM user credentials. Blessclient is able to support Okta SAML auth if this is [enabled for your AWS account](https://saml-doc.okta.com/SAML_Docs/How-to-Configure-SAML-2.0-for-Amazon-Web-Service.html). The [example config](examples/config.yml) shows the configuration options available under `okta_config`. Blessclient uses the [aws-okta](https://github.com/segmentio/aws-okta) library for authentication, which supports multiple MFA options.
-
-You will need to setup a profile in your ~/.aws/config that can be accepted by aws-okta. Example configs are available [here](https://github.com/segmentio/aws-okta/tree/master#configuring-your-aws-config).
-
-## Telemetry
-There currently is some basic trace instrumentation using [honeycomb](https://www.honeycomb.io/). We use this internally to track usage, gather performance statistics, and error reporting. Telemetry is disabled without a honeycomb write key - which you must provide through the [config](pkg/config/config.go).
 
 ## Common Errors
 

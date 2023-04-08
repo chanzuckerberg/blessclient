@@ -11,11 +11,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAws "github.com/chanzuckerberg/go-misc/aws"
+	cziAWSMocks "github.com/chanzuckerberg/go-misc/aws/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -25,30 +25,32 @@ type TestSuite struct {
 
 	ctx context.Context
 
+	ctrl *gomock.Controller
+
 	// aws
 	awsClient *cziAws.Client
-	mockIAM   *cziAws.MockIAMSvc
-	mockSTS   *cziAws.MockSTSSvc
+	mockIAM   *cziAWSMocks.MockIAMAPI
+	mockSTS   *cziAWSMocks.MockSTSAPI
 
 	// cleanup
 	server *httptest.Server
 }
 
 func (ts *TestSuite) TearDownTest() {
+	ts.ctrl.Finish() // assert mocks
 	ts.server.Close()
 }
 
 func (ts *TestSuite) SetupTest() {
-	// t := ts.T()
-	// a := assert.New(t)
 	ts.ctx = context.Background()
+	ts.ctrl = gomock.NewController(ts.T())
 
 	sess, server := cziAws.NewMockSession()
 	ts.server = server
 
 	ts.awsClient = cziAws.New(sess)
-	_, ts.mockIAM = ts.awsClient.WithMockIAM()
-	_, ts.mockSTS = ts.awsClient.WithMockSTS()
+	_, ts.mockIAM = ts.awsClient.WithMockIAM(ts.ctrl)
+	_, ts.mockSTS = ts.awsClient.WithMockSTS(ts.ctrl)
 }
 
 func (ts *TestSuite) TestFromFile() {
@@ -94,26 +96,6 @@ func (ts *TestSuite) TestPersist() {
 	a.Equal(c1, c2)
 }
 
-func (ts *TestSuite) TestGetAWSUsernameOktaConfig() {
-	t := ts.T()
-	a := assert.New(t)
-
-	output := &sts.GetCallerIdentityOutput{}
-	output.SetUserId("role_id:test_user")
-	ts.mockSTS.On("GetCallerIdentityWithContext", mock.Anything).Return(output, nil)
-	c, err := config.DefaultConfig()
-	mfaDevice := "phone1"
-	c.OktaConfig = &config.OktaConfig{
-		Profile:   "testprofile",
-		DuoDevice: &mfaDevice,
-	}
-	a.Nil(err)
-
-	username, err := c.GetAWSUsername(ts.ctx, ts.awsClient)
-	a.Nil(err)
-	a.Equal(username, "test_user")
-}
-
 func (ts *TestSuite) TestUpdateAWSUsername() {
 	t := ts.T()
 	a := assert.New(t)
@@ -121,18 +103,16 @@ func (ts *TestSuite) TestUpdateAWSUsername() {
 	output := &iam.GetUserOutput{
 		User: &iam.User{UserName: aws.String("testo")},
 	}
-	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, nil)
+
+	ts.mockIAM.EXPECT().GetUserWithContext(gomock.Any(), gomock.Any()).Return(output, nil).Times(1)
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 
 	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.Nil(err)
-	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
 
 	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.Nil(err)
-	// Should read the username from the config
-	ts.mockIAM.Mock.AssertNumberOfCalls(t, "GetUserWithContext", 1)
 }
 
 func (ts *TestSuite) TestUpdateAWSUsernameError() {
@@ -142,7 +122,8 @@ func (ts *TestSuite) TestUpdateAWSUsernameError() {
 	output := &iam.GetUserOutput{
 		User: &iam.User{UserName: aws.String("testo")},
 	}
-	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, e)
+
+	ts.mockIAM.EXPECT().GetUserWithContext(gomock.Any(), gomock.Any()).Return(output, e).Times(1)
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
@@ -156,7 +137,7 @@ func (ts *TestSuite) TestUpdateAWSUsernameEmptyResponse() {
 	output := &iam.GetUserOutput{
 		User: &iam.User{UserName: nil},
 	}
-	ts.mockIAM.On("GetUserWithContext", mock.Anything).Return(output, nil)
+	ts.mockIAM.EXPECT().GetUserWithContext(gomock.Any(), gomock.Any()).Return(output, nil).Times(2)
 	c, err := config.DefaultConfig()
 	a.Nil(err)
 	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
@@ -164,6 +145,7 @@ func (ts *TestSuite) TestUpdateAWSUsernameEmptyResponse() {
 	a.Contains(err.Error(), "AWS returned nil user")
 
 	output.User = nil
+	// does not make an aws calls
 	err = c.SetAWSUsername(ts.ctx, ts.awsClient, nil)
 	a.NotNil(err)
 	a.Contains(err.Error(), "AWS returned nil user")
@@ -178,27 +160,6 @@ func (ts *TestSuite) TestGetRemoteUsers() {
 
 	remoteUsers := c.GetRemoteUsers("testusername")
 	a.Equal([]string{"testusername"}, remoteUsers)
-}
-
-func (ts *TestSuite) TestGetOktaMFADevice() {
-	t := ts.T()
-	a := assert.New(t)
-
-	c, err := config.DefaultConfig()
-	a.Nil(err)
-	c.OktaConfig = &config.OktaConfig{
-		Profile: "testprofile",
-	}
-	conf := c.GetOktaMFAConfig()
-	a.Equal(conf.DuoDevice, "phone1")
-
-	configFactorType := "u2f"
-	c.OktaConfig = &config.OktaConfig{
-		Profile:       "testprofile",
-		MFAFactorType: &configFactorType,
-	}
-	conf = c.GetOktaMFAConfig()
-	a.Equal(conf.FactorType, "u2f")
 }
 
 func TestDuration(t *testing.T) {

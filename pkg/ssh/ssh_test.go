@@ -1,13 +1,9 @@
 package ssh
 
 import (
-	"context"
-	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -31,14 +27,8 @@ const (
 	expiredED25519PrivateKeyPath = "testdata/expired_id_ed25519"
 )
 
-// HACK we're mocking out the ssh command
-func resetSSHCommand() {
-	sshVersionCmd = exec.Command("ssh", "-V")
-}
-
 // cleanup
 func (ts *TestSuite) TearDownTest() {
-	resetSSHCommand()
 	ts.loggerHook.Reset()
 }
 
@@ -89,70 +79,6 @@ func (ts *TestSuite) TestEmptySSHPathError() {
 	a.Nil(s)
 }
 
-func (ts *TestSuite) TestCheckKeyTypeAndClientVersionDoesNotError() {
-	t := ts.T()
-	a := assert.New(t)
-
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-
-	s.CheckKeyTypeAndClientVersion(context.Background())
-}
-
-func (ts *TestSuite) TestSSHVersion() {
-	t := ts.T()
-	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
-
-	v, err := GetSSHVersion()
-	a.Nil(err)
-	a.NotEmpty(v)
-	a.Equal("OpenSSH_7.6\n", v)
-}
-
-func (ts *TestSuite) TestSSHVersionError() {
-	t := ts.T()
-	a := assert.New(t)
-	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
-	defer resetSSHCommand()
-
-	v, err := GetSSHVersion()
-	a.NotNil(err)
-	a.Empty(v)
-}
-
-func (ts *TestSuite) TestCheckVersionErrorLogError() {
-	t := ts.T()
-	a := assert.New(t)
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-	sshVersionCmd = exec.Command("notfoundnotfoundnotfound")
-	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
-}
-
-func (ts *TestSuite) TestCheckVersionRSA78() {
-	log.SetLevel(log.DebugLevel)
-	t := ts.T()
-	a := assert.New(t)
-	s, err := NewSSH(rsaPrivateKeyPath)
-	a.Nil(err)
-	a.NotNil(s)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.8")
-	defer resetSSHCommand()
-	s.CheckKeyTypeAndClientVersion(context.Background())
-
-	found := false
-	for _, entry := range ts.loggerHook.Entries {
-
-		found = found || strings.Contains(entry.Message, "RSA key with OpenSSH_7.8")
-	}
-	a.True(found)
-}
-
 func (ts *TestSuite) TestNoCertPresent() {
 	t := ts.T()
 	a := assert.New(t)
@@ -168,7 +94,6 @@ func (ts *TestSuite) TestNoCertPresent() {
 func (ts *TestSuite) TestExpiredCert() {
 	t := ts.T()
 	a := assert.New(t)
-	resetSSHCommand()
 
 	s, err := NewSSH(expiredED25519PrivateKeyPath) // no cert for this key
 	a.Nil(err)
@@ -185,8 +110,6 @@ func (ts *TestSuite) TestExpiredCert() {
 func (ts *TestSuite) TestIsCertFreshExpiredCert() {
 	t := ts.T()
 	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
 	s, err := NewSSH(expiredED25519PrivateKeyPath)
 	a.Nil(err)
 	a.NotNil(s)
@@ -205,8 +128,6 @@ func (ts *TestSuite) TestIsCertFreshExpiredCert() {
 func (ts *TestSuite) TestIsCertFreshNoCert() {
 	t := ts.T()
 	a := assert.New(t)
-	sshVersionCmd = exec.Command("echo", "OpenSSH_7.6")
-	defer resetSSHCommand()
 	s, err := NewSSH(rsaPrivateKeyPath) // no cert for this key
 	a.Nil(err)
 	a.NotNil(s)
