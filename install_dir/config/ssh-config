@@ -1,0 +1,49 @@
+User REPLACEMEWITHUSERNAME
+
+Host gateway.ln gateway.lyft.net
+Hostname gateway.lyft.net
+ProxyCommand none
+GatewayPorts yes
+
+Host gateway-sfo.ln gateway-sfo.lyft.net
+ProxyCommand none
+Hostname gateway-sfo.lyft.net
+GatewayPorts yes
+
+Host github.ln github.lyft.net github-production.lyft.net
+Hostname github.lyft.net
+ProxyCommand none
+
+Host github-staging.ln github-staging.lyft.net
+Hostname github-staging.lyft.net
+ProxyCommand none
+
+Host *sfo*.lyft.net *sfo*.ln
+ProxyCommand ssh gateway-sfo.ln "proxy-ec2 %h"
+ForwardAgent yes
+
+Host *.lyft.me *.lm *.lyft.net *.ln
+ProxyCommand ssh gateway.ln "proxy-ec2 %h"
+# For increased security, consider setting ForwardAgent to no
+# and use the -A flag to set agent forwarding on a per connection basis
+# when access to the local ssh agent is actually needed
+# (eg when pushing to github).
+ForwardAgent yes
+
+Host *
+KeepAlive yes
+ServerAliveInterval 60
+GSSAPIAuthentication no
+ForwardAgent no
+ForwardX11 no
+
+# The following three lines are for Sierra and above:
+UseKeychain yes
+AddKeysToAgent yes
+IdentityFile ~/.ssh/id_rsa
+
+# BLESS Client 3.0.0
+    Match Host *.lyft.net,*.ln,!github.lyft.net exec "aws-okta exec bless -- blessclient run -c ~/.blessclient/config.yml"
+    IdentityFile ~/.ssh/blessid
+    UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts2 ~/.ssh/lyft_known_hosts
+# ---End BLESS Client---

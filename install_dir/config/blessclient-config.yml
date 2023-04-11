@@ -1,0 +1,26 @@
+version: 0
+client_config:
+  aws_username: REPLACEMEWITHUSERNAME
+  ssh_private_key: ~/.ssh/blessid
+  update_ssh_agent: true
+  duration: 30m0s
+  remote_users: []
+  bastion_ips:
+    - 0.0.0.0/0
+    - 10.0.18.240
+    - 10.0.41.65
+    - 10.0.0.72
+    - 172.16.0.1
+    - 172.17.0.1
+    - 10.0.0.0/8
+    - 192.168.192.0/19
+  skip_principal_validation: true
+lambda_config:
+  function_name: lyft_bless
+  function_version: PROD-3-0
+  regions:
+  - aws_region: us-east-1
+    kms_auth_key_id: b973f47b-e7d1-45b5-b27b-ff5f0d6a0937
+  - aws_region: us-west-2
+    kms_auth_key_id: 42ad4282-835e-435c-96f4-e33aa80071ef
+

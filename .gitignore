@@ -5,3 +5,5 @@ coverage.*
 profile.cov
 _bin/bff
 bin
+build/
+.DS_Store
