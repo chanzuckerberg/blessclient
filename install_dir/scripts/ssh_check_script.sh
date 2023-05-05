@@ -28,17 +28,30 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
             ssh-keygen -b 8192 -P "$PASSWORD" -f id_rsa -o >/dev/null
             echo "done!"
             echo ""
-            echo "echo $PASSWORD" > /tmp/askpass.sh
-            chmod +x /tmp/askpass.sh
+            echo "echo $PASSWORD" > $HOME/.ssh/askpass.sh
+            chmod +x $HOME/.ssh/askpass.sh
             export DISPLAY=":0"
-            export SSH_ASKPASS="/tmp/askpass.sh"
-            ssh-add -K "$HOME/.ssh/id_rsa" </dev/null
-            rm -f /tmp/askpass.sh
+            export SSH_ASKPASS="$HOME/.ssh/askpass.sh"
+            ssh-add --apple-use-keychain "$HOME/.ssh/id_rsa" </dev/null
+            #rm -f ~/.ssh/askpass.sh
 
         else
             err "Password generation failed in some way; did not obtain a valid password from openssl"
             return 1
         fi
+        echo "Your SSH key has been generated, please do the following:"
+        echo "1) Click on the following link to navigate to your Github SSH settings - https://github.com/settings/ssh"
+        echo "2) select 'New SSH Key' button"
+        echo "3) Add a 'title' such as 'Lyft SSH Key"
+        echo "4) Paste the contents of `~/.ssh/id_rsa.pub` into the 'key' textbox (This should already be copied into your clipboard)"
+        pbcopy < $HOME/.ssh/id_rsa.pub
+        echo "5) Once added, next to the SSH key select 'Configure SSO' and select 'authorize' next to the Lyft organization and follow the prompts."
+        echo "If you run into any issues, check out  https://confluence.lyft.net/display/ENG/GitHub"
+        echo "When you've completed this, press any key to continue... "
+        read -k 1 ""
+        #echo "3) Click the 'Authorize' button next to your new SSH key
+        #echo "1) Note: Your SSH key has been copied to your clipboard."
+
     fi
 
 
@@ -61,37 +74,3 @@ fi
 echo "Completed, removing checks."
 sed -i '' '/\/opt\/lyft\/ssh_check_script.sh/d' ~/.zshrc
 exit 0
-
-#rm -f /tmp/force_add.sh
-
-
-#if ! [ -f "$SSH_CONFIG_DIR/id_rsa" ]; then
-#    echo "Generating SSH private key."
-#    cd $SSH_CONFIG_DIR
-#    PASSWORD=$(openssl rand -base64 30)
-#    if [ "${#PASSWORD}" -ge 20 ]; then
-#        echo "Generating a key for you (may take a few seconds)..."
-#        ssh-keygen -b 8192 -P "$PASSWORD" -f id_rsa -o -C $INSTALL_USER@lyft.com >/dev/null
-#        echo "Owning SSH folder"
-#        chown -R "$INSTALL_USER" $SSH_CONFIG_DIR
-#        echo "echo $PASSWORD" > /tmp/askpass.sh
-#        chmod +x /tmp/askpass.sh
-#        chmod +x /tmp/force_add.sh
-#        chown "$INSTALL_USER" /tmp/force_add.sh
-        # We cannot forcibly add a key to a keychain
-        # so instead we drop a script that will be run when zsh is started.
-#        echo "export DISPLAY=\":0\"" > "/tmp/force_add.sh"
-#        echo "export SSH_ASKPASS=\"/tmp/askpass.sh\"" >> "/tmp/force_add.sh"
-#        echo "ssh-add --apple-use-keychain $SSH_CONFIG_DIR/id_rsa </dev/null"  >> "/tmp/force_add.sh"
-#        echo "echo \"SSH setup has completed, you may close this terminal\"" >> "/tmp/force_add.sh"
-#        echo "sed -i '' -e '$ d' ~/.zshrc" >> "/tmp/force_add.sh"
-#        echo "exit" >> "/tmp/force_add.sh"
-#        echo "/tmp/force_add.sh" >> ~/.zshrc
-#        /bin/launchctl asuser $loggedInUID sudo -i -u $INSTALL_USER open /System/Applications/Utilities/Terminal.app
-#    else
-#        err "Password generation failed in some way; did not obtain a valid password from openssl"
-#        return 1
-#    fi
-#else
-#    echo "Existing id_rsa, skipping generation."
-#fi
