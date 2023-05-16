@@ -6,19 +6,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 	"time"
 
-	"github.com/99designs/keyring"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/chanzuckerberg/blessclient/pkg/telemetry"
 	"github.com/chanzuckerberg/blessclient/pkg/util"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
-	awsokta "github.com/segmentio/aws-okta/lib"
 	log "github.com/sirupsen/logrus"
-	"go.opencensus.io/trace"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -42,13 +36,8 @@ type Config struct {
 	ClientConfig ClientConfig `yaml:"client_config"`
 	// LambdaConfig holds configuration around the bless lambda
 	LambdaConfig LambdaConfig `yaml:"lambda_config"`
-	// OktaConfig holds configuration around aws-okta settings
-	OktaConfig *OktaConfig `yaml:"okta_config,omitempty"`
 	// For convenience, you can bundle an ~/.ssh/config template here
 	SSHConfig *SSHConfig `yaml:"ssh_config,omitempty"`
-
-	// Telemetry does telemetry
-	Telemetry Telemetry `yaml:"telemetry,omitempty"`
 }
 
 // Region is an aws region that contains an aws lambda
@@ -85,18 +74,6 @@ type ClientConfig struct {
 	SkipPrincipalValidation bool `yaml:"skip_principal_validation"`
 }
 
-// OktaConfig is the Okta config
-type OktaConfig struct {
-	Domain         string  `yaml:"domain"`
-	Organization   string  `yaml:"organization"`
-	Profile        string  `yaml:"profile"`
-	KeyringKeyID   *string `yaml:"keyring_key_id,omitempty"`
-	MFAProvider    *string `yaml:"mfa_provider,omitempty"`
-	MFAFactorType  *string `yaml:"mfa_factor_type,omitempty"`
-	DuoDevice      *string `yaml:"duo_device,omitempty"`
-	KeyringBackend *string `yaml:"keyring_backend,omitempty"`
-}
-
 // LambdaConfig is the lambda config
 type LambdaConfig struct {
 	// RoleARN used to assume and invoke bless lambda
@@ -107,19 +84,6 @@ type LambdaConfig struct {
 	FunctionVersion *string `yaml:"function_version,omitempty"`
 	// bless lambda regions
 	Regions []Region `yaml:"regions,omitempty"`
-}
-
-// Telemetry to track adoption, performance, errors
-type Telemetry struct {
-	Honeycomb *Honeycomb `yaml:"honeycomb,omitempty"`
-}
-
-// Honeycomb telemetry configuration
-type Honeycomb struct {
-	WriteKey string `yaml:"write_key,omitempty"`
-	Dataset  string `yaml:"dataset,omitempty"`
-	// SecretManagerARN is a secret that holds the honeycomb write key
-	SecretManagerARN string `yaml:"secret_manager_arn,omitempty"`
 }
 
 // Duration is a wrapper around Duration to marshal/unmarshal
@@ -222,34 +186,17 @@ func (c *Config) GetKMSAuthCachePath(region string) (string, error) {
 
 // GetAWSUsername gets the caller's aws username for kmsauth
 func (c *Config) GetAWSUsername(ctx context.Context, awsClient *cziAWS.Client) (string, error) {
-	ctx, span := trace.StartSpan(ctx, "get_aws_username")
-	defer span.End()
 	log.Debugf("Getting current aws iam user")
 	if c.ClientConfig.AWSUserName != nil {
 		log.Debugf("Using username %s from config", *c.ClientConfig.AWSUserName)
-		span.AddAttributes(trace.BoolAttribute(telemetry.FieldIsCached, true))
 		return *c.ClientConfig.AWSUserName, nil
-	}
-	if c.OktaConfig != nil {
-		log.Debugf("Getting user from Okta SAML AWS UserId")
-		input := &sts.GetCallerIdentityInput{}
-		result, err := awsClient.STS.GetCallerIdentity(ctx, input)
-		if err != nil {
-			return "", err
-		}
-		// UserId is in format role id:saml user name
-		// https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_variables.html#principaltable
-		split := strings.Split(*result.UserId, ":")
-		return strings.ToLower(split[1]), nil
 	}
 	user, err := awsClient.IAM.GetCurrentUser(ctx)
 	if err != nil {
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	if user == nil || user.UserName == nil {
 		err = errors.New("AWS returned nil user")
-		span.AddAttributes(trace.StringAttribute(telemetry.FieldError, err.Error()))
 		return "", err
 	}
 	return *user.UserName, nil
@@ -265,38 +212,6 @@ func (c *Config) GetRemoteUsers(username string) []string {
 		remoteUsers = []string{username}
 	}
 	return remoteUsers
-}
-
-// GetOktaMFAConfig gets the user's designated MFA device, defaulting to "phone1"
-// (phone-based MFA) via Duo.
-func (c *Config) GetOktaMFAConfig() awsokta.MFAConfig {
-	provider := "DUO"
-	factorType := "web"
-	duoDevice := "phone1"
-	if c.OktaConfig.MFAProvider != nil {
-		provider = *c.OktaConfig.MFAProvider
-	}
-	if c.OktaConfig.MFAFactorType != nil {
-		factorType = *c.OktaConfig.MFAFactorType
-	}
-	if c.OktaConfig.DuoDevice != nil {
-		duoDevice = *c.OktaConfig.DuoDevice
-	}
-	return awsokta.MFAConfig{
-		Provider:   provider,
-		FactorType: factorType,
-		DuoDevice:  duoDevice,
-	}
-}
-
-// GetAWSOktaKeyringBackend gets the keyring backends to be used to store AWS Okta credentials.
-// Defaults to an empty list which will select a keyring backend based on OS.
-func (c *Config) GetAWSOktaKeyringBackend() []keyring.BackendType {
-	var backends []keyring.BackendType
-	if c.OktaConfig.KeyringBackend != nil {
-		backends = append(backends, keyring.BackendType(*c.OktaConfig.KeyringBackend))
-	}
-	return backends
 }
 
 // SetAWSUsername sets the ClientConfig.AWSUserName from a variety of sources

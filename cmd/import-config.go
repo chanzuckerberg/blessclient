@@ -9,8 +9,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/chanzuckerberg/blessclient/pkg/config"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
@@ -106,10 +104,6 @@ var importConfigCmd = &cobra.Command{
 			return errors.Wrap(err, "Could not create aws session")
 		}
 		awsClient := cziAWS.New(sess).WithAllServices(nil)
-		err = setTelemetrySecret(ctx, conf, awsClient)
-		if err != nil {
-			return err
-		}
 
 		usernameOverride, err := determineUsernameOverride(cmd)
 		if err != nil {
@@ -144,31 +138,6 @@ func determineUsernameOverride(cmd *cobra.Command) (*string, error) {
 		return &username, err
 	}
 	return nil, nil
-}
-
-func setTelemetrySecret(ctx context.Context, conf *config.Config, awsClient *cziAWS.Client) error {
-	// TODO: fail here or just ignore errors?
-	if conf.Telemetry.Honeycomb == nil {
-		return nil
-	}
-	parsedARN, err := arn.Parse(conf.Telemetry.Honeycomb.SecretManagerARN)
-	if err != nil {
-		return errors.Wrapf(err, "Could not parse arn %s", conf.Telemetry.Honeycomb.SecretManagerARN)
-	}
-
-	// Configure the region
-	awsClient.WithAllServices(&aws.Config{Region: aws.String(parsedARN.Region)})
-
-	secretARN := conf.Telemetry.Honeycomb.SecretManagerARN
-	secret, err := awsClient.SecretsManager.ReadStringLatestVersion(ctx, secretARN)
-	if err != nil {
-		return err
-	}
-	if secret == nil {
-		return errors.New("No telemetry secret found")
-	}
-	conf.Telemetry.Honeycomb.WriteKey = *secret
-	return nil
 }
 
 func sshConfig(conf *config.Config) error {
