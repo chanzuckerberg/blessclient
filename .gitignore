@@ -1,4 +1,6 @@
 blessclient
+blessclient_amd64
+blessclient_arm64
 blessclient.tar.gz
 dist
 coverage.*

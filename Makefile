@@ -30,6 +30,13 @@ build: ## build the binary
 	go build ${LDFLAGS} .
 .PHONY: build
 
+build-mac:
+	set CGO_ENABLED=0
+	GOOS=darwin GOARCH=amd64 go build -a -ldflags '-extldflags "static"' -o "blessclient_amd64" ${LDFLAGS} .
+	GOOS=darwin GOARCH=arm64 go build -a -ldflags '-extldflags "static"' -o "blessclient_arm64" ${LDFLAGS} .
+	lipo -create -output blessclient blessclient_amd64 blessclient_arm64
+.PHONY: build-mac
+
 release-prerelease: test build ## release to github as a 'pre-release'
 	version=`./blessclient version`; \
 	git tag v"$$version"; \
