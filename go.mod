@@ -56,7 +56,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/zalando/go-keyring v0.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
