@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.0](https://github.com/chanzuckerberg/blessclient/compare/v1.7.0...v1.8.0) (2025-01-14)
+
+
+### Features
+
+* Upgrade go 1.23 ([#286](https://github.com/chanzuckerberg/blessclient/issues/286)) ([5204be3](https://github.com/chanzuckerberg/blessclient/commit/5204be33174d3f617ec2af0b41310b140a7bd29d))
+
+
+### Misc
+
+* replace deprecated fork usage ([#283](https://github.com/chanzuckerberg/blessclient/issues/283)) ([41bdaac](https://github.com/chanzuckerberg/blessclient/commit/41bdaac77d9d7a8b02cc9e752621ae21d34a3f9f))
+
 ## [1.7.0](https://github.com/chanzuckerberg/blessclient/compare/v1.6.0...v1.7.0) (2023-09-05)
 
 
