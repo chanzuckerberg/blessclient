@@ -148,3 +148,4 @@ Contributions and ideas are welcome! Please don't hesitate to open an issue, joi
 Go version >= 1.12 required.
 
 This project is governed under the [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct) code of conduct.
+
