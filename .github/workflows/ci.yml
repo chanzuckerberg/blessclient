@@ -13,13 +13,13 @@ jobs:
           - test-ci
           - lint-ci
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
         id: go
-      - name: checkout
-        uses: actions/checkout@v4
       - name: setup
         run: make setup
       - name: ${{ matrix.target }}
