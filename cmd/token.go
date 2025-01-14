@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/chanzuckerberg/blessclient/pkg/config"
-	oidc "github.com/chanzuckerberg/go-misc/oidc_cli"
+	oidc "github.com/chanzuckerberg/go-misc/oidc_cli/oidc_impl"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

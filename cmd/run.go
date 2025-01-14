@@ -14,7 +14,7 @@ import (
 	cziSSH "github.com/chanzuckerberg/blessclient/pkg/ssh"
 	cziAWS "github.com/chanzuckerberg/go-misc/aws"
 	oidc "github.com/chanzuckerberg/go-misc/oidc_cli"
-	"github.com/chanzuckerberg/go-misc/oidc_cli/client"
+	"github.com/chanzuckerberg/go-misc/oidc_cli/oidc_impl/client"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
