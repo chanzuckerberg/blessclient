@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/chanzuckerberg/blessclient/compare/v1.9.0...v1.9.1) (2025-02-03)
+
+
+### Misc
+
+* remove deprecate tags ([#291](https://github.com/chanzuckerberg/blessclient/issues/291)) ([96adcec](https://github.com/chanzuckerberg/blessclient/commit/96adcecd92b29f45a2e122f6870fc103d3b4320b))
+
 ## [1.9.0](https://github.com/chanzuckerberg/blessclient/compare/v1.8.0...v1.9.0) (2025-01-14)
 
 
