@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.9.1](https://github.com/chanzuckerberg/blessclient/compare/v1.9.0...v1.9.1) (2025-06-06)
+
+
+### Misc
+
+* CCIE-4313 replace tibdex/github-app-token ([#302](https://github.com/chanzuckerberg/blessclient/issues/302)) ([ff1d18f](https://github.com/chanzuckerberg/blessclient/commit/ff1d18f9bf5db0f41d1b4435eac1ff5b01ec467f))
+* CCIE-4332 use GH_ACTIONS_HELPER_* ([#304](https://github.com/chanzuckerberg/blessclient/issues/304)) ([922cf30](https://github.com/chanzuckerberg/blessclient/commit/922cf3036a03980b2956c9492dc3e0aa27471629))
+* remove deprecate tags ([#291](https://github.com/chanzuckerberg/blessclient/issues/291)) ([96adcec](https://github.com/chanzuckerberg/blessclient/commit/96adcecd92b29f45a2e122f6870fc103d3b4320b))
+
+
+### BugFixes
+
+* tweak go.mod to help go mod tidying ([#301](https://github.com/chanzuckerberg/blessclient/issues/301)) ([ae50f2e](https://github.com/chanzuckerberg/blessclient/commit/ae50f2ea3fc80f5618c283238ae4f45efdaf6268))
+
 ## [1.9.0](https://github.com/chanzuckerberg/blessclient/compare/v1.8.0...v1.9.0) (2025-01-14)
 
 
