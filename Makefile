@@ -9,7 +9,7 @@ setup:
 	curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- v1.23.8
 	curl -L https://raw.githubusercontent.com/chanzuckerberg/bff/main/download.sh | sh
-	curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s -- v0.9.17
+	curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh| sh -s -- v0.21.0
 .PHONY: setup
 
 test: deps ## run tests, will update go.mod
@@ -59,7 +59,7 @@ lint: ## run the fast go linters
 .PHONY: lint
 
 lint-ci: ## run the fast go linters
-	./bin/reviewdog -tee -conf .reviewdog.yml  -reporter=github-pr-review
+	reviewdog -tee -conf .reviewdog.yml  -reporter=github-pr-review
 .PHONY: lint-ci
 
 lint-all: ## run the fast go linters
