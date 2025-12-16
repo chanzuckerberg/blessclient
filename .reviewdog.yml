@@ -1,6 +1,6 @@
 runner:
   golangci:
-    cmd: ./bin/golangci-lint run --out-format=line-number
+    cmd: .local/bin/golangci-lint run --out-format=line-number
     errorformat:
       - '%E%f:%l:%c: %m'
       - '%E%f:%l: %m'
